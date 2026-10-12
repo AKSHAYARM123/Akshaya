@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 64 64"
+     width="64"
+     height="64">
+
+    <!-- Left person -->
+    <circle
+        cx="17"
+        cy="21"
+        r="7"
+        fill="#b99ab8"/>
+
+    <path
+        d="M7 43
+           C7 35.8 11.5 31 17 31
+           C22.5 31 27 35.8 27 43
+           V50
+           H7
+           Z"
+        fill="#b99ab8"/>
+
+    <!-- Right person -->
+    <circle
+        cx="47"
+        cy="21"
+        r="7"
+        fill="#b99ab8"/>
+
+    <path
+        d="M37 43
+           C37 35.8 41.5 31 47 31
+           C52.5 31 57 35.8 57 43
+           V50
+           H37
+           Z"
+        fill="#b99ab8"/>
+
+    <!-- Main person -->
+    <circle
+        cx="32"
+        cy="17"
+        r="9"
+        fill="#714B67"/>
+
+    <path
+        d="M18 49
+           C18 39 23.5 32 32 32
+           C40.5 32 46 39 46 49
+           V55
+           H18
+           Z"
+        fill="#714B67"/>
+
+</svg>
