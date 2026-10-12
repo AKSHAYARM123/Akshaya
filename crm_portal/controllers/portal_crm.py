@@ -11,11 +11,11 @@ class CRMWebsite(Website):
 
         # Admin OR Portal User -> CRM Portal
         if (
-            request.params.get('login_success')
-            and (
+                request.params.get('login_success')
+                and (
                 user.has_group('base.group_system')
                 or user.has_group('base.group_portal')
-            )
+        )
         ):
             redirect = '/my/leads'
 
@@ -127,10 +127,34 @@ class CRMPortal(CustomerPortal):
         ].sudo()
 
         # -----------------------------------------------------
-        # LEADS
+        # LOST LEADS VIEW
         # -----------------------------------------------------
 
         domain = self._get_lead_domain()
+
+        if request.httprequest.args.get('stage') == 'lost':
+            lost_domain = domain + [
+                ('active', '=', False),
+                ('lost_reason_id', '!=', False),
+            ]
+
+            lost_leads = Lead.with_context(
+                active_test=False
+            ).search(
+                lost_domain,
+                order='write_date desc, id desc'
+            )
+
+            return request.render(
+                'crm_portal.portal_lost_leads',
+                {
+                    'lost_leads': lost_leads,
+                }
+            )
+
+        # -----------------------------------------------------
+        # ACTIVE PIPELINE LEADS
+        # -----------------------------------------------------
 
         leads = Lead.search(
             domain,
@@ -149,10 +173,9 @@ class CRMPortal(CustomerPortal):
         leads_by_stage = {}
 
         for stage in stages:
-
             leads_by_stage[stage.id] = leads.filtered(
                 lambda lead:
-                    lead.stage_id.id == stage.id
+                lead.stage_id.id == stage.id
             )
 
         # -----------------------------------------------------
@@ -221,8 +244,8 @@ class CRMPortal(CustomerPortal):
         methods=['POST']
     )
     def portal_quick_create_lead(
-        self,
-        **post
+            self,
+            **post
     ):
 
         Lead = request.env[
@@ -279,8 +302,8 @@ class CRMPortal(CustomerPortal):
             )
 
         except (
-            ValueError,
-            TypeError
+                ValueError,
+                TypeError
         ):
 
             expected_revenue = 0.0
@@ -294,8 +317,8 @@ class CRMPortal(CustomerPortal):
             stage_id = int(stage_id)
 
         except (
-            ValueError,
-            TypeError
+                ValueError,
+                TypeError
         ):
 
             stage_id = False
@@ -320,7 +343,6 @@ class CRMPortal(CustomerPortal):
             )
 
             if not partner:
-
                 partner = Partner.create({
                     'name': company_name,
                     'email': email_from or False,
@@ -371,7 +393,6 @@ class CRMPortal(CustomerPortal):
             )
 
             if stage.exists():
-
                 values['stage_id'] = stage.id
 
         # -----------------------------------------------------
@@ -398,8 +419,8 @@ class CRMPortal(CustomerPortal):
         methods=['POST']
     )
     def portal_generate_leads(
-        self,
-        **post
+            self,
+            **post
     ):
 
         Lead = request.env[
@@ -424,8 +445,8 @@ class CRMPortal(CustomerPortal):
             )
 
         except (
-            ValueError,
-            TypeError
+                ValueError,
+                TypeError
         ):
 
             lead_count = 1
@@ -485,12 +506,11 @@ class CRMPortal(CustomerPortal):
                 )
 
                 if salesperson.exists():
-
                     user_id = salesperson.id
 
         except (
-            ValueError,
-            TypeError
+                ValueError,
+                TypeError
         ):
 
             pass
@@ -512,12 +532,11 @@ class CRMPortal(CustomerPortal):
                 )
 
                 if team.exists():
-
                     team_id = team.id
 
         except (
-            ValueError,
-            TypeError
+                ValueError,
+                TypeError
         ):
 
             pass
@@ -542,8 +561,8 @@ class CRMPortal(CustomerPortal):
                     country = False
 
         except (
-            ValueError,
-            TypeError
+                ValueError,
+                TypeError
         ):
 
             country = False
@@ -555,7 +574,6 @@ class CRMPortal(CustomerPortal):
         industry = False
 
         if industry_name:
-
             industry = request.env[
                 'res.partner.industry'
             ].sudo().search(
@@ -576,7 +594,6 @@ class CRMPortal(CustomerPortal):
         state = False
 
         if state_name:
-
             state = request.env[
                 'res.country.state'
             ].sudo().search(
@@ -607,14 +624,13 @@ class CRMPortal(CustomerPortal):
                 )
 
                 if tag.exists():
-
                     converted_tag_ids.append(
                         tag.id
                     )
 
             except (
-                ValueError,
-                TypeError
+                    ValueError,
+                    TypeError
             ):
 
                 continue
@@ -624,12 +640,12 @@ class CRMPortal(CustomerPortal):
         # -----------------------------------------------------
 
         for index in range(
-            lead_count
+                lead_count
         ):
 
             lead_name = (
-                'Generated Lead %s'
-                % (index + 1)
+                    'Generated Lead %s'
+                    % (index + 1)
             )
 
             partner_values = {
@@ -637,19 +653,16 @@ class CRMPortal(CustomerPortal):
             }
 
             if country:
-
                 partner_values[
                     'country_id'
                 ] = country.id
 
             if state:
-
                 partner_values[
                     'state_id'
                 ] = state.id
 
             if industry:
-
                 partner_values[
                     'industry_id'
                 ] = industry.id
@@ -671,13 +684,11 @@ class CRMPortal(CustomerPortal):
             }
 
             if team_id:
-
                 lead_values[
                     'team_id'
                 ] = team_id
 
             if converted_tag_ids:
-
                 lead_values[
                     'tag_ids'
                 ] = [
@@ -708,10 +719,10 @@ class CRMPortal(CustomerPortal):
         methods=['POST']
     )
     def portal_move_lead_stage(
-        self,
-        lead_id,
-        stage_id,
-        **kwargs
+            self,
+            lead_id,
+            stage_id,
+            **kwargs
     ):
 
         Lead = request.env[
@@ -727,9 +738,8 @@ class CRMPortal(CustomerPortal):
         )
 
         if not self._check_lead_access(
-            lead
+                lead
         ):
-
             return request.not_found()
 
         try:
@@ -739,8 +749,8 @@ class CRMPortal(CustomerPortal):
             )
 
         except (
-            ValueError,
-            TypeError
+                ValueError,
+                TypeError
         ):
 
             return request.redirect(
@@ -752,7 +762,6 @@ class CRMPortal(CustomerPortal):
         )
 
         if not stage.exists():
-
             return request.redirect(
                 '/my/leads'
             )
@@ -777,9 +786,9 @@ class CRMPortal(CustomerPortal):
         methods=['GET', 'POST']
     )
     def portal_lead_detail(
-        self,
-        lead_id,
-        **post
+            self,
+            lead_id,
+            **post
     ):
 
         Lead = request.env[
@@ -815,10 +824,97 @@ class CRMPortal(CustomerPortal):
         # -----------------------------------------------------
 
         if not self._check_lead_access(
-            lead
+                lead
         ):
-
             return request.not_found()
+
+        # =====================================================
+        # WON / LOST ACTIONS
+        # =====================================================
+
+        # =====================================================
+        # HANDLE WON / LOST ACTIONS
+        # =====================================================
+
+        if request.httprequest.method == 'POST':
+
+            crm_action = post.get('crm_action')
+
+            # -------------------------------------------------
+            # MARK AS WON
+            # -------------------------------------------------
+            if crm_action == 'won':
+
+                if not lead.active:
+                    return request.redirect(
+                        '/my/leads/%s' % lead.id
+                    )
+
+                # Execute Odoo's standard CRM Won workflow.
+                lead.action_set_won()
+
+                return request.redirect(
+                    '/my/leads/%s' % lead.id
+                )
+
+            # -------------------------------------------------
+            # MARK AS LOST
+            # -------------------------------------------------
+            elif crm_action == 'lost':
+
+                if not lead.active:
+                    return request.redirect(
+                        '/my/leads/%s' % lead.id
+                    )
+
+                # Get the selected lost reason.
+                try:
+                    lost_reason_id = int(
+                        post.get('lost_reason_id') or 0
+                    )
+                except (ValueError, TypeError):
+                    lost_reason_id = 0
+
+                lost_reason = request.env[
+                    'crm.lost.reason'
+                ].sudo().browse(
+                    lost_reason_id
+                ).exists()
+
+                # A valid lost reason is required.
+                if not lost_reason:
+                    return request.redirect(
+                        '/my/leads/%s' % lead.id
+                    )
+
+                # Get the closing note.
+                lost_feedback = post.get(
+                    'lost_feedback',
+                    ''
+                ).strip()
+
+                # Create Odoo's standard Lost wizard.
+                wizard = request.env[
+                    'crm.lead.lost'
+                ].sudo().with_context(
+                    active_model='crm.lead',
+                    active_ids=[lead.id],
+                ).create({
+                    'lost_reason_id': lost_reason.id,
+                    'lost_feedback': lost_feedback,
+                })
+
+                # Execute Odoo's standard Lost workflow.
+                wizard.action_lost_reason_apply()
+
+                # Ensure the lead is archived and its Lost Reason is saved.
+                lead.sudo().write({
+                    'active': False,
+                    'lost_reason_id': lost_reason.id,
+                    'probability': 0,
+                })
+
+                return request.redirect('/my/leads?stage=lost')
 
         # =====================================================
         # SAVE
@@ -921,8 +1017,8 @@ class CRMPortal(CustomerPortal):
                 )
 
             except (
-                ValueError,
-                TypeError
+                    ValueError,
+                    TypeError
             ):
 
                 expected_revenue = 0.0
@@ -938,8 +1034,8 @@ class CRMPortal(CustomerPortal):
                 )
 
             except (
-                ValueError,
-                TypeError
+                    ValueError,
+                    TypeError
             ):
 
                 probability = 0.0
@@ -967,12 +1063,11 @@ class CRMPortal(CustomerPortal):
                     )
 
                     if salesperson.exists():
-
                         user_id = salesperson.id
 
             except (
-                ValueError,
-                TypeError
+                    ValueError,
+                    TypeError
             ):
 
                 user_id = False
@@ -992,12 +1087,11 @@ class CRMPortal(CustomerPortal):
                     )
 
                     if team.exists():
-
                         team_id = team.id
 
             except (
-                ValueError,
-                TypeError
+                    ValueError,
+                    TypeError
             ):
 
                 team_id = False
@@ -1017,12 +1111,11 @@ class CRMPortal(CustomerPortal):
                     )
 
                     if stage.exists():
-
                         new_stage_id = stage.id
 
             except (
-                ValueError,
-                TypeError
+                    ValueError,
+                    TypeError
             ):
 
                 new_stage_id = False
@@ -1042,12 +1135,11 @@ class CRMPortal(CustomerPortal):
                     )
 
                     if country.exists():
-
                         new_country_id = country.id
 
             except (
-                ValueError,
-                TypeError
+                    ValueError,
+                    TypeError
             ):
 
                 new_country_id = False
@@ -1067,14 +1159,13 @@ class CRMPortal(CustomerPortal):
                     )
 
                     if tag.exists():
-
                         converted_tag_ids.append(
                             tag.id
                         )
 
                 except (
-                    ValueError,
-                    TypeError
+                        ValueError,
+                        TypeError
                 ):
 
                     continue
@@ -1084,7 +1175,6 @@ class CRMPortal(CustomerPortal):
             # -------------------------------------------------
 
             if lead.partner_id:
-
                 lead.partner_id.sudo().write({
 
                     'name':
@@ -1187,6 +1277,17 @@ class CRMPortal(CustomerPortal):
         )
 
         # =====================================================
+        # LOST REASONS
+        # =====================================================
+
+        LostReason = request.env['crm.lost.reason'].sudo()
+
+        lost_reasons = LostReason.search(
+            [],
+            order='name'
+        )
+
+        # =====================================================
         # RENDER
         # =====================================================
 
@@ -1199,5 +1300,6 @@ class CRMPortal(CustomerPortal):
                 'tags': tags,
                 'users': users,
                 'countries': countries,
+                'lost_reasons': lost_reasons,
             }
         )

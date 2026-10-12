@@ -222,6 +222,17 @@
                                         </a>
                                     </li>
                                 </t>
+                                <li>
+                                    <hr class="dropdown-divider"/>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item crm-filter-stage-opt"
+                                       href="/my/leads?stage=lost"
+                                       data-stage="lost">
+                                        <i class="fa fa-times-circle text-danger me-2"/>
+                                        Lost
+                                    </a>
+                                </li>
                             </ul>
                         </div>
 
@@ -1022,12 +1033,29 @@
                     // Stage Filter Dropdown Options
                     document.querySelectorAll('.crm-filter-stage-opt').forEach(function (item) {
                     item.addEventListener('click', function (e) {
+
+                    // Lost leads are displayed on a separate page.
+                    if (item.getAttribute('data-stage') === 'lost') {
+                    window.location.href = '/my/leads?stage=lost';
+                    return;
+                    }
+
                     e.preventDefault();
-                    document.querySelectorAll('.crm-filter-stage-opt').forEach(o => o.classList.remove('active'));
+
+                    document.querySelectorAll('.crm-filter-stage-opt').forEach(
+                    o => o.classList.remove('active')
+                    );
+
                     item.classList.add('active');
+
                     const label = document.getElementById('label_stage_filter');
-                    if (label) label.textContent = item.textContent.trim();
+
+                    if (label) {
+                    label.textContent = item.textContent.trim();
+                    }
+
                     activeFilters.stage = item.getAttribute('data-stage');
+
                     applyFilters();
                     });
                     });
@@ -1206,27 +1234,811 @@
             name="CRM Portal Lead Detail">
 
         <t t-call="web.frontend_layout">
+            <style>
+                /* Modal overlays */
+                #crm_portal_won_modal,
+                #crm_portal_lost_modal {
+                position: fixed !important;
+                inset: 0 !important;
+                z-index: 99999 !important;
+                background: rgba(35, 25, 40, 0.58) !important;
+                backdrop-filter: blur(4px);
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 20px !important;
+                overflow-y: auto !important;
+                }
+
+                /* Modal cards */
+                #crm_portal_won_modal .crm-won-modal-content,
+                #crm_portal_lost_modal .crm-lost-modal-content {
+                position: relative !important;
+                width: 100% !important;
+                max-width: 520px !important;
+                max-height: 88vh !important;
+                overflow-y: auto !important;
+                margin: auto !important;
+                padding: 30px !important;
+                box-sizing: border-box;
+                background: #ffffff !important;
+                color: #334155 !important;
+                border: 1px solid #eee6ef !important;
+                border-radius: 16px !important;
+                box-shadow: 0 24px 65px rgba(35, 20, 45, 0.22) !important;
+                opacity: 1 !important;
+                }
+
+                /* Won icon */
+                .crm-won-icon {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 58px;
+                height: 58px;
+                margin: 0 auto 18px;
+                border-radius: 50%;
+                background: #f3eaf3;
+                color: #76506f;
+                font-size: 25px;
+                }
+
+                /* Won title */
+                #crm_portal_won_title {
+                margin: 0 0 18px;
+                color: #34253b;
+                font-size: 22px;
+                font-weight: 700;
+                text-align: center;
+                }
+
+                /* Won messages */
+                .crm-won-message,
+                .crm-won-description {
+                margin-bottom: 14px;
+                color: #64748b;
+                font-size: 14px;
+                line-height: 1.8;
+                text-align: center;
+                }
+
+                /* Lost header */
+                .crm-lost-modal-header {
+                position: relative;
+                margin: -30px -30px 24px;
+                padding: 23px 30px;
+                border-bottom: 1px solid #eee6ef;
+                background: #fcf9fc;
+                border-radius: 16px 16px 0 0;
+                }
+
+                .crm-lost-modal-header h5 {
+                margin: 0;
+                color: #34253b;
+                font-size: 21px;
+                font-weight: 700;
+                }
+
+                /* Lost reason label */
+                .crm-lost-modal-body .form-label {
+                display: block;
+                margin-bottom: 10px;
+                color: #34253b;
+                font-size: 13px;
+                font-weight: 600;
+                }
+
+                /* Lost reason list */
+                .crm-lost-reasons {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                margin-top: 12px;
+                }
+
+                /* Individual reason cards */
+                .crm-lost-reason-option {
+                display: flex;
+                align-items: center;
+                gap: 11px;
+                margin: 0;
+                padding: 13px 15px;
+                border: 1px solid #e6dfe8;
+                border-radius: 9px;
+                background: #ffffff;
+                color: #475569;
+                font-size: 14px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                }
+
+                .crm-lost-reason-option:hover {
+                border-color: #b69ab9;
+                background: #fcf8fc;
+                }
+
+                .crm-lost-reason-option input[type="radio"] {
+                width: 16px;
+                height: 16px;
+                margin: 0;
+                flex-shrink: 0;
+                accent-color: #76506f;
+                }
+
+                /* Closing note */
+                #crm_lost_feedback {
+                width: 100%;
+                min-height: 105px;
+                padding: 12px 14px;
+                border: 1px solid #ded6e1;
+                border-radius: 9px;
+                background: #ffffff;
+                color: #334155;
+                font-size: 14px;
+                resize: vertical;
+                }
+
+                #crm_lost_feedback:focus {
+                border-color: #927196;
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(118, 80, 111, 0.12);
+                }
+
+                /* Modal footers */
+                .crm-won-modal-footer,
+                .crm-lost-modal-footer {
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-top: 24px;
+                padding-top: 20px;
+                border-top: 1px solid #eee7ef;
+                }
+
+                /* Won Cancel button */
+                .crm-won-modal-footer .crm-won-cancel {
+                padding: 11px 22px !important;
+                border: 1px solid #e2d8e5 !important;
+                border-radius: 8px !important;
+                background: #ffffff !important;
+                color: #76506f !important;
+                font-size: 14px !important;
+                font-weight: 600 !important;
+                cursor: pointer;
+                box-shadow: none !important;
+                transition: all 0.2s ease;
+                }
+
+                .crm-won-modal-footer .crm-won-cancel:hover {
+                border-color: #76506f !important;
+                background: #f5eef6 !important;
+                color: #62415c !important;
+                }
+
+                /* Confirm Won button */
+                .crm-won-modal-footer .crm-won-confirm {
+                padding: 12px 20px;
+                border: 1px solid #76506f;
+                border-radius: 8px;
+                background: #76506f;
+                color: #ffffff;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                }
+
+                .crm-won-modal-footer .crm-won-confirm:hover {
+                border-color: #62415c;
+                background: #62415c;
+                }
+
+                /* Mark as Lost button */
+                .crm-lost-modal-footer .crm-btn-lost {
+                padding: 11px 19px;
+                border: 1px solid #c74747;
+                border-radius: 8px;
+                background: #c74747;
+                color: #ffffff;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                }
+
+                .crm-lost-modal-footer .crm-btn-lost:hover {
+                border-color: #ad3535;
+                background: #ad3535;
+                }
+
+                /* Discard button */
+                .crm-lost-modal-footer .btn-secondary {
+                padding: 11px 19px;
+                border: 1px solid #ded6e1;
+                border-radius: 8px;
+                background: #ffffff;
+                color: #76506f;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                }
+
+                .crm-lost-modal-footer .btn-secondary:hover {
+                background: #f5eef6;
+                border-color: #76506f;
+                }
+
+                /* Mobile layout */
+                @media (max-width: 576px) {
+                #crm_portal_won_modal .crm-won-modal-content,
+                #crm_portal_lost_modal .crm-lost-modal-content {
+                padding: 22px !important;
+                }
+
+                .crm-lost-modal-header {
+                margin: -22px -22px 20px;
+                padding: 22px;
+                }
+                }
+                /* CRM Lead Action Toolbar */
+                .crm-lead-toolbar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 16px;
+                padding: 18px 22px;
+                margin-bottom: 24px;
+                background: #ffffff;
+                border: 1px solid #e7e1e8;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(60, 40, 60, 0.04);
+                }
+
+                /* Back to Pipeline */
+                .crm-lead-toolbar .crm-back-button {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 11px 17px;
+                background: #ffffff;
+                color: #76506f;
+                border: 1px solid #e2d5e1;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 600;
+                text-decoration: none;
+                }
+
+                .crm-lead-toolbar .crm-back-button:hover {
+                background: #f7f1f7;
+                border-color: #76506f;
+                color: #62415c;
+                }
+
+                /* Won and Lost buttons */
+                .crm-lead-toolbar .crm-portal-won-lost-buttons {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 12px;
+                margin: 0 !important;
+                }
+
+                /* Mark as Won */
+                .crm-lead-toolbar .crm-btn-won {
+                padding: 11px 20px;
+                background: #76506f;
+                color: #ffffff;
+                border: 1px solid #76506f;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 600;
+                }
+
+                .crm-lead-toolbar .crm-btn-won:hover {
+                background: #62415c;
+                border-color: #62415c;
+                color: #ffffff;
+                }
+
+                /* Mark as Lost */
+                .crm-lead-toolbar .crm-btn-lost {
+                padding: 11px 20px;
+                background: #ffffff;
+                color: #c0392b;
+                border: 1px solid #e5a09a;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 600;
+                }
+
+                .crm-lead-toolbar .crm-btn-lost:hover {
+                background: #fff4f3;
+                border-color: #c0392b;
+                color: #a93226;
+                }
+
+                /* Mobile responsive layout */
+                @media (max-width: 576px) {
+                .crm-lead-toolbar {
+                align-items: stretch;
+                padding: 14px;
+                }
+
+                .crm-lead-toolbar .crm-back-button {
+                align-self: flex-start;
+                }
+
+                .crm-lead-toolbar .crm-portal-won-lost-buttons {
+                width: 100%;
+                }
+
+                .crm-lead-toolbar .crm-portal-won-lost-buttons button {
+                flex: 1;
+                }
+                }
+                /* ==========================================
+                CRM FORM - REMOVE EMPTY SPACES
+                ========================================== */
+
+                .crm-lead-page #crm_lead_form > .row.g-4 {
+                display: block;
+                margin-left: 0;
+                margin-right: 0;
+                column-count: 2;
+                column-gap: 24px;
+                }
+
+                /* Keep each information card together */
+                .crm-lead-page #crm_lead_form > .row.g-4 > [class*="col-"] {
+                display: inline-block;
+                width: 100%;
+                padding: 0;
+                margin-bottom: 24px;
+                vertical-align: top;
+                break-inside: avoid;
+                }
+
+                /* Keep full-width sections, such as Tags, across both columns */
+                .crm-lead-page #crm_lead_form > .row.g-4 > .col-12 {
+                column-span: all;
+                }
+
+                /* Responsive layout for mobile */
+                @media (max-width: 767.98px) {
+                .crm-lead-page #crm_lead_form > .row.g-4 {
+                column-count: 1;
+                }
+                }
+                /* ==========================================
+                CRM PORTAL - LIGHT PASTEL BUTTON COLORS
+                ========================================== */
+
+                /* Back to Pipeline - Light Purple */
+                .crm-lead-page .crm-back-button {
+                background-color: #F3EDFF !important;
+                color: #7542D8 !important;
+                border: 1px solid #DCCBFF !important;
+                border-radius: 10px;
+                transition: all 0.2s ease;
+                }
+
+                .crm-lead-page .crm-back-button:hover {
+                background-color: #E8DCFF !important;
+                color: #6130C5 !important;
+                border-color: #C9B0FF !important;
+                }
+
+
+                /* Mark as Won - Light Green */
+                .crm-lead-page .crm-btn-won {
+                background-color: #E8F7EF !important;
+                color: #269767 !important;
+                border: 1px solid #A9E5C7 !important;
+                border-radius: 10px;
+                box-shadow: none !important;
+                transition: all 0.2s ease;
+                }
+
+                .crm-lead-page .crm-btn-won:hover {
+                background-color: #D5F1E2 !important;
+                color: #19784F !important;
+                border-color: #83D6AD !important;
+                }
+
+                .crm-lead-page .crm-btn-won i {
+                color: #269767 !important;
+                }
+
+
+                /* Mark as Lost - Light Red */
+                .crm-lead-page .crm-btn-lost {
+                background-color: #FFF0F0 !important;
+                color: #D94B55 !important;
+                border: 1px solid #FFBFC3 !important;
+                border-radius: 10px;
+                box-shadow: none !important;
+                transition: all 0.2s ease;
+                }
+
+                .crm-lead-page .crm-btn-lost:hover {
+                background-color: #FFE1E2 !important;
+                color: #BD303B !important;
+                border-color: #FFA5AB !important;
+                }
+
+                .crm-lead-page .crm-btn-lost i {
+                color: #D94B55 !important;
+                }
+
+
+                /* ==========================================
+                CRM SECTION ICONS - PASTEL BACKGROUNDS
+                ========================================== */
+
+                /* Common icon styling */
+                .crm-lead-page .crm-detail-card-header h4 i {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 38px;
+                height: 38px;
+                margin-right: 10px;
+                border-radius: 10px;
+                font-size: 16px;
+                vertical-align: middle;
+                }
+
+
+                /* Lead Information - Purple */
+                .crm-lead-page .crm-detail-card-header h4 i.fa-briefcase {
+                background-color: #F0E8FF !important;
+                color: #8753E8 !important;
+                }
+
+
+                /* Ownership - Blue */
+                .crm-lead-page .crm-detail-card-header h4 i.fa-users {
+                background-color: #EAF2FF !important;
+                color: #4385E8 !important;
+                }
+
+
+                /* Contact Information - Green */
+                .crm-lead-page .crm-detail-card-header h4 i.fa-address-card {
+                background-color: #E5F7EE !important;
+                color: #269767 !important;
+                }
+
+
+                /* Marketing - Light Orange */
+                .crm-lead-page .crm-detail-card-header h4 i.fa-bullhorn {
+                background-color: #FFF1E5 !important;
+                color: #E88A35 !important;
+                }
+
+
+                /* Company Information - Light Blue */
+                .crm-lead-page .crm-detail-card-header h4 i.fa-building {
+                background-color: #EAF2FF !important;
+                color: #4385E8 !important;
+                }
+
+
+                /* Tags - Light Pink */
+                .crm-lead-page .crm-detail-card-header h4 i.fa-tags {
+                background-color: #FCEBFA !important;
+                color: #C451B5 !important;
+                }
+
+
+                /* ==========================================
+                ICON SPACING AND ALIGNMENT
+                ========================================== */
+
+                .crm-lead-page .crm-detail-card-header h4 {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                }
+
+
+                /* ==========================================
+                RESPONSIVE BUTTONS
+                ========================================== */
+
+                @media (max-width: 576px) {
+                .crm-lead-page .crm-back-button,
+                .crm-lead-page .crm-btn-won,
+                .crm-lead-page .crm-btn-lost {
+                font-size: 13px;
+                padding: 8px 12px;
+                }
+
+                .crm-lead-page .crm-detail-card-header h4 i {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+                }
+                }
+                /* ==========================================
+                EDIT LEAD FORM - PASTEL ICON COLORS
+                ========================================== */
+
+                /* Company Information - Light Blue */
+                .crm-lead-page .crm-detail-card-header h4 i.fa-building {
+                background-color: #EAF2FF !important;
+                color: #4385E8 !important;
+                }
+
+                /* Tags - Light Pink */
+                .crm-lead-page .crm-detail-card-header h4 i.fa-tags {
+                background-color: #FCEBFA !important;
+                color: #C451B5 !important;
+                }
+
+                /* Notes - Light Peach */
+                .crm-lead-page .crm-detail-card-header h4 i.fa-file-text-o {
+                background-color: #FFF1E5 !important;
+                color: #E88A35 !important;
+                }
+
+                /* ==========================================
+                CANCEL BUTTON - LIGHT GRAY
+                ========================================== */
+
+                .crm-lead-page .crm-cancel-button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 10px 20px;
+                background-color: #F5F6FA !important;
+                color: #596579 !important;
+                border: 1px solid #DFE4ED !important;
+                border-radius: 9px;
+                text-decoration: none !important;
+                transition: all 0.2s ease;
+                }
+
+                .crm-lead-page .crm-cancel-button:hover {
+                background-color: #E9EDF4 !important;
+                color: #354052 !important;
+                border-color: #CDD5E1 !important;
+                }
+
+                /* ==========================================
+                SAVE CHANGES - LIGHT PURPLE
+                ========================================== */
+
+                .crm-lead-page .crm-save-button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 10px 20px;
+                background-color: #F0E8FF !important;
+                color: #7542D8 !important;
+                border: 1px solid #DCCBFF !important;
+                border-radius: 9px;
+                box-shadow: none !important;
+                transition: all 0.2s ease;
+                }
+
+                .crm-lead-page .crm-save-button:hover {
+                background-color: #E4D7FF !important;
+                color: #6130C5 !important;
+                border-color: #C9B0FF !important;
+                }
+
+                .crm-lead-page .crm-save-button i {
+                color: #7542D8 !important;
+                }
+
+                /* ==========================================
+                TAG CHECKBOX - LIGHT PURPLE
+                ========================================== */
+
+                .crm-lead-page .crm-tag-item .form-check-input {
+                accent-color: #9870E8;
+                }
+
+                .crm-lead-page .crm-tag-item .form-check-input:checked {
+                background-color: #9870E8 !important;
+                border-color: #9870E8 !important;
+                }
+
+                /* ==========================================
+                MOBILE BUTTON SPACING
+                ========================================== */
+
+                @media (max-width: 576px) {
+                .crm-lead-page .crm-cancel-button,
+                .crm-lead-page .crm-save-button {
+                padding: 8px 13px;
+                font-size: 13px;
+                }
+                }
+                /* ==========================================
+                WON CONFIRMATION MODAL - PASTEL THEME
+                ========================================== */
+
+                /* Modal background overlay */
+                .crm-lead-page .crm-won-modal {
+                background: rgba(48, 42, 65, 0.40) !important;
+                backdrop-filter: blur(5px);
+                }
+
+                /* Popup card */
+                .crm-lead-page .crm-won-modal-content {
+                background-color: #FFFFFF !important;
+                border: 1px solid #E9DFF5 !important;
+                border-radius: 18px !important;
+                box-shadow: 0 16px 45px rgba(90, 65, 120, 0.16) !important;
+                }
+
+                /* Trophy icon circle */
+                .crm-lead-page .crm-won-icon {
+                background-color: #F3E9F7 !important;
+                color: #A16AA8 !important;
+                border-radius: 50%;
+                }
+
+                /* Trophy icon */
+                .crm-lead-page .crm-won-icon i {
+                color: #A16AA8 !important;
+                }
+
+                /* Popup title */
+                .crm-lead-page #crm_portal_won_title {
+                color: #493650 !important;
+                }
+
+                /* Popup message */
+                .crm-lead-page .crm-won-message {
+                color: #68758A !important;
+                }
+
+                .crm-lead-page .crm-won-message strong {
+                color: #59436A !important;
+                }
+
+                /* Popup description */
+                .crm-lead-page .crm-won-description {
+                color: #7D8798 !important;
+                }
+
+                /* Divider and action area */
+                .crm-lead-page .crm-won-modal-footer {
+                border-top: 1px solid #F0E8F3 !important;
+                }
+
+                /* Cancel button - pale lavender */
+                .crm-lead-page .crm-won-cancel {
+                background-color: #F8F2FA !important;
+                color: #805B83 !important;
+                border: 1px solid #DCC8E1 !important;
+                border-radius: 9px !important;
+                transition: all 0.2s ease;
+                }
+
+                .crm-lead-page .crm-won-cancel:hover {
+                background-color: #EFE2F3 !important;
+                color: #67436D !important;
+                border-color: #CDB0D5 !important;
+                }
+
+                /* Confirm Won - light mint green */
+                .crm-lead-page .crm-won-confirm {
+                background-color: #E5F6EC !important;
+                color: #27875A !important;
+                border: 1px solid #A8DFC0 !important;
+                border-radius: 9px !important;
+                box-shadow: none !important;
+                transition: all 0.2s ease;
+                }
+
+                .crm-lead-page .crm-won-confirm:hover {
+                background-color: #D3EFDF !important;
+                color: #1C7048 !important;
+                border-color: #85D3A7 !important;
+                }
+
+                /* Confirm button trophy */
+                .crm-lead-page .crm-won-confirm i {
+                color: #27875A !important;
+                }
+
+                /* Popup close button */
+                .crm-lead-page .crm-won-close {
+                color: #987BA0 !important;
+                }
+
+                .crm-lead-page .crm-won-close:hover {
+                color: #67436D !important;
+                }
+                /* ==========================================
+                CRM FORM ICONS - LIGHT PURPLE THEME
+                ========================================== */
+
+                /* Common icon background and alignment */
+                .crm-lead-page .crm-detail-card-header h4 i {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 38px;
+                height: 38px;
+                margin-right: 10px;
+                border-radius: 10px;
+                background-color: #F0E8FF !important;
+                color: #8753E8 !important;
+                font-size: 16px;
+                flex-shrink: 0;
+                }
+
+                /* Lead Information */
+                .crm-lead-page .crm-detail-card-header h4 i.fa-briefcase {
+                background-color: #F0E8FF !important;
+                color: #8753E8 !important;
+                }
+
+                /* Ownership */
+                .crm-lead-page .crm-detail-card-header h4 i.fa-users {
+                background-color: #F0E8FF !important;
+                color: #8753E8 !important;
+                }
+
+                /* Contact Information */
+                .crm-lead-page .crm-detail-card-header h4 i.fa-address-card {
+                background-color: #F0E8FF !important;
+                color: #8753E8 !important;
+                }
+
+                /* Marketing */
+                .crm-lead-page .crm-detail-card-header h4 i.fa-bullhorn {
+                background-color: #F0E8FF !important;
+                color: #8753E8 !important;
+                }
+
+                /* Company Information */
+                .crm-lead-page .crm-detail-card-header h4 i.fa-building {
+                background-color: #F0E8FF !important;
+                color: #8753E8 !important;
+                }
+
+                /* Tags */
+                .crm-lead-page .crm-detail-card-header h4 i.fa-tags {
+                background-color: #F0E8FF !important;
+                color: #8753E8 !important;
+                }
+
+                /* Notes */
+                .crm-lead-page .crm-detail-card-header h4 i.fa-file-text-o {
+                background-color: #F0E8FF !important;
+                color: #8753E8 !important;
+                }
+            </style>
+
 
             <div class="container-fluid px-4 py-4 crm-lead-page">
 
-                <!-- ================================================= -->
-                <!-- BACK BUTTON                                      -->
-                <!-- ================================================= -->
+                <!--                &lt;!&ndash; ================================================= &ndash;&gt;-->
+                <!--                &lt;!&ndash; BACK BUTTON                                      &ndash;&gt;-->
+                <!--                &lt;!&ndash; ================================================= &ndash;&gt;-->
 
-                <div
-                        class="d-flex justify-content-between align-items-center mb-4">
+                <!--                <div-->
+                <!--                        class="d-flex justify-content-between align-items-center mb-4">-->
 
-                    <a
-                            href="/my/leads"
-                            class="crm-back-button">
+                <!--                    <a-->
+                <!--                            href="/my/leads"-->
+                <!--                            class="crm-back-button">-->
 
-                        <i class="fa fa-arrow-left me-2"/>
+                <!--                        <i class="fa fa-arrow-left me-2"/>-->
 
-                        Back to Pipeline
+                <!--                        Back to Pipeline-->
 
-                    </a>
+                <!--                    </a>-->
 
-                </div>
+                <!--                </div>-->
 
 
                 <!-- ================================================= -->
@@ -1243,46 +2055,146 @@
                             name="csrf_token"
                             t-att-value="request.csrf_token()"/>
 
-                    <!-- CRM WON / LOST BUTTONS -->
-                    <!-- CRM WON / LOST ACTIONS -->
-                    <div class="crm-portal-won-lost-buttons mb-3">
+                    <!-- CRM LEAD ACTION TOOLBAR -->
+                    <div class="crm-lead-toolbar">
 
-                        <!-- Mark as Won -->
-                        <button type="submit"
-                                name="crm_action"
-                                value="won"
-                                class="btn crm-btn-won"
-                                onclick="return confirm('Are you sure you want to mark this lead as Won?');">
-                            <i class="fa fa-trophy me-1"/>
-                            Mark as Won
-                        </button>
+                        <!-- Back to Pipeline -->
+                        <a href="/my/leads" class="crm-back-button">
+                            <i class="fa fa-arrow-left me-2"/>
+                            Back to Pipeline
+                        </a>
 
-                        <!-- Open Lost Popup -->
-                        <button type="button"
-                                class="btn crm-btn-lost"
-                                id="crm_portal_lost_open">
-                            <i class="fa fa-times-circle me-1"/>
-                            Mark as Lost
-                        </button>
+                        <!-- Won and Lost Buttons -->
+                        <div class="crm-portal-won-lost-buttons">
+
+                            <button type="button"
+                                    id="crm_portal_won_open"
+                                    class="btn crm-btn-won"
+                                    onclick="document.getElementById('crm_portal_won_modal').style.setProperty('display', 'flex', 'important'); document.getElementById('crm_portal_won_modal').setAttribute('aria-hidden', 'false');">
+
+                                <i class="fa fa-trophy me-1"/>
+                                Mark as Won
+
+                            </button>
+
+                            <button type="button"
+                                    id="crm_portal_lost_open"
+                                    class="btn crm-btn-lost"
+                                    onclick="document.getElementById('crm_portal_lost_modal').style.setProperty('display', 'flex', 'important'); document.getElementById('crm_portal_lost_modal').setAttribute('aria-hidden', 'false');">
+
+                                <i class="fa fa-times-circle me-1"/>
+                                Mark as Lost
+
+                            </button>
+
+                        </div>
+
+                    </div>
+                    <!-- ===================================================== -->
+                    <!-- CUSTOM MARK AS WON MODAL                              -->
+                    <!-- ===================================================== -->
+
+                    <div id="crm_portal_won_modal"
+                         class="crm-won-modal"
+                         style="display: none !important;
+                                position: fixed;
+                                inset: 0;
+                                z-index: 99999;
+                                background: rgba(15, 23, 42, 0.60);
+                                align-items: center;
+                                justify-content: center;
+                                padding: 20px;
+                                overflow-y: auto;"
+                         aria-hidden="true">
+
+                        <div class="crm-won-modal-content"
+                             role="dialog"
+                             aria-modal="true"
+                             aria-labelledby="crm_portal_won_title">
+
+                            <!-- Close Button -->
+                            <!--                            <button type="button"-->
+                            <!--                                    id="crm_portal_won_close"-->
+                            <!--                                    class="crm-won-close"-->
+                            <!--                                    aria-label="Close"-->
+                            <!--                                    onclick="document.getElementById('crm_portal_won_modal').style.setProperty('display', 'none', 'important');">-->
+                            <!--                                <i class="fa fa-times"/>-->
+                            <!--                            </button>-->
+
+                            <!-- Trophy Icon -->
+                            <div class="crm-won-icon">
+                                <i class="fa fa-trophy"/>
+                            </div>
+
+                            <!-- Title -->
+                            <h4 id="crm_portal_won_title">
+                                Mark lead as Won?
+                            </h4>
+
+                            <!-- Confirmation Message -->
+                            <p class="crm-won-message">
+                                Are you sure you want to mark
+                                <strong>
+                                    <t t-esc="lead.name"/>
+                                </strong>
+                                as Won?
+                            </p>
+
+                            <p class="crm-won-description">
+                                This will move the lead to the Won stage
+                                and update its opportunity status.
+                            </p>
+
+                            <!-- Action Buttons -->
+                            <div class="crm-won-modal-footer">
+
+                                <button type="button"
+                                        id="crm_portal_won_cancel"
+                                        class="crm-won-cancel"
+                                        onclick="document.getElementById('crm_portal_won_modal').style.setProperty('display', 'none', 'important');">
+                                    Cancel
+                                </button>
+
+                                <button type="submit"
+                                        name="crm_action"
+                                        value="won"
+                                        formnovalidate="formnovalidate"
+                                        class="crm-won-confirm">
+                                    <i class="fa fa-trophy me-1"/>
+                                    Confirm Won
+                                </button>
+
+                            </div>
+
+                        </div>
 
                     </div>
 
-                    <!-- MARK LOST POPUP -->
                     <div id="crm_portal_lost_modal"
                          class="crm-lost-modal"
-                         style="display: none;">
+                         style="display: none !important;
+                                position: fixed;
+                                inset: 0;
+                                z-index: 99999;
+                                background: rgba(15, 23, 42, 0.60);
+                                align-items: center;
+                                justify-content: center;
+                                padding: 20px;
+                                overflow-y: auto;"
+                         aria-hidden="true">
 
                         <div class="crm-lost-modal-content">
 
                             <div class="crm-lost-modal-header">
                                 <h5>Mark Lost</h5>
 
-                                <button type="button"
-                                        id="crm_portal_lost_close"
-                                        class="crm-lost-close"
-                                        aria-label="Close">
-                                    ×
-                                </button>
+                                <!--                                <button type="button"-->
+                                <!--                                        id="crm_portal_lost_close"-->
+                                <!--                                        class="crm-lost-close"-->
+                                <!--                                        aria-label="Close"-->
+                                <!--                                        onclick="document.getElementById('crm_portal_lost_modal').style.setProperty('display', 'none', 'important'); document.getElementById('crm_portal_lost_modal').setAttribute('aria-hidden', 'true');">-->
+                                <!--                                    ×-->
+                                <!--                                </button>-->
                             </div>
 
                             <div class="crm-lost-modal-body">
@@ -1298,7 +2210,9 @@
 
                                             <input type="radio"
                                                    name="lost_reason_id"
-                                                   t-att-value="reason.id"/>
+                                                   t-att-value="reason.id"
+                                                   required="required"/>
+
 
                                             <span t-esc="reason.name"/>
 
@@ -1332,14 +2246,17 @@
                                 <button type="submit"
                                         name="crm_action"
                                         value="lost"
-                                        class="btn crm-btn-won"
+                                        formnovalidate="formnovalidate"
+                                        class="btn crm-btn-lost"
                                         t-att-disabled="not lost_reasons">
-                                    Mark as Lost
-                                </button>
 
+                                    Mark as Lost
+
+                                </button>
                                 <button type="button"
                                         id="crm_portal_lost_cancel"
-                                        class="btn btn-secondary">
+                                        class="btn btn-secondary"
+                                        onclick="document.getElementById('crm_portal_lost_modal').style.setProperty('display', 'none', 'important');">
                                     Discard
                                 </button>
 
@@ -2171,29 +3088,37 @@
                     <!-- BUTTONS                                          -->
                     <!-- ================================================= -->
 
-                    <!--                    <div-->
-                    <!--                            class="d-flex justify-content-end gap-2 mt-4 mb-4">-->
+                    <div class="d-flex justify-content-end gap-2 mt-4 mb-4"
+                         style="display: flex !important;
+            justify-content: flex-end !important;
+            gap: 12px !important;
+            margin-top: 24px !important;
+            margin-bottom: 24px !important;
+            visibility: visible !important;
+            opacity: 1 !important;">
 
-                    <!--                        <a-->
-                    <!--                                href="/my/leads"-->
-                    <!--                                class="crm-cancel-button">-->
+                        <a href="/my/leads"
+                           class="crm-cancel-button"
+                           style="display: inline-flex !important;
+              align-items: center;
+              justify-content: center;
+              visibility: visible !important;
+              opacity: 1 !important;">
+                            Cancel
+                        </a>
 
-                    <!--                            Cancel-->
+                        <button type="submit"
+                                class="crm-save-button"
+                                style="display: inline-flex !important;
+                   align-items: center;
+                   justify-content: center;
+                   visibility: visible !important;
+                   opacity: 1 !important;">
+                            <i class="fa fa-save me-2"/>
+                            Save Changes
+                        </button>
 
-                    <!--                        </a>-->
-
-
-                    <!--                        <button-->
-                    <!--                                type="submit"-->
-                    <!--                                class="crm-save-button">-->
-
-                    <!--                            <i class="fa fa-save me-2"/>-->
-
-                    <!--                            Save Changes-->
-
-                    <!--                        </button>-->
-
-                    <!--                    </div>-->
+                    </div>
 
                 </form>
 
@@ -2202,5 +3127,254 @@
         </t>
 
     </template>
+
+
+    <!-- ===================================================== -->
+    <!-- LOST LEADS PAGE                                       -->
+    <!-- ===================================================== -->
+
+    <template id="portal_lost_leads" name="CRM Portal Lost Leads">
+
+        <t t-call="web.frontend_layout">
+
+            <div class="container-fluid px-4 py-4 crm-lead-page">
+
+                <div class="container">
+
+                    <!-- PAGE HEADER -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+
+                        <div>
+                            <h3 class="mb-1">
+                                <i class="fa fa-times-circle text-danger me-2"/>
+                                Lost Leads
+                            </h3>
+
+                            <p class="text-muted mb-0">
+                                View opportunities marked as lost.
+                            </p>
+                        </div>
+
+                        <a href="/my/leads"
+                           class="btn btn-outline-secondary">
+                            <i class="fa fa-arrow-left me-1"/>
+                            Back to Pipeline
+                        </a>
+
+                    </div>
+
+                    <!-- LOST LEADS TABLE -->
+                    <div class="card border-0 shadow-sm">
+
+                        <div class="card-header bg-white py-3">
+
+                            <strong>Lost Opportunities</strong>
+
+                            <span class="badge bg-secondary ms-2">
+                                <t t-esc="len(lost_leads)"/>
+                            </span>
+
+                        </div>
+
+                        <div class="table-responsive">
+
+                            <table class="table table-hover align-middle mb-0">
+
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Lead Name</th>
+                                        <th>Company / Contact</th>
+                                        <th>Lost Reason</th>
+                                        <th>Expected Revenue</th>
+                                        <th>Salesperson</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+
+                                    <t t-if="lost_leads">
+
+                                        <t t-foreach="lost_leads" t-as="lead">
+
+                                            <tr>
+
+                                                <td>
+                                                    <strong>
+                                                        <t t-esc="lead.name"/>
+                                                    </strong>
+                                                </td>
+
+                                                <td>
+                                                    <t t-esc="
+                                                    lead.partner_id.name
+                                                    if lead.partner_id
+                                                    else (lead.contact_name or '-')
+                                                "/>
+                                                </td>
+
+                                                <td>
+                                                    <span class="badge bg-danger-subtle text-danger">
+                                                        <t t-esc="
+                                                        lead.lost_reason_id.name
+                                                        if lead.lost_reason_id
+                                                        else 'Not specified'
+                                                    "/>
+                                                    </span>
+                                                </td>
+
+                                                <td>
+                                                    <t t-esc="lead.expected_revenue"
+                                                       t-options="{
+                                                       'widget': 'monetary',
+                                                       'display_currency': lead.company_currency
+                                                   }"/>
+                                                </td>
+
+                                                <td>
+                                                    <t t-esc="
+                                                    lead.user_id.name
+                                                    if lead.user_id
+                                                    else '-'
+                                                "/>
+                                                </td>
+
+                                                <td>
+                                                    <a t-att-href="'/my/leads/%s' % lead.id"
+                                                       class="btn btn-sm btn-outline-secondary">
+                                                        View Lead
+                                                    </a>
+                                                </td>
+
+                                            </tr>
+
+                                        </t>
+
+                                    </t>
+
+                                    <t t-else="">
+
+                                        <tr>
+                                            <td colspan="6"
+                                                class="text-center py-5">
+
+                                                <i class="fa fa-inbox fa-2x text-muted mb-3"/>
+
+                                                <p class="text-muted mb-0">
+                                                    No lost leads found.
+                                                </p>
+
+                                            </td>
+                                        </tr>
+
+                                    </t>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </t>
+        <!-- CUSTOM WON MODAL JAVASCRIPT -->
+        <script type="text/javascript">
+            (function () {
+            function initializeWonModal() {
+            const openButton = document.getElementById(
+            "crm_portal_won_open"
+            );
+
+            const modal = document.getElementById(
+            "crm_portal_won_modal"
+            );
+
+            const closeButton = document.getElementById(
+            "crm_portal_won_close"
+            );
+
+            const cancelButton = document.getElementById(
+            "crm_portal_won_cancel"
+            );
+
+            if (!openButton || !modal) {
+            return;
+            }
+
+            // Prevent duplicate event handlers.
+            if (openButton.dataset.wonModalInitialized === "true") {
+            return;
+            }
+
+            openButton.dataset.wonModalInitialized = "true";
+
+            function openModal() {
+            modal.style.display = "flex";
+            modal.setAttribute("aria-hidden", "false");
+
+            if (closeButton) {
+            closeButton.focus();
+            }
+            }
+
+            function closeModal() {
+            modal.style.display = "none";
+            modal.setAttribute("aria-hidden", "true");
+
+            openButton.focus();
+            }
+
+            // Open modal.
+            openButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            openModal();
+            });
+
+            // Close button.
+            if (closeButton) {
+            closeButton.addEventListener("click", closeModal);
+            }
+
+            // Cancel button.
+            if (cancelButton) {
+            cancelButton.addEventListener("click", closeModal);
+            }
+
+            // Close when clicking outside.
+            modal.addEventListener("click", function (event) {
+            if (event.target === modal) {
+            closeModal();
+            }
+            });
+
+            // Close with Escape.
+            document.addEventListener("keydown", function (event) {
+            if (
+            event.key === "Escape" &amp;&amp;
+            modal.style.display !== "none"
+            ) {
+            closeModal();
+            }
+            });
+            }
+
+            if (document.readyState === "loading") {
+            document.addEventListener(
+            "DOMContentLoaded",
+            initializeWonModal
+            );
+            } else {
+            initializeWonModal();
+            }
+            })();
+        </script>
+
+    </template>
+
 
 </odoo>
