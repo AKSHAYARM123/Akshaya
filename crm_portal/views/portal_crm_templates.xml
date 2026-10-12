@@ -1,0 +1,2206 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <!-- ========================================================= -->
+    <!-- 1. ADD LEADS CARD TO PORTAL HOME                         -->
+    <!-- ========================================================= -->
+
+    <template
+            id="portal_my_home_crm_leads"
+            inherit_id="portal.portal_my_home"
+            name="CRM Leads Portal Card">
+
+        <div id="portal_client_category" position="inside">
+
+            <t t-call="portal.portal_docs_entry">
+
+                <t
+                        t-set="icon"
+                        t-value="'/crm_portal/static/src/img/crm-leads.svg'"/>
+
+                <t t-set="title">
+                    Leads
+                </t>
+
+                <t t-set="text">
+                    View your CRM leads
+                </t>
+
+                <t
+                        t-set="url"
+                        t-value="'/my/leads'"/>
+
+                <t
+                        t-set="placeholder_count"
+                        t-value="'lead_count'"/>
+
+                <t
+                        t-set="config_card"
+                        t-value="True"/>
+
+            </t>
+
+        </div>
+
+    </template>
+
+
+    <!-- ========================================================= -->
+    <!-- 2. CRM PORTAL PIPELINE                                   -->
+    <!-- ========================================================= -->
+
+    <template
+            id="portal_my_leads"
+            name="CRM Portal Leads Pipeline">
+
+        <t t-call="web.frontend_layout">
+
+
+            <div class="container-fluid px-4 py-4 crm-lead-page">
+
+                <!-- ================================================= -->
+                <!-- CSRF TOKEN                                        -->
+                <!-- ================================================= -->
+
+                <input
+                        type="hidden"
+                        id="crm_pipeline_csrf_token"
+                        name="csrf_token"
+                        t-att-value="request.csrf_token()"/>
+
+                <!-- ================================================= -->
+                <!-- KPI METRICS ROW                                   -->
+                <!-- ================================================= -->
+
+                <t t-set="calc_total_leads" t-value="len(leads)"/>
+                <t t-set="calc_pipeline_val" t-value="sum(leads.mapped('expected_revenue'))"/>
+                <t t-set="calc_won_leads"
+                   t-value="leads.filtered(lambda l: (l.stage_id and l.stage_id.is_won) or (l.stage_id and 'won' in (l.stage_id.name or '').lower()) or l.probability == 100)"/>
+                <t t-set="calc_won_revenue" t-value="sum(calc_won_leads.mapped('expected_revenue'))"/>
+                <t t-set="calc_win_rate"
+                   t-value="round(len(calc_won_leads) / len(leads) * 100, 1) if len(leads) else 0.0"/>
+
+                <div class="crm-kpi-grid">
+                    <!-- Total Leads -->
+                    <div class="crm-kpi-card">
+                        <div class="crm-kpi-icon crm-kpi-icon-purple">
+                            <i class="fa fa-users"/>
+                        </div>
+                        <div class="crm-kpi-content">
+                            <div class="crm-kpi-label">Total Leads</div>
+                            <div class="crm-kpi-value-row">
+                                <span class="crm-kpi-value" id="kpi_total_leads">
+                                    <t t-esc="calc_total_leads"/>
+                                </span>
+                                <span class="crm-kpi-trend">
+                                    <i class="fa fa-arrow-up"/>
+                                    2 this month
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pipeline Value -->
+                    <div class="crm-kpi-card">
+                        <div class="crm-kpi-icon crm-kpi-icon-blue">
+                            <i class="fa fa-bar-chart"/>
+                        </div>
+                        <div class="crm-kpi-content">
+                            <div class="crm-kpi-label">Pipeline Value</div>
+                            <div class="crm-kpi-value-row">
+                                <span class="crm-kpi-value" id="kpi_pipeline_val">$
+                                    <t t-esc="'{:,.2f}'.format(calc_pipeline_val)"/>
+                                </span>
+                                <span class="crm-kpi-trend">
+                                    <i class="fa fa-arrow-up"/>
+                                    12%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Expected Revenue (Won) -->
+                    <div class="crm-kpi-card">
+                        <div class="crm-kpi-icon crm-kpi-icon-green">
+                            <i class="fa fa-trophy"/>
+                        </div>
+                        <div class="crm-kpi-content">
+                            <div class="crm-kpi-label">Expected Revenue (Won)</div>
+                            <div class="crm-kpi-value-row">
+                                <span class="crm-kpi-value" id="kpi_won_revenue">$
+                                    <t t-esc="'{:,.2f}'.format(calc_won_revenue)"/>
+                                </span>
+                                <span class="crm-kpi-trend">
+                                    <i class="fa fa-arrow-up"/>
+                                    8%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Win Rate -->
+                    <div class="crm-kpi-card">
+                        <div class="crm-kpi-icon crm-kpi-icon-orange">
+                            <i class="fa fa-pie-chart"/>
+                        </div>
+                        <div class="crm-kpi-content">
+                            <div class="crm-kpi-label">Win Rate</div>
+                            <div class="crm-kpi-value-row">
+                                <span class="crm-kpi-value" id="kpi_win_rate"><t t-esc="int(calc_win_rate)"/>%
+                                </span>
+                                <span class="crm-kpi-trend">
+                                    <i class="fa fa-arrow-up"/>
+                                    5%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================================================= -->
+                <!-- TOOLBAR & ACTIONS ROW                             -->
+                <!-- ================================================= -->
+
+                <div class="crm-toolbar-card">
+                    <!-- LEFT: SEARCH & FILTERS -->
+                    <div class="crm-toolbar-left">
+                        <!-- Search Bar -->
+                        <div class="crm-search-box">
+                            <i class="fa fa-search crm-search-icon"/>
+                            <input type="text" id="crm_lead_search" placeholder="Search leads, company, contact..."
+                                   autocomplete="off"/>
+                            <button type="button" id="crm_search_clear" class="crm-clear-btn" style="display:none;">
+                                &amp;times;
+                            </button>
+                        </div>
+
+                        <!-- Filter 1: My Pipeline -->
+                        <div class="dropdown crm-filter-dropdown">
+                            <button class="btn crm-filter-btn dropdown-toggle" type="button" id="dropdown_pipeline"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa fa-sliders me-1 text-muted"/>
+                                <span id="label_pipeline_filter">My Pipeline</span>
+                            </button>
+                            <ul class="dropdown-menu shadow-sm" aria-labelledby="dropdown_pipeline">
+                                <li>
+                                    <a class="dropdown-item active crm-filter-pipeline-opt" href="#" data-filter="all">
+                                        My Pipeline
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item crm-filter-pipeline-opt" href="#" data-filter="starred">High
+                                        Priority (Starred)
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item crm-filter-pipeline-opt" href="#" data-filter="all_deals">
+                                        All Opportunities
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Filter 2: All Stages -->
+                        <div class="dropdown crm-filter-dropdown">
+                            <button class="btn crm-filter-btn dropdown-toggle" type="button" id="dropdown_stages"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa fa-th-large me-1 text-muted"/>
+                                <span id="label_stage_filter">All Stages</span>
+                            </button>
+                            <ul class="dropdown-menu shadow-sm" aria-labelledby="dropdown_stages">
+                                <li>
+                                    <a class="dropdown-item active crm-filter-stage-opt" href="#" data-stage="all">All
+                                        Stages
+                                    </a>
+                                </li>
+                                <t t-foreach="stages" t-as="stg">
+                                    <li>
+                                        <a class="dropdown-item crm-filter-stage-opt" href="#"
+                                           t-att-data-stage="stg.id">
+                                            <t t-esc="stg.name"/>
+                                        </a>
+                                    </li>
+                                </t>
+                            </ul>
+                        </div>
+
+                        <!-- Filter 3: My Leads -->
+                        <div class="dropdown crm-filter-dropdown">
+                            <button class="btn crm-filter-btn dropdown-toggle" type="button" id="dropdown_leads"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa fa-user-o me-1 text-muted"/>
+                                <span id="label_user_filter">My Leads</span>
+                            </button>
+                            <ul class="dropdown-menu shadow-sm" aria-labelledby="dropdown_leads">
+                                <li>
+                                    <a class="dropdown-item active crm-filter-user-opt" href="#" data-user="all">My
+                                        Leads
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item crm-filter-user-opt" href="#" data-user="unassigned">
+                                        Unassigned
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Filter 4: Date -->
+                        <div class="dropdown crm-filter-dropdown">
+                            <button class="btn crm-filter-btn dropdown-toggle" type="button" id="dropdown_date"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa fa-calendar-o me-1 text-muted"/>
+                                <span id="label_date_filter">Date</span>
+                            </button>
+                            <ul class="dropdown-menu shadow-sm" aria-labelledby="dropdown_date">
+                                <li>
+                                    <a class="dropdown-item active crm-filter-date-opt" href="#" data-date="all">All
+                                        Dates
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item crm-filter-date-opt" href="#" data-date="month">This Month
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item crm-filter-date-opt" href="#" data-date="quarter">This
+                                        Quarter
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: BUTTONS & VIEW SWITCHERS -->
+                    <div class="crm-toolbar-right">
+                        <!-- New Lead Button -->
+                        <!--                        <button type="button" class="btn crm-btn-primary" id="crm_new_lead_button">-->
+                        <!--                            <i class="fa fa-plus me-1"/> New-->
+                        <!--                        </button>-->
+
+                        <!-- Generate Leads Button -->
+                        <button type="button" class="btn crm-btn-secondary" id="crm_generate_leads_button">
+                            <i class="fa fa-magic me-1"/>
+                            Generate Leads
+                        </button>
+
+                        <!-- View Switchers -->
+                        <div class="crm-view-switchers">
+                            <button type="button" class="crm-view-btn active" id="crm_view_kanban" title="Kanban View">
+                                <i class="fa fa-th-large"/>
+                            </button>
+                            <button type="button" class="crm-view-btn" id="crm_view_list" title="List View">
+                                <i class="fa fa-bars"/>
+                            </button>
+                            <!--                            <button type="button" class="crm-view-btn" id="crm_view_calendar" title="Calendar View">-->
+                            <!--                                <i class="fa fa-calendar-o"/>-->
+                            <!--                            </button>-->
+                            <!--                            <button type="button" class="crm-view-btn" id="crm_view_chart" title="Chart View">-->
+                            <!--                                <i class="fa fa-bar-chart"/>-->
+                            <!--                            </button>-->
+                            <!--                            <button type="button" class="crm-view-btn" id="crm_view_activity" title="Activity View">-->
+                            <!--                                <i class="fa fa-clock-o"/>-->
+                            <!--                            </button>-->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================================================= -->
+                <!-- KANBAN PIPELINE VIEW                              -->
+                <!-- ================================================= -->
+
+                <div
+                        id="crm_kanban_view"
+                        class="crm-portal-pipeline"
+                        style="
+                            display:flex;
+                            gap:16px;
+                            overflow-x:auto;
+                            padding-bottom:30px;
+                            align-items:flex-start;
+                        ">
+
+
+                    <t t-foreach="stages" t-as="stage">
+
+                        <t t-set="stage_color"
+                           t-value="'#7c5cfc' if (stage.name in ['New', 'Nouveau'] or stage_index == 0) else ('#3b82f6' if (stage.name in ['Qualified', 'Qualifié'] or stage_index == 1) else ('#10b981' if (stage.name in ['Proposition'] or stage_index == 2) else ('#f59e0b' if (stage.name in ['Won', 'Gagné'] or stage.is_won or stage_index == 3) else '#6366f1')))"/>
+
+                        <!-- ================================================= -->
+                        <!-- STAGE COLUMN                                      -->
+                        <!-- ================================================= -->
+
+                        <div class="crm-portal-stage" t-att-data-stage-id="stage.id">
+
+                            <!-- STAGE HEADER -->
+                            <div class="crm-stage-header">
+                                <div class="crm-stage-top-row">
+                                    <div class="crm-stage-title-group">
+                                        <span class="crm-stage-dot"
+                                              t-att-style="'background-color: %s;' % stage_color"/>
+                                        <span class="crm-stage-name">
+                                            <t t-esc="stage.name"/>
+                                        </span>
+                                        <span class="crm-stage-count-pill" t-att-data-stage-id="stage.id">
+                                            <t t-esc="len(leads_by_stage.get(stage.id, []))"/>
+                                        </span>
+                                    </div>
+                                    <button type="button" class="crm-stage-add-btn" t-att-data-stage-id="stage.id"
+                                            title="Add lead to this stage">
+                                        +
+                                    </button>
+                                </div>
+
+                                <!-- STAGE REVENUE -->
+                                <div class="crm-stage-revenue-row">
+                                    <span class="crm-stage-amount" t-att-data-stage-id="stage.id">
+                                        $
+                                        <t t-esc="'{:,.2f}'.format(sum(leads_by_stage.get(stage.id, []).mapped('expected_revenue')))"/>
+                                    </span>
+                                </div>
+
+                                <!-- ACCENT BAR -->
+                                <div class="crm-stage-accent-bar" t-att-style="'background-color: %s;' % stage_color"/>
+                            </div>
+
+                            <!-- QUICK CREATE CARD IN STAGE -->
+                            <div class="crm-quick-create-card" t-att-id="'crm_quick_create_%s' % stage.id"
+                                 style="display:none;">
+                                <form action="/my/leads/quick-create" method="post">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <input type="hidden" name="stage_id" t-att-value="stage.id"/>
+                                    <input type="hidden" name="priority" value="0" class="crm-quick-priority-val"/>
+
+                                    <div class="crm-quick-field">
+                                        <i class="fa fa-building-o"/>
+                                        <input type="text" name="company_name" placeholder="Company"/>
+                                    </div>
+
+                                    <div class="crm-quick-field">
+                                        <i class="fa fa-user-o"/>
+                                        <input type="text" name="contact_name" placeholder="Contact"/>
+                                    </div>
+
+                                    <div class="crm-quick-field">
+                                        <i class="fa fa-briefcase"/>
+                                        <input type="text" name="name" placeholder="Opportunity's Name"
+                                               required="required"/>
+                                    </div>
+
+                                    <div class="crm-quick-field">
+                                        <i class="fa fa-envelope-o"/>
+                                        <input type="email" name="email_from" placeholder="Contact Email"/>
+                                    </div>
+
+                                    <div class="crm-quick-field">
+                                        <i class="fa fa-phone"/>
+                                        <input type="text" name="phone" placeholder="Contact Phone"/>
+                                    </div>
+
+                                    <div class="crm-quick-bottom">
+                                        <div class="crm-quick-revenue">
+                                            <span class="text-muted me-1">$</span>
+                                            <input type="number" name="expected_revenue" value="0" step="0.01"
+                                                   placeholder="Expected Revenue"/>
+                                        </div>
+                                        <div class="crm-quick-stars" title="Priority">
+                                            <span class="crm-star-select" data-val="1">☆</span>
+                                            <span class="crm-star-select" data-val="2">☆</span>
+                                            <span class="crm-star-select" data-val="3">☆</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="crm-quick-actions">
+                                        <button type="submit" class="btn btn-sm crm-btn-primary">Add</button>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-secondary crm-quick-cancel-btn">Cancel
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-sm btn-light text-muted ms-auto crm-quick-close-btn">
+                                            <i class="fa fa-trash-o"/>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- DROP AREA -->
+                            <div class="crm-drop-zone" t-att-data-stage-id="stage.id">
+
+                                <t t-foreach="leads_by_stage.get(stage.id, [])" t-as="lead">
+
+                                    <div class="crm-lead-card" draggable="true"
+                                         t-att-data-lead-id="lead.id"
+                                         t-att-data-stage-id="stage.id"
+                                         t-att-data-current-stage="stage.id"
+                                         t-att-data-revenue="lead.expected_revenue or 0"
+                                         t-att-data-priority="lead.priority or '0'"
+                                         t-att-data-user-id="lead.user_id.id if lead.user_id else 0"
+                                         t-att-data-date="str(lead.date_deadline or lead.create_date)[:10] if (lead.date_deadline or lead.create_date) else ''"
+                                         t-att-data-search="('%s %s %s %s %s' % (lead.name or '', lead.partner_id.name if lead.partner_id else '', lead.contact_name or '', lead.email_from or '', ' '.join(lead.tag_ids.mapped('name')))).lower()">
+
+                                        <div class="crm-card-inner">
+                                            <!-- TOP ROW: TITLE & 3-DOTS -->
+                                            <div class="crm-card-header-row">
+                                                <a t-att-href="'/my/leads/%s' % lead.id" class="crm-card-title"
+                                                   t-att-title="lead.name">
+                                                    <t t-esc="lead.name"/>
+                                                </a>
+                                                <div class="dropdown crm-card-menu">
+                                                    <button type="button" class="crm-card-dots-btn"
+                                                            data-bs-toggle="dropdown" aria-expanded="false"
+                                                            title="Options">
+                                                        <i class="fa fa-ellipsis-v"/>
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                        <li>
+                                                            <a class="dropdown-item"
+                                                               t-att-href="'/my/leads/%s' % lead.id"><i
+                                                                    class="fa fa-eye me-2 text-muted"/>View Details
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item"
+                                                               t-att-href="'/my/leads/%s' % lead.id"><i
+                                                                    class="fa fa-pencil me-2 text-muted"/>Edit Lead
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <hr class="dropdown-divider"/>
+                                                        </li>
+                                                        <li class="dropdown-header">Move to:</li>
+                                                        <t t-foreach="stages" t-as="target_stg">
+                                                            <li t-if="target_stg.id != stage.id">
+                                                                <form action="" method="post"
+                                                                      t-att-action="'/my/leads/%s/stage' % lead.id"
+                                                                      class="d-inline">
+                                                                    <input type="hidden" name="csrf_token"
+                                                                           t-att-value="request.csrf_token()"/>
+                                                                    <input type="hidden" name="stage_id"
+                                                                           t-att-value="target_stg.id"/>
+                                                                    <button type="submit" class="dropdown-item py-1">
+                                                                        <i class="fa fa-arrow-right me-2 text-muted"/>
+                                                                        <t t-esc="target_stg.name"/>
+                                                                    </button>
+                                                                </form>
+                                                            </li>
+                                                        </t>
+                                                    </ul>
+                                                </div>
+                                            </div>
+
+                                            <!-- REVENUE ROW -->
+                                            <div class="crm-card-amount">
+                                                $
+                                                <t t-esc="'{:,.2f}'.format(lead.expected_revenue or 0.0)"/>
+                                            </div>
+
+                                            <!-- COMPANY / CONTACT ROW -->
+                                            <div class="crm-card-partner-row"
+                                                 t-if="lead.partner_id or lead.contact_name">
+                                                <i class="fa fa-building-o me-1 text-muted"/>
+                                                <span class="crm-partner-text"
+                                                      t-esc="lead.partner_id.name if lead.partner_id else lead.contact_name"/>
+                                            </div>
+
+                                            <!-- TAGS ROW -->
+                                            <div class="crm-card-tags-row" t-if="lead.tag_ids">
+                                                <t t-foreach="lead.tag_ids" t-as="tag">
+                                                    <t t-set="tag_lower" t-value="(tag.name or '').lower()"/>
+                                                    <t t-set="tag_cls"
+                                                       t-value="'crm-tag-product' if 'product' in tag_lower else ('crm-tag-info' if 'info' in tag_lower else ('crm-tag-consulting' if 'consult' in tag_lower else ('crm-tag-services' if 'service' in tag_lower else ('crm-tag-design' if 'design' in tag_lower else ('crm-tag-software' if 'soft' in tag_lower else ('crm-tag-other' if 'other' in tag_lower else 'crm-tag-default'))))))"/>
+                                                    <span t-att-class="'crm-card-tag %s' % tag_cls">
+                                                        <t t-esc="tag.name"/>
+                                                    </span>
+                                                </t>
+                                            </div>
+
+                                            <!-- BOTTOM ROW: STARS, ICONS, DATE, AVATAR -->
+                                            <div class="crm-card-footer-row">
+                                                <div class="crm-card-footer-left">
+                                                    <!-- STARS -->
+                                                    <span class="crm-card-stars"
+                                                          t-att-title="'Priority: %s' % lead.priority">
+                                                        <t t-if="lead.priority == '3'">
+                                                            <i class="fa fa-star star-filled"/>
+                                                            <i class="fa fa-star star-filled"/>
+                                                            <i class="fa fa-star star-filled"/>
+                                                        </t>
+                                                        <t t-elif="lead.priority == '2'">
+                                                            <i class="fa fa-star star-filled"/>
+                                                            <i class="fa fa-star star-filled"/>
+                                                            <i class="fa fa-star-o star-empty"/>
+                                                        </t>
+                                                        <t t-elif="lead.priority == '1'">
+                                                            <i class="fa fa-star star-filled"/>
+                                                            <i class="fa fa-star-o star-empty"/>
+                                                            <i class="fa fa-star-o star-empty"/>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <i class="fa fa-star-o star-empty"/>
+                                                            <i class="fa fa-star-o star-empty"/>
+                                                            <i class="fa fa-star-o star-empty"/>
+                                                        </t>
+                                                    </span>
+
+                                                    <!-- PHONE ICON -->
+                                                    <a t-if="lead.phone" t-att-href="'tel:%s' % lead.phone"
+                                                       class="crm-footer-icon crm-icon-phone" title="Call">
+                                                        <i class="fa fa-phone"/>
+                                                    </a>
+
+                                                    <!-- EMAIL ICON -->
+                                                    <a t-if="lead.email_from" t-att-href="'mailto:%s' % lead.email_from"
+                                                       class="crm-footer-icon crm-icon-email" title="Email">
+                                                        <i class="fa fa-envelope"/>
+                                                    </a>
+
+                                                    <!-- DATE -->
+                                                    <span class="crm-footer-date"
+                                                          t-if="lead.date_deadline or lead.create_date">
+                                                        <i class="fa fa-clock-o me-1 text-muted"/>
+                                                        <t t-esc="(lead.date_deadline or lead.create_date).strftime('%b %d, %Y') if (lead.date_deadline or lead.create_date) else ''"/>
+                                                    </span>
+                                                </div>
+
+                                                <!-- AVATAR -->
+                                                <div class="crm-card-footer-right">
+                                                    <t t-if="lead.user_id">
+                                                        <div class="crm-avatar" t-att-title="lead.user_id.name">
+                                                            <img t-att-src="'/web/image/res.users/%s/avatar_128' % lead.user_id.id"
+                                                                 alt="" class="crm-avatar-img"
+                                                                 onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"/>
+                                                            <span class="crm-avatar-fallback">
+                                                                <t t-esc="(lead.user_id.name or 'A')[:1].upper()"/>
+                                                            </span>
+                                                        </div>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <div class="crm-avatar crm-avatar-unassigned"
+                                                             title="Unassigned">
+                                                            <span>?</span>
+                                                        </div>
+                                                    </t>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </t>
+
+                                <!-- EMPTY STAGE -->
+                                <div class="crm-empty-stage text-center py-4"
+                                     t-att-style="'display:' + ('flex' if not leads_by_stage.get(stage.id, []) else 'none') + ';'">
+                                    <i class="fa fa-inbox fa-2x mb-2 d-block text-muted"/>
+                                    <span class="text-muted">No leads</span>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </t>
+
+                </div>
+
+
+                <!-- ========================================================= -->
+                <!-- LIST VIEW CONTAINER (Alternative toggle view)             -->
+                <!-- ========================================================= -->
+
+                <div id="crm_list_view_container" class="crm-list-view-table-wrapper" style="display:none;">
+                    <div class="table-responsive bg-white rounded-3 border shadow-sm p-3">
+                        <table class="table table-hover align-middle mb-0 crm-list-table">
+                            <thead>
+                                <tr class="text-muted small text-uppercase">
+                                    <th>Opportunity</th>
+                                    <th>Company / Contact</th>
+                                    <th>Salesperson</th>
+                                    <th>Expected Closing</th>
+                                    <th>Stage</th>
+                                    <th>Priority</th>
+                                    <th class="text-end">Expected Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="leads" t-as="lead">
+                                    <tr class="crm-list-row"
+                                        t-att-data-lead-id="lead.id"
+                                        t-att-data-stage-id="lead.stage_id.id if lead.stage_id else 0"
+                                        t-att-data-priority="lead.priority or '0'"
+                                        t-att-data-user-id="lead.user_id.id if lead.user_id else 0"
+                                        t-att-data-search="('%s %s %s %s %s' % (lead.name or '', lead.partner_id.name if lead.partner_id else '', lead.contact_name or '', lead.email_from or '', ' '.join(lead.tag_ids.mapped('name')))).lower()">
+                                        <td>
+                                            <a t-att-href="'/my/leads/%s' % lead.id"
+                                               class="fw-semibold text-decoration-none text-dark">
+                                                <t t-esc="lead.name"/>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted">
+                                                <t t-esc="lead.partner_id.name if lead.partner_id else (lead.contact_name or '-')"/>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <t t-if="lead.user_id">
+                                                <span class="text-muted">
+                                                    <t t-esc="lead.user_id.name"/>
+                                                </span>
+                                            </t>
+                                            <t t-else="">
+                                                <span class="text-muted">-</span>
+                                            </t>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted">
+                                                <t t-esc="(lead.date_deadline or lead.create_date).strftime('%b %d, %Y') if (lead.date_deadline or lead.create_date) else '-'"/>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge rounded-pill bg-light text-dark border">
+                                                <t t-esc="lead.stage_id.name if lead.stage_id else '-'"/>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <t t-if="lead.priority == '3'">
+                                                <span style="color:#f59e0b;">★★★</span>
+                                            </t>
+                                            <t t-elif="lead.priority == '2'">
+                                                <span style="color:#f59e0b;">★★</span>
+                                                <span style="color:#cbd5e1;">☆</span>
+                                            </t>
+                                            <t t-elif="lead.priority == '1'">
+                                                <span style="color:#f59e0b;">★</span>
+                                                <span style="color:#cbd5e1;">☆☆</span>
+                                            </t>
+                                            <t t-else="">
+                                                <span style="color:#cbd5e1;">☆☆☆</span>
+                                            </t>
+                                        </td>
+                                        <td class="text-end fw-semibold">
+                                            $
+                                            <t t-esc="'{:,.2f}'.format(lead.expected_revenue or 0.0)"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+                <!-- ========================================================= -->
+                <!-- GENERATE LEADS MODAL                                     -->
+                <!-- ========================================================= -->
+
+                <div id="crm_generate_leads_modal" class="crm-generate-modal" style="display:none;">
+                    <div class="crm-generate-overlay"/>
+                    <div class="crm-generate-dialog">
+                        <!-- HEADER -->
+                        <div class="crm-generate-header">
+                            <h4>Need help reaching your target?</h4>
+                            <button type="button" id="crm_generate_close" class="crm-generate-close">&amp;times;
+                            </button>
+                        </div>
+
+                        <!-- FORM -->
+                        <form action="/my/leads/generate" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                            <!-- BODY -->
+                            <div class="crm-generate-body">
+                                <h3>How many leads would you like?</h3>
+
+                                <!-- NUMBER + TYPE -->
+                                <div class="crm-generate-number-row">
+                                    <input type="number" name="lead_count" value="3" min="1" max="100"
+                                           required="required"/>
+                                    <span>Companies</span>
+                                </div>
+
+                                <!-- TWO COLUMNS -->
+                                <div class="crm-generate-grid">
+                                    <!-- LEFT -->
+                                    <div>
+                                        <label>Countries</label>
+                                        <select name="country_id" class="crm-generate-select">
+                                            <option value="">Select Country</option>
+                                            <t t-foreach="countries" t-as="country">
+                                                <option t-att-value="country.id">
+                                                    <t t-esc="country.name"/>
+                                                </option>
+                                            </t>
+                                        </select>
+
+                                        <label>States</label>
+                                        <input type="text" name="state_name" placeholder="Pick States..."
+                                               class="crm-generate-input"/>
+
+                                        <label>Industries</label>
+                                        <input type="text" name="industry" class="crm-generate-input"/>
+
+                                        <label class="crm-filter-size">
+                                            <input type="checkbox" name="filter_on_size"/>
+                                            Filter on Size
+                                        </label>
+                                    </div>
+
+                                    <!-- RIGHT -->
+                                    <div>
+                                        <label>Sales Team</label>
+                                        <select name="sales_team_id" class="crm-generate-select">
+                                            <option value="">Select Sales Team</option>
+                                            <t t-foreach="teams" t-as="team">
+                                                <option t-att-value="team.id">
+                                                    <t t-esc="team.name"/>
+                                                </option>
+                                            </t>
+                                        </select>
+
+                                        <label>Salesperson</label>
+                                        <select name="salesperson_id" class="crm-generate-select">
+                                            <option value="">Select Salesperson</option>
+                                            <t t-foreach="users" t-as="user">
+                                                <option t-att-value="user.id">
+                                                    <t t-esc="user.name"/>
+                                                </option>
+                                            </t>
+                                        </select>
+
+                                        <label>Default Tags</label>
+                                        <div class="crm-generate-tags">
+                                            <t t-foreach="tags" t-as="tag">
+                                                <label>
+                                                    <input type="checkbox" name="tag_ids" t-att-value="tag.id"/>
+                                                    <span>
+                                                        <t t-esc="tag.name"/>
+                                                    </span>
+                                                </label>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FOOTER -->
+                            <div class="crm-generate-footer">
+                                <button type="submit" class="btn crm-btn-primary">Generate Leads</button>
+                                <button type="button" id="crm_generate_cancel" class="btn btn-outline-secondary">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+
+                <!-- ========================================================= -->
+                <!-- INTERACTIVE PIPELINE JAVASCRIPT                           -->
+                <!-- ========================================================= -->
+
+                <script type="text/javascript">
+                    document.addEventListener('DOMContentLoaded', function () {
+                    let draggedLead = null;
+
+                    /* ----------------------------------------------------- */
+                    /* NEW BUTTON and QUICK CREATE */
+                    /* ----------------------------------------------------- */
+                    const newButton = document.getElementById('crm_new_lead_button');
+                    const allQuickCreates = document.querySelectorAll('.crm-quick-create-card');
+
+                    if (newButton) {
+                    newButton.addEventListener('click', function () {
+                    const firstQuickCreate = document.querySelector('.crm-quick-create-card');
+                    if (firstQuickCreate) {
+                    const isHidden = firstQuickCreate.style.display === 'none' || !firstQuickCreate.style.display;
+                    firstQuickCreate.style.display = isHidden ? 'block' : 'none';
+                    if (isHidden) {
+                    const input = firstQuickCreate.querySelector('input[name="name"]');
+                    if (input) input.focus();
+                    }
+                    }
+                    });
+                    }
+
+                    // Column Header '+' buttons
+                    document.querySelectorAll('.crm-stage-add-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                    const stageId = btn.getAttribute('data-stage-id');
+                    const targetQuick = document.getElementById('crm_quick_create_' + stageId);
+                    if (targetQuick) {
+                    const isHidden = targetQuick.style.display === 'none' || !targetQuick.style.display;
+                    allQuickCreates.forEach(q => q.style.display = 'none');
+                    targetQuick.style.display = isHidden ? 'block' : 'none';
+                    if (isHidden) {
+                    const input = targetQuick.querySelector('input[name="name"]');
+                    if (input) input.focus();
+                    }
+                    }
+                    });
+                    });
+
+                    // Quick Create close and cancel buttons
+                    document.querySelectorAll('.crm-quick-cancel-btn, .crm-quick-close-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                    const card = btn.closest('.crm-quick-create-card');
+                    if (card) card.style.display = 'none';
+                    });
+                    });
+
+                    // Quick Create priority star selector
+                    document.querySelectorAll('.crm-quick-stars').forEach(function (starContainer) {
+                    const stars = starContainer.querySelectorAll('.crm-star-select');
+                    const priorityInput = starContainer.closest('form').querySelector('.crm-quick-priority-val');
+
+                    stars.forEach(function (star) {
+                    star.addEventListener('click', function () {
+                    const val = parseInt(star.getAttribute('data-val'), 10);
+                    if (priorityInput) priorityInput.value = val;
+                    stars.forEach(function (s) {
+                    const sVal = parseInt(s.getAttribute('data-val'), 10);
+                    if (sVal &lt;= val) {
+                    s.textContent = '★';
+                    s.style.color = '#f59e0b';
+                    } else {
+                    s.textContent = '☆';
+                    s.style.color = '#cbd5e1';
+                    }
+                    });
+                    });
+                    });
+                    });
+
+                    /* ----------------------------------------------------- */
+                    /* GENERATE LEADS MODAL */
+                    /* ----------------------------------------------------- */
+                    const generateBtn = document.getElementById('crm_generate_leads_button');
+                    const generateModal = document.getElementById('crm_generate_leads_modal');
+                    const generateClose = document.getElementById('crm_generate_close');
+                    const generateCancel = document.getElementById('crm_generate_cancel');
+
+                    function closeGenerateModal() {
+                    if (generateModal) generateModal.style.display = 'none';
+                    }
+
+                    if (generateBtn &amp;&amp; generateModal) {
+                    generateBtn.addEventListener('click', function () {
+                    generateModal.style.display = 'flex';
+                    });
+                    }
+                    if (generateClose) generateClose.addEventListener('click', closeGenerateModal);
+                    if (generateCancel) generateCancel.addEventListener('click', closeGenerateModal);
+                    if (generateModal) {
+                    generateModal.addEventListener('click', function (e) {
+                    if (e.target === generateModal || e.target.classList.contains('crm-generate-overlay')) {
+                    closeGenerateModal();
+                    }
+                    });
+                    }
+
+                    /* ----------------------------------------------------- */
+                    /* LIVE SEARCH and FILTERING */
+                    /* ----------------------------------------------------- */
+                    const searchInput = document.getElementById('crm_lead_search');
+                    const searchClear = document.getElementById('crm_search_clear');
+
+                    let activeFilters = {
+                    search: '',
+                    pipeline: 'all',
+                    stage: 'all',
+                    user: 'all',
+                    date: 'all'
+                    };
+
+                    function applyFilters() {
+                    const cards = document.querySelectorAll('.crm-lead-card');
+                    const listRows = document.querySelectorAll('.crm-list-row');
+                    const query = activeFilters.search.toLowerCase().trim();
+
+                    // Filter Kanban Cards
+                    cards.forEach(function (card) {
+                    const searchData = card.getAttribute('data-search') || '';
+                    const stageId = card.getAttribute('data-stage-id');
+                    const priority = card.getAttribute('data-priority');
+                    const userId = card.getAttribute('data-user-id');
+
+                    let matchesSearch = !query || searchData.indexOf(query) !== -1;
+                    let matchesPipeline = true;
+                    if (activeFilters.pipeline === 'starred') {
+                    matchesPipeline = priority === '1' || priority === '2' || priority === '3';
+                    }
+
+                    let matchesStage = activeFilters.stage === 'all' || stageId === activeFilters.stage;
+                    let matchesUser = true;
+                    if (activeFilters.user === 'unassigned') {
+                    matchesUser = userId === '0' || !userId;
+                    }
+
+                    const visible = matchesSearch &amp;&amp; matchesPipeline &amp;&amp; matchesStage &amp;&amp;
+                    matchesUser;
+                    card.style.display = visible ? 'block' : 'none';
+                    });
+
+                    // Filter List Rows
+                    listRows.forEach(function (row) {
+                    const searchData = row.getAttribute('data-search') || '';
+                    const stageId = row.getAttribute('data-stage-id');
+                    const priority = row.getAttribute('data-priority');
+                    const userId = row.getAttribute('data-user-id');
+
+                    let matchesSearch = !query || searchData.indexOf(query) !== -1;
+                    let matchesPipeline = activeFilters.pipeline !== 'starred' || (priority === '1' || priority === '2'
+                    || priority === '3');
+                    let matchesStage = activeFilters.stage === 'all' || stageId === activeFilters.stage;
+                    let matchesUser = activeFilters.user !== 'unassigned' || (userId === '0' || !userId);
+
+                    const visible = matchesSearch &amp;&amp; matchesPipeline &amp;&amp; matchesStage &amp;&amp;
+                    matchesUser;
+                    row.style.display = visible ? '' : 'none';
+                    });
+
+                    // Update Stage Column Counters andTotals
+                    document.querySelectorAll('.crm-portal-stage').forEach(function (col) {
+                    const stageId = col.getAttribute('data-stage-id');
+                    const visibleCards = col.querySelectorAll('.crm-lead-card:not([style*="display: none"])');
+                    const pill = col.querySelector('.crm-stage-count-pill');
+                    const amount = col.querySelector('.crm-stage-amount');
+                    const emptyMsg = col.querySelector('.crm-empty-stage');
+
+                    if (pill) pill.textContent = visibleCards.length;
+
+                    if (amount) {
+                    let totalRev = 0;
+                    visibleCards.forEach(function (c) {
+                    totalRev += parseFloat(c.getAttribute('data-revenue') || 0);
+                    });
+                    amount.textContent = '$ ' + totalRev.toLocaleString('en-US', {minimumFractionDigits: 2,
+                    maximumFractionDigits: 2});
+                    }
+
+                    if (emptyMsg) {
+                    emptyMsg.style.display = visibleCards.length === 0 ? 'flex' : 'none';
+                    }
+
+                    if (activeFilters.stage !== 'all') {
+                    col.style.display = stageId === activeFilters.stage ? 'block' : 'none';
+                    } else {
+                    col.style.display = 'block';
+                    }
+                    });
+                    }
+
+                    if (searchInput) {
+                    searchInput.addEventListener('input', function () {
+                    activeFilters.search = searchInput.value;
+                    if (searchClear) searchClear.style.display = searchInput.value ? 'block' : 'none';
+                    applyFilters();
+                    });
+                    }
+
+                    if (searchClear) {
+                    searchClear.addEventListener('click', function () {
+                    searchInput.value = '';
+                    activeFilters.search = '';
+                    searchClear.style.display = 'none';
+                    applyFilters();
+                    });
+                    }
+
+                    // Pipeline Filter Dropdown Options
+                    document.querySelectorAll('.crm-filter-pipeline-opt').forEach(function (item) {
+                    item.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelectorAll('.crm-filter-pipeline-opt').forEach(o => o.classList.remove('active'));
+                    item.classList.add('active');
+                    const label = document.getElementById('label_pipeline_filter');
+                    if (label) label.textContent = item.textContent.trim();
+                    activeFilters.pipeline = item.getAttribute('data-filter');
+                    applyFilters();
+                    });
+                    });
+
+                    // Stage Filter Dropdown Options
+                    document.querySelectorAll('.crm-filter-stage-opt').forEach(function (item) {
+                    item.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelectorAll('.crm-filter-stage-opt').forEach(o => o.classList.remove('active'));
+                    item.classList.add('active');
+                    const label = document.getElementById('label_stage_filter');
+                    if (label) label.textContent = item.textContent.trim();
+                    activeFilters.stage = item.getAttribute('data-stage');
+                    applyFilters();
+                    });
+                    });
+
+                    // User Filter Dropdown Options
+                    document.querySelectorAll('.crm-filter-user-opt').forEach(function (item) {
+                    item.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelectorAll('.crm-filter-user-opt').forEach(o => o.classList.remove('active'));
+                    item.classList.add('active');
+                    const label = document.getElementById('label_user_filter');
+                    if (label) label.textContent = item.textContent.trim();
+                    activeFilters.user = item.getAttribute('data-user');
+                    applyFilters();
+                    });
+                    });
+
+                    // Date Filter Dropdown Options
+                    document.querySelectorAll('.crm-filter-date-opt').forEach(function (item) {
+                    item.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelectorAll('.crm-filter-date-opt').forEach(o => o.classList.remove('active'));
+                    item.classList.add('active');
+                    const label = document.getElementById('label_date_filter');
+                    if (label) label.textContent = item.textContent.trim();
+                    activeFilters.date = item.getAttribute('data-date');
+                    applyFilters();
+                    });
+                    });
+
+                    /* ----------------------------------------------------- */
+                    /* VIEW SWITCHER: KANBAN vs LIST */
+                    /* ----------------------------------------------------- */
+
+                    const viewKanban = document.getElementById('crm_view_kanban');
+                    const viewList = document.getElementById('crm_view_list');
+
+                    // Correct Kanban container ID from your XML
+                    const kanbanContainer = document.getElementById('crm_kanban_view');
+                    const listContainer = document.getElementById('crm_list_view_container');
+
+                    const otherViews = [
+                    document.getElementById('crm_view_calendar'),
+                    document.getElementById('crm_view_chart'),
+                    document.getElementById('crm_view_activity')
+                    ];
+
+                    function switchView(isList) {
+                    // Update active button styles
+                    if (viewKanban) {
+                    viewKanban.classList.toggle('active', !isList);
+                    }
+
+                    if (viewList) {
+                    viewList.classList.toggle('active', isList);
+                    }
+
+                    // Deactivate other view buttons
+                    otherViews.forEach(function (button) {
+                    if (button) {
+                    button.classList.remove('active');
+                    }
+                    });
+
+                    // Show the selected view
+                    if (kanbanContainer) {
+                    kanbanContainer.style.display = isList ? 'none' : 'flex';
+                    }
+
+                    if (listContainer) {
+                    listContainer.style.display = isList ? 'block' : 'none';
+                    }
+                    }
+
+                    // Kanban button
+                    if (viewKanban) {
+                    viewKanban.addEventListener('click', function () {
+                    switchView(false);
+                    });
+                    }
+
+                    // List button
+                    if (viewList) {
+                    viewList.addEventListener('click', function () {
+                    switchView(true);
+                    });
+                    }
+
+                    // Show Kanban view by default
+                    switchView(false);
+
+
+                    /* ----------------------------------------------------- */
+                    /* DRAG AND DROP FUNCTIONALITY */
+                    /* ----------------------------------------------------- */
+                    document.querySelectorAll('.crm-lead-card').forEach(function (card) {
+                    card.addEventListener('dragstart', function (event) {
+                    draggedLead = card;
+                    card.style.opacity = '0.4';
+                    card.classList.add('crm-card-dragging');
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData('text/plain', card.getAttribute('data-lead-id'));
+                    });
+
+                    card.addEventListener('dragend', function () {
+                    card.style.opacity = '1';
+                    card.classList.remove('crm-card-dragging');
+                    draggedLead = null;
+                    document.querySelectorAll('.crm-drop-zone').forEach(function (z) {
+                    z.classList.remove('crm-drag-over');
+                    });
+                    });
+                    });
+
+                    document.querySelectorAll('.crm-drop-zone').forEach(function (zone) {
+                    zone.addEventListener('dragover', function (event) {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = 'move';
+                    zone.classList.add('crm-drag-over');
+                    });
+
+                    zone.addEventListener('dragleave', function () {
+                    zone.classList.remove('crm-drag-over');
+                    });
+
+                    zone.addEventListener('drop', function (event) {
+                    event.preventDefault();
+                    zone.classList.remove('crm-drag-over');
+
+                    if (!draggedLead) return;
+
+                    const leadId = draggedLead.getAttribute('data-lead-id');
+                    const newStageId = zone.getAttribute('data-stage-id');
+                    const currentStage = draggedLead.getAttribute('data-current-stage');
+
+                    if (currentStage === newStageId) return;
+
+                    const csrfToken = document.getElementById('crm_pipeline_csrf_token').value;
+
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/my/leads/' + leadId + '/stage';
+
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrf_token';
+                    csrfInput.value = csrfToken;
+                    form.appendChild(csrfInput);
+
+                    const stageInput = document.createElement('input');
+                    stageInput.type = 'hidden';
+                    stageInput.name = 'stage_id';
+                    stageInput.value = newStageId;
+                    form.appendChild(stageInput);
+
+                    document.body.appendChild(form);
+                    form.submit();
+                    });
+                    });
+                    });
+                </script>
+
+            </div>
+
+        </t>
+
+    </template>
+
+
+    <!-- ========================================================= -->
+    <!-- 3. EDITABLE CRM LEAD DETAIL                              -->
+    <!-- ========================================================= -->
+
+    <template
+            id="portal_lead_detail"
+            name="CRM Portal Lead Detail">
+
+        <t t-call="web.frontend_layout">
+
+            <div class="container-fluid px-4 py-4 crm-lead-page">
+
+                <!-- ================================================= -->
+                <!-- BACK BUTTON                                      -->
+                <!-- ================================================= -->
+
+                <div
+                        class="d-flex justify-content-between align-items-center mb-4">
+
+                    <a
+                            href="/my/leads"
+                            class="crm-back-button">
+
+                        <i class="fa fa-arrow-left me-2"/>
+
+                        Back to Pipeline
+
+                    </a>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- MAIN FORM                                         -->
+                <!-- ================================================= -->
+
+                <form
+                        id="crm_lead_form"
+                        method="post"
+                        t-att-action="'/my/leads/%s' % lead.id">
+
+                    <input
+                            type="hidden"
+                            name="csrf_token"
+                            t-att-value="request.csrf_token()"/>
+
+                    <!-- CRM WON / LOST BUTTONS -->
+                    <!-- CRM WON / LOST ACTIONS -->
+                    <div class="crm-portal-won-lost-buttons mb-3">
+
+                        <!-- Mark as Won -->
+                        <button type="submit"
+                                name="crm_action"
+                                value="won"
+                                class="btn crm-btn-won"
+                                onclick="return confirm('Are you sure you want to mark this lead as Won?');">
+                            <i class="fa fa-trophy me-1"/>
+                            Mark as Won
+                        </button>
+
+                        <!-- Open Lost Popup -->
+                        <button type="button"
+                                class="btn crm-btn-lost"
+                                id="crm_portal_lost_open">
+                            <i class="fa fa-times-circle me-1"/>
+                            Mark as Lost
+                        </button>
+
+                    </div>
+
+                    <!-- MARK LOST POPUP -->
+                    <div id="crm_portal_lost_modal"
+                         class="crm-lost-modal"
+                         style="display: none;">
+
+                        <div class="crm-lost-modal-content">
+
+                            <div class="crm-lost-modal-header">
+                                <h5>Mark Lost</h5>
+
+                                <button type="button"
+                                        id="crm_portal_lost_close"
+                                        class="crm-lost-close"
+                                        aria-label="Close">
+                                    ×
+                                </button>
+                            </div>
+
+                            <div class="crm-lost-modal-body">
+
+                                <label class="form-label">
+                                    Lost Reason
+                                </label>
+
+                                <div class="crm-lost-reasons">
+
+                                    <t t-foreach="lost_reasons" t-as="reason">
+                                        <label class="crm-lost-reason-option">
+
+                                            <input type="radio"
+                                                   name="lost_reason_id"
+                                                   t-att-value="reason.id"/>
+
+                                            <span t-esc="reason.name"/>
+
+                                        </label>
+                                    </t>
+
+                                    <t t-if="not lost_reasons">
+                                        <p class="text-muted">
+                                            No lost reasons are configured in CRM.
+                                            Please configure them in Odoo first.
+                                        </p>
+                                    </t>
+
+                                </div>
+
+                                <label for="crm_lost_feedback"
+                                       class="form-label mt-3">
+                                    Closing Note
+                                </label>
+
+                                <textarea name="lost_feedback"
+                                          id="crm_lost_feedback"
+                                          class="form-control"
+                                          rows="4"
+                                          placeholder="Enter the reason for closing this lead..."/>
+
+                            </div>
+
+                            <div class="crm-lost-modal-footer">
+
+                                <button type="submit"
+                                        name="crm_action"
+                                        value="lost"
+                                        class="btn crm-btn-won"
+                                        t-att-disabled="not lost_reasons">
+                                    Mark as Lost
+                                </button>
+
+                                <button type="button"
+                                        id="crm_portal_lost_cancel"
+                                        class="btn btn-secondary">
+                                    Discard
+                                </button>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- LEAD HEADER                                      -->
+                    <!-- ================================================= -->
+
+                    <!-- CRM LEAD HEADER -->
+                    <div class="crm-lead-header">
+
+                        <div class="crm-lead-header-body">
+
+                            <!-- TITLE AND ACTIONS -->
+                            <div class="crm-detail-title-row">
+
+                                <div class="crm-detail-title-left">
+                                    <div class="crm-lead-header-label">
+                                        CRM LEAD / OPPORTUNITY
+                                    </div>
+
+                                    <input
+                                            type="text"
+                                            name="name"
+                                            class="crm-lead-name"
+                                            t-att-value="lead.name"
+                                            required="required"/>
+
+                                    <div class="crm-detail-summary">
+
+                                        <!-- STAGE -->
+                                        <span class="crm-detail-stage">
+                                            <t t-esc="lead.stage_id.name if lead.stage_id else 'New'"/>
+                                        </span>
+
+                                        <!-- PRIORITY -->
+                                        <span class="crm-detail-priority"
+                                              t-att-data-priority="lead.priority or '0'">
+                                            <t t-if="lead.priority == '3'">★★★</t>
+                                            <t t-elif="lead.priority == '2'">★★
+                                                <span class="crm-empty-star">☆</span>
+                                            </t>
+                                            <t t-elif="lead.priority == '1'">★
+                                                <span class="crm-empty-star">☆☆</span>
+                                            </t>
+                                            <t t-else="">☆☆☆</t>
+                                        </span>
+
+                                        <!-- EXPECTED CLOSING -->
+                                        <div class="crm-detail-summary-item">
+                                            <span class="crm-summary-icon">
+                                                <i class="fa fa-calendar"/>
+                                            </span>
+                                            <div>
+                                                <small>Expected Closing</small>
+                                                <strong>
+                                                    <t t-esc="lead.date_deadline.strftime('%b %d, %Y') if lead.date_deadline else 'Not set'"/>
+                                                </strong>
+                                            </div>
+                                        </div>
+
+                                        <!-- EXPECTED REVENUE -->
+                                        <div class="crm-detail-summary-item">
+                                            <span class="crm-summary-icon">
+                                                <i class="fa fa-clock-o"/>
+                                            </span>
+                                            <div>
+                                                <small>Expected Revenue</small>
+                                                <strong>
+                                                    <t t-esc="'{:,.2f}'.format(lead.expected_revenue or 0.0)"/>
+                                                </strong>
+                                            </div>
+                                        </div>
+
+                                        <!-- PROBABILITY -->
+                                        <div class="crm-detail-summary-item">
+                                            <span class="crm-summary-icon">
+                                                <i class="fa fa-line-chart"/>
+                                            </span>
+                                            <div>
+                                                <small>Probability</small>
+                                                <strong>
+                                                    <t t-esc="'{:g}'.format(lead.probability or 0.0)"/>%
+                                                </strong>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- HEADER ACTIONS -->
+                                <div class="crm-detail-header-actions">
+
+                                    <button
+                                            type="button"
+                                            class="crm-detail-menu-button"
+                                            title="More options">
+                                        <i class="fa fa-ellipsis-v"/>
+                                    </button>
+
+                                    <button type="submit" class="crm-save-button">
+                                        <i class="fa fa-save me-1"/>
+                                        Save
+                                    </button>
+
+                                    <a href="/my/leads" class="crm-cancel-button">
+                                        Cancel
+                                    </a>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- ================================================= -->
+                    <!-- INFORMATION ROW                                  -->
+                    <!-- ================================================= -->
+
+                    <div class="row g-4">
+
+
+                        <!-- ================================================= -->
+                        <!-- LEAD INFORMATION                               -->
+                        <!-- ================================================= -->
+
+                        <div class="col-lg-6">
+
+                            <div class="crm-detail-card">
+
+                                <div class="crm-detail-card-header">
+
+                                    <h4>
+
+                                        <i class="fa fa-briefcase"/>
+
+                                        Lead Information
+
+                                    </h4>
+
+                                </div>
+
+
+                                <div class="crm-detail-card-body">
+
+
+                                    <!-- EXPECTED REVENUE -->
+
+                                    <div class="crm-field">
+
+                                        <label class="form-label">
+
+                                            Expected Revenue
+
+                                        </label>
+
+                                        <input
+                                                type="number"
+                                                name="expected_revenue"
+                                                class="form-control"
+                                                min="0"
+                                                step="0.01"
+                                                t-att-value="lead.expected_revenue"/>
+
+                                    </div>
+
+
+                                    <!-- PROBABILITY -->
+
+                                    <div class="crm-field">
+
+                                        <label class="form-label">
+
+                                            Probability (%)
+
+                                        </label>
+
+                                        <input
+                                                type="number"
+                                                name="probability"
+                                                class="form-control"
+                                                min="0"
+                                                max="100"
+                                                step="0.01"
+                                                t-att-value="lead.probability"/>
+
+                                    </div>
+
+
+                                    <!-- EXPECTED CLOSING -->
+
+                                    <div class="crm-field">
+
+                                        <label class="form-label">
+
+                                            Expected Closing
+
+                                        </label>
+
+                                        <input
+                                                type="date"
+                                                name="date_deadline"
+                                                class="form-control"
+                                                t-att-value="lead.date_deadline"/>
+
+                                    </div>
+
+
+                                    <!-- CURRENT STAGE -->
+
+                                    <div class="crm-field">
+
+                                        <label class="form-label">
+
+                                            Current Stage
+
+                                        </label>
+
+                                        <select
+                                                name="stage_id"
+                                                class="form-select">
+
+                                            <t
+                                                    t-foreach="stages"
+                                                    t-as="stage">
+
+                                                <option
+                                                        t-att-value="stage.id"
+                                                        t-att-selected="stage.id == lead.stage_id.id and 'selected' or None">
+
+                                                    <t
+                                                            t-esc="stage.name"/>
+
+                                                </option>
+
+                                            </t>
+
+                                        </select>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- CONTACT INFORMATION                             -->
+                        <!-- ================================================= -->
+
+                        <div class="col-lg-6">
+
+                            <div class="crm-detail-card">
+
+                                <div class="crm-detail-card-header">
+
+                                    <h4>
+
+                                        <i class="fa fa-address-card"/>
+
+                                        Contact Information
+
+                                    </h4>
+
+                                </div>
+
+
+                                <div class="crm-detail-card-body">
+
+
+                                    <!-- COMPANY -->
+
+                                    <div class="crm-field">
+
+                                        <label class="form-label">
+
+                                            Company
+
+                                        </label>
+
+                                        <input
+                                                type="text"
+                                                name="company_name"
+                                                class="form-control"
+                                                t-att-value="lead.partner_id.name if lead.partner_id else ''"/>
+
+                                    </div>
+
+
+                                    <!-- CONTACT NAME -->
+
+                                    <div class="crm-field">
+
+                                        <label class="form-label">
+
+                                            Contact Name
+
+                                        </label>
+
+                                        <input
+                                                type="text"
+                                                name="contact_name"
+                                                class="form-control"
+                                                t-att-value="lead.contact_name or ''"/>
+
+                                    </div>
+
+
+                                    <!-- EMAIL -->
+
+                                    <div class="crm-field">
+
+                                        <label class="form-label">
+
+                                            Email
+
+                                        </label>
+
+                                        <input
+                                                type="email"
+                                                name="email_from"
+                                                class="form-control"
+                                                t-att-value="lead.email_from or ''"/>
+
+                                    </div>
+
+
+                                    <!-- PHONE -->
+
+                                    <div class="crm-field">
+
+                                        <label class="form-label">
+
+                                            Phone
+
+                                        </label>
+
+                                        <input
+                                                type="text"
+                                                name="phone"
+                                                class="form-control"
+                                                t-att-value="lead.phone or ''"/>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- COMPANY INFORMATION                             -->
+                        <!-- ================================================= -->
+
+                        <div class="col-lg-6">
+
+                            <div class="crm-detail-card">
+
+                                <div class="crm-detail-card-header">
+
+                                    <h4>
+
+                                        <i class="fa fa-building"/>
+
+                                        Company Information
+
+                                    </h4>
+
+                                </div>
+
+
+                                <div class="crm-detail-card-body">
+
+
+                                    <!-- ADDRESS -->
+
+                                    <div class="crm-field">
+
+                                        <label class="form-label">
+
+                                            Address
+
+                                        </label>
+
+                                        <input
+                                                type="text"
+                                                name="street"
+                                                class="form-control"
+                                                t-att-value="lead.partner_id.street if lead.partner_id else ''"/>
+
+                                    </div>
+
+
+                                    <!-- CITY -->
+
+                                    <div class="crm-field">
+
+                                        <label class="form-label">
+
+                                            City
+
+                                        </label>
+
+                                        <input
+                                                type="text"
+                                                name="city"
+                                                class="form-control"
+                                                t-att-value="lead.partner_id.city if lead.partner_id else ''"/>
+
+                                    </div>
+
+
+                                    <!-- ZIP -->
+
+                                    <div class="crm-field">
+
+                                        <label class="form-label">
+
+                                            ZIP
+
+                                        </label>
+
+                                        <input
+                                                type="text"
+                                                name="zip"
+                                                class="form-control"
+                                                t-att-value="lead.partner_id.zip if lead.partner_id else ''"/>
+
+                                    </div>
+
+
+                                    <!-- COUNTRY -->
+
+                                    <div class="crm-field">
+
+                                        <label class="form-label">
+
+                                            Country
+
+                                        </label>
+
+                                        <select
+                                                name="country_id"
+                                                class="form-select">
+
+                                            <option value="">
+                                                Select Country
+                                            </option>
+
+                                            <t
+                                                    t-foreach="countries"
+                                                    t-as="country">
+
+                                                <option
+                                                        t-att-value="country.id"
+                                                        t-att-selected="lead.partner_id and country.id == lead.partner_id.country_id.id and 'selected' or None">
+
+                                                    <t
+                                                            t-esc="country.name"/>
+
+                                                </option>
+
+                                            </t>
+
+                                        </select>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- OWNERSHIP                                       -->
+                        <!-- ================================================= -->
+
+                        <div class="col-lg-6">
+
+                            <div class="crm-detail-card">
+
+                                <div class="crm-detail-card-header">
+
+                                    <h4>
+
+                                        <i class="fa fa-users"/>
+
+                                        Ownership
+
+                                    </h4>
+
+                                </div>
+
+
+                                <div class="crm-detail-card-body">
+
+
+                                    <!-- SALESPERSON -->
+
+                                    <div class="crm-field">
+
+                                        <label class="form-label">
+
+                                            Salesperson
+
+                                        </label>
+
+                                        <select
+                                                name="salesperson_id"
+                                                class="form-select">
+
+                                            <option value="">
+                                                Select Salesperson
+                                            </option>
+
+                                            <t
+                                                    t-foreach="users"
+                                                    t-as="user">
+
+                                                <option
+                                                        t-att-value="user.id"
+                                                        t-att-selected="user.id == lead.user_id.id and 'selected' or None">
+
+                                                    <t
+                                                            t-esc="user.name"/>
+
+                                                </option>
+
+                                            </t>
+
+                                        </select>
+
+                                    </div>
+
+
+                                    <!-- SALES TEAM -->
+
+                                    <div class="crm-field">
+
+                                        <label class="form-label">
+
+                                            Sales Team
+
+                                        </label>
+
+                                        <select
+                                                name="sales_team_id"
+                                                class="form-select">
+
+                                            <option value="">
+                                                Select Sales Team
+                                            </option>
+
+                                            <t
+                                                    t-foreach="teams"
+                                                    t-as="team">
+
+                                                <option
+                                                        t-att-value="team.id"
+                                                        t-att-selected="team.id == lead.team_id.id and 'selected' or None">
+
+                                                    <t
+                                                            t-esc="team.name"/>
+
+                                                </option>
+
+                                            </t>
+
+                                        </select>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                        <!-- ================================================= -->
+                        <!-- MARKETING                                       -->
+                        <!-- ================================================= -->
+
+                        <div class="col-lg-6">
+
+                            <div class="crm-detail-card">
+
+                                <div class="crm-detail-card-header">
+
+                                    <h4>
+                                        <i class="fa fa-bullhorn"/>
+                                        Marketing
+                                    </h4>
+
+                                </div>
+
+                                <div class="crm-detail-card-body">
+
+                                    <!-- CAMPAIGN -->
+                                    <div class="crm-field">
+
+                                        <label class="form-label">
+                                            Campaign
+                                        </label>
+
+                                        <select name="campaign_id" class="form-select">
+
+                                            <option value="">
+                                                Select Campaign
+                                            </option>
+
+                                            <t t-foreach="campaigns" t-as="campaign">
+
+                                                <option
+                                                        t-att-value="campaign.id"
+                                                        t-att-selected="campaign.id == lead.campaign_id.id and 'selected' or None">
+
+                                                    <t t-esc="campaign.name"/>
+
+                                                </option>
+
+                                            </t>
+
+                                        </select>
+
+                                    </div>
+
+                                    <!-- MEDIUM -->
+                                    <div class="crm-field">
+
+                                        <label class="form-label">
+                                            Medium
+                                        </label>
+
+                                        <select name="medium_id" class="form-select">
+
+                                            <option value="">
+                                                Select Medium
+                                            </option>
+
+                                            <t t-foreach="mediums" t-as="medium">
+
+                                                <option
+                                                        t-att-value="medium.id"
+                                                        t-att-selected="medium.id == lead.medium_id.id and 'selected' or None">
+
+                                                    <t t-esc="medium.name"/>
+
+                                                </option>
+
+                                            </t>
+
+                                        </select>
+
+                                    </div>
+
+                                    <!-- SOURCE -->
+                                    <div class="crm-field">
+
+                                        <label class="form-label">
+                                            Source
+                                        </label>
+
+                                        <select name="source_id" class="form-select">
+
+                                            <option value="">
+                                                Select Source
+                                            </option>
+
+                                            <t t-foreach="sources" t-as="source">
+
+                                                <option
+                                                        t-att-value="source.id"
+                                                        t-att-selected="source.id == lead.source_id.id and 'selected' or None">
+
+                                                    <t t-esc="source.name"/>
+
+                                                </option>
+
+                                            </t>
+
+                                        </select>
+
+                                    </div>
+
+                                    <!-- REFERRED BY -->
+                                    <div class="crm-field">
+
+                                        <label class="form-label">
+                                            Referred By
+                                        </label>
+
+                                        <input
+                                                type="text"
+                                                name="referred"
+                                                class="form-control"
+                                                t-att-value="lead.referred or ''"
+                                                placeholder="Enter referral name"/>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- TAGS                                            -->
+                        <!-- ================================================= -->
+
+                        <div class="col-12">
+
+                            <div class="crm-detail-card">
+
+                                <div class="crm-detail-card-header">
+
+                                    <h4>
+
+                                        <i class="fa fa-tags"/>
+
+                                        Tags
+
+                                    </h4>
+
+                                </div>
+
+
+                                <div class="crm-detail-card-body">
+
+                                    <div class="row">
+
+                                        <t
+                                                t-foreach="tags"
+                                                t-as="tag">
+
+                                            <div
+                                                    class="col-md-4 col-lg-3 mb-3">
+
+                                                <div
+                                                        class="form-check crm-tag-item">
+
+                                                    <input
+                                                            type="checkbox"
+                                                            class="form-check-input"
+                                                            name="tag_ids"
+                                                            t-att-value="tag.id"
+                                                            t-att-checked="'checked' if tag in lead.tag_ids else None"
+                                                            t-att-id="'tag_%s' % tag.id"/>
+
+                                                    <label
+                                                            class="form-check-label"
+                                                            t-att-for="'tag_%s' % tag.id">
+
+                                                        <t
+                                                                t-esc="tag.name"/>
+
+                                                    </label>
+
+                                                </div>
+
+                                            </div>
+
+                                        </t>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- NOTES                                            -->
+                        <!-- ================================================= -->
+
+                        <div class="col-12">
+
+                            <div class="crm-detail-card">
+
+                                <div class="crm-detail-card-header">
+
+                                    <h4>
+
+                                        <i class="fa fa-file-text-o"/>
+
+                                        Notes
+
+                                    </h4>
+
+                                </div>
+
+
+                                <div class="crm-detail-card-body">
+
+                                    <textarea
+                                            name="description"
+                                            class="form-control"
+                                            rows="7"
+                                            placeholder="Add notes...">
+                                        <t t-esc="lead.description or ''"/>
+                                    </textarea>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- BUTTONS                                          -->
+                    <!-- ================================================= -->
+
+                    <!--                    <div-->
+                    <!--                            class="d-flex justify-content-end gap-2 mt-4 mb-4">-->
+
+                    <!--                        <a-->
+                    <!--                                href="/my/leads"-->
+                    <!--                                class="crm-cancel-button">-->
+
+                    <!--                            Cancel-->
+
+                    <!--                        </a>-->
+
+
+                    <!--                        <button-->
+                    <!--                                type="submit"-->
+                    <!--                                class="crm-save-button">-->
+
+                    <!--                            <i class="fa fa-save me-2"/>-->
+
+                    <!--                            Save Changes-->
+
+                    <!--                        </button>-->
+
+                    <!--                    </div>-->
+
+                </form>
+
+            </div>
+
+        </t>
+
+    </template>
+
+</odoo>
