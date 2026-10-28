@@ -3791,7 +3791,11 @@
 
 
     <!-- ===================================================== -->
-    <!-- LOST LEADS PAGE                                       -->
+    <!-- LOST LEADS & OPPORTUNITIES PAGE (MATCHING MOCKUP)     -->
+    <!-- ===================================================== -->
+
+    <!-- ===================================================== -->
+    <!-- LOST LEADS PAGE (MATCHING PICTURE 1)                 -->
     <!-- ===================================================== -->
 
     <template id="portal_lost_leads" name="CRM Portal Lost Leads">
@@ -3800,115 +3804,172 @@
 
             <div class="container-fluid px-4 py-4 crm-lead-page">
 
-                <div class="container">
+                <div class="crm-lost-page-container">
 
                     <!-- PAGE HEADER -->
-                    <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="crm-lost-header">
 
-                        <div>
-                            <h3 class="mb-1">
-                                <i class="fa fa-times-circle text-danger me-2"/>
-                                <t t-if="is_lead_type">Lost Leads</t>
-                                <t t-else="">Lost Opportunities</t>
-                            </h3>
+                        <div class="crm-lost-header-left">
+                            <div class="crm-lost-icon-badge">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                                </svg>
+                            </div>
 
-                            <p class="text-muted mb-0">
-                                <t t-if="is_lead_type">View leads marked as lost.</t>
-                                <t t-else="">View opportunities marked as lost.</t>
-                            </p>
+                            <div>
+                                <h3 class="crm-lost-title">Lost leads</h3>
+                                <p class="crm-lost-subtitle">Leads that were marked as lost.</p>
+                            </div>
                         </div>
 
-                        <t t-if="is_lead_type">
+                        <div>
                             <a href="/my/leads?type=lead&amp;view=kanban"
-                               class="btn btn-outline-secondary">
+                               class="crm-lost-back-btn">
                                 <i class="fa fa-arrow-left me-1"/>
-                                Back to Leads
+                                Back to leads
                             </a>
-                        </t>
-                        <t t-else="">
-                            <a href="/my/leads"
-                               class="btn btn-outline-secondary">
-                                <i class="fa fa-arrow-left me-1"/>
-                                Back to Pipeline
-                            </a>
-                        </t>
+                        </div>
 
                     </div>
 
-                    <!-- LOST LEADS TABLE -->
-                    <div class="card border-0 shadow-sm">
+                    <!-- 3 STAT CARDS -->
+                    <t t-set="curr_month" t-value="datetime.datetime.now().strftime('%Y-%m')"/>
+                    <t t-set="calc_lost_this_month" t-value="lost_this_month if lost_this_month is not None else len([l for l in lost_leads if (l.date_closed or l.write_date) and (l.date_closed or l.write_date).strftime('%Y-%m') == curr_month])"/>
+                    <t t-set="reason_names" t-value="[l.lost_reason_id.name for l in lost_leads if l.lost_reason_id]"/>
+                    <div class="crm-lost-stats-grid">
 
-                        <div class="card-header bg-white py-3">
-
-                            <strong>
-                                <t t-if="is_lead_type">Lost Leads</t>
-                                <t t-else="">Lost Opportunities</t>
-                            </strong>
-
-                            <span class="badge bg-secondary ms-2">
+                        <!-- Card 1: Count -->
+                        <div class="crm-lost-stat-card">
+                            <div class="crm-lost-stat-label">Lost leads</div>
+                            <div class="crm-lost-stat-val">
                                 <t t-esc="len(lost_leads)"/>
-                            </span>
-
+                            </div>
                         </div>
 
-                        <div class="table-responsive">
+                        <!-- Card 2: Lost this month -->
+                        <div class="crm-lost-stat-card">
+                            <div class="crm-lost-stat-label">Lost this month</div>
+                            <div class="crm-lost-stat-val">
+                                <t t-esc="calc_lost_this_month"/>
+                            </div>
+                        </div>
 
-                            <table class="table table-hover align-middle mb-0">
+                        <!-- Card 3: Top reason -->
+                        <div class="crm-lost-stat-card">
+                            <div class="crm-lost-stat-label">Top reason</div>
+                            <div class="crm-lost-stat-reason">
+                                <t t-if="top_reason">
+                                    <t t-esc="'%s · %s' % (top_reason, top_reason_count)"/>
+                                </t>
+                                <t t-elif="reason_names">
+                                    <t t-set="calc_top_reason" t-value="max(reason_names, key=reason_names.count)"/>
+                                    <t t-esc="'%s · %s' % (calc_top_reason, reason_names.count(calc_top_reason))"/>
+                                </t>
+                                <t t-else="">
+                                    -
+                                </t>
+                            </div>
+                        </div>
 
-                                <thead class="table-light">
+                    </div>
+
+                    <!-- MAIN LIST CARD -->
+                    <div class="crm-lost-card">
+
+                        <!-- CARD HEADER -->
+                        <div class="crm-lost-card-header">
+                            <div class="crm-lost-card-title-group">
+                                <span class="crm-lost-card-title">Lost leads</span>
+                                <span class="crm-lost-count-badge" id="crm_lost_badge_count">
+                                    <t t-esc="len(lost_leads)"/>
+                                </span>
+                            </div>
+
+                            <div class="crm-lost-search-wrapper">
+                                <i class="fa fa-search crm-lost-search-icon"/>
+                                <input type="text"
+                                       id="crm_lost_search_input"
+                                       class="crm-lost-search-input"
+                                       placeholder="Search name or company"/>
+                            </div>
+                        </div>
+
+                        <!-- TABLE -->
+                        <div class="crm-lost-table-responsive">
+
+                            <table class="crm-lost-table">
+
+                                <thead>
                                     <tr>
-                                        <th>
-                                            <t t-if="is_lead_type">Lead Name</t>
-                                            <t t-else="">Opportunity Name</t>
-                                        </th>
-                                        <th>Company / Contact</th>
-                                        <th>Lost Reason</th>
-                                        <th>Salesperson</th>
-                                        <th>Action</th>
+                                        <th>LEAD</th>
+                                        <th>SALESPERSON</th>
+                                        <th>LOST REASON</th>
+                                        <th>LOST ON</th>
+                                        <th>ACTION</th>
                                     </tr>
                                 </thead>
 
-                                <tbody>
+                                <tbody id="crm_lost_tbody">
 
                                     <t t-if="lost_leads">
 
                                         <t t-foreach="lost_leads" t-as="lead">
 
-                                            <tr>
+                                            <t t-set="partner_display"
+                                               t-value="lead.partner_name or (lead.partner_id.name if lead.partner_id and lead.partner_id.is_company else (lead.partner_id.parent_id.name if lead.partner_id and lead.partner_id.parent_id else (lead.contact_name or '—')))"/>
+
+                                            <tr class="crm-lost-row"
+                                                t-att-data-search="('%s %s %s %s' % (lead.name or '', partner_display or '', lead.user_id.name or '', lead.lost_reason_id.name or '')).lower()">
 
                                                 <td>
-                                                    <strong>
+                                                    <div class="crm-lost-name">
                                                         <t t-esc="lead.name"/>
-                                                    </strong>
+                                                    </div>
+                                                    <div class="crm-lost-subtext">
+                                                        <t t-esc="partner_display"/>
+                                                    </div>
                                                 </td>
 
                                                 <td>
-                                                    <t t-esc="lead.partner_name or (lead.partner_id.name if lead.partner_id and lead.partner_id.is_company else (lead.partner_id.parent_id.name if lead.partner_id and lead.partner_id.parent_id else (lead.contact_name or '-')))"/>
+                                                    <div class="crm-user-cell">
+                                                        <t t-if="lead.user_id and lead.user_id.name">
+                                                            <span class="crm-user-avatar-initials">
+                                                                <t t-esc="''.join([p[0].upper() for p in lead.user_id.name.split()[:2]])"/>
+                                                            </span>
+                                                            <span class="crm-user-name">
+                                                                <t t-esc="lead.user_id.name"/>
+                                                            </span>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <span class="crm-user-avatar-unassigned">
+                                                                <i class="fa fa-user-o"/>
+                                                            </span>
+                                                            <span class="crm-user-name text-muted">
+                                                                Unassigned
+                                                            </span>
+                                                        </t>
+                                                    </div>
                                                 </td>
 
                                                 <td>
-                                                    <span class="badge bg-danger-subtle text-danger">
-                                                        <t t-esc="
-                                                        lead.lost_reason_id.name
-                                                        if lead.lost_reason_id
-                                                        else 'Not specified'
-                                                    "/>
+                                                    <span class="crm-lost-reason-pill">
+                                                        <span class="crm-lost-reason-dot"/>
+                                                        <t t-esc="lead.lost_reason_id.name if lead.lost_reason_id else 'Not specified'"/>
                                                     </span>
                                                 </td>
 
                                                 <td>
-                                                    <t t-esc="
-                                                    lead.user_id.name
-                                                    if lead.user_id
-                                                    else '-'
-                                                "/>
+                                                    <span class="crm-lost-date">
+                                                        <t t-esc="((lead.date_closed or lead.write_date).strftime('%b %d, %Y')) if (lead.date_closed or lead.write_date) else '-'"/>
+                                                    </span>
                                                 </td>
 
                                                 <td>
                                                     <a t-att-href="'/my/leads/%s' % lead.id"
-                                                       class="btn btn-sm btn-outline-secondary">
-                                                        <t t-if="is_lead_type">View Lead</t>
-                                                        <t t-else="">View Opportunity</t>
+                                                       class="crm-lost-view-btn">
+                                                        View
                                                     </a>
                                                 </td>
 
@@ -3921,20 +3982,21 @@
                                     <t t-else="">
 
                                         <tr>
-                                            <td colspan="5"
-                                                class="text-center py-5">
-
+                                            <td colspan="5" class="text-center py-5">
                                                 <i class="fa fa-inbox fa-2x text-muted mb-3"/>
-
-                                                <p class="text-muted mb-0">
-                                                    <t t-if="is_lead_type">No lost leads found.</t>
-                                                    <t t-else="">No lost opportunities found.</t>
-                                                </p>
-
+                                                <p class="text-muted mb-0">No lost leads found.</p>
                                             </td>
                                         </tr>
 
                                     </t>
+
+                                    <!-- Search no records row -->
+                                    <tr id="crm_lost_no_records_row" style="display: none;">
+                                        <td colspan="5" class="text-center py-5">
+                                            <i class="fa fa-search fa-2x text-muted mb-3"/>
+                                            <p class="text-muted mb-0">No matching records found.</p>
+                                        </td>
+                                    </tr>
 
                                 </tbody>
 
@@ -3942,11 +4004,349 @@
 
                         </div>
 
+                        <!-- CARD FOOTER -->
+                        <div class="crm-lost-footer">
+                            <div class="crm-lost-footer-count" id="crm_lost_footer_count">
+                                <t t-if="lost_leads">
+                                    1-<t t-esc="len(lost_leads)"/> of <t t-esc="len(lost_leads)"/>
+                                </t>
+                                <t t-else="">
+                                    0 of 0
+                                </t>
+                            </div>
+                        </div>
+
                     </div>
+
+                    <!-- Client-side filter script -->
+                    <script type="text/javascript">
+                        document.addEventListener('DOMContentLoaded', function () {
+                            var input = document.getElementById('crm_lost_search_input');
+                            if (!input) return;
+                            input.addEventListener('input', function () {
+                                var q = input.value.toLowerCase().trim();
+                                var rows = document.querySelectorAll('.crm-lost-row');
+                                var vis = 0;
+                                rows.forEach(function (r) {
+                                    var txt = r.getAttribute('data-search') || '';
+                                    var match = (!q || txt.indexOf(q) !== -1);
+                                    r.style.display = match ? '' : 'none';
+                                    if (match) {
+                                        vis++;
+                                    }
+                                });
+                                var badge = document.getElementById('crm_lost_badge_count');
+                                if (badge) badge.textContent = vis;
+                                var count = document.getElementById('crm_lost_footer_count');
+                                if (count) {
+                                    count.textContent = vis > 0 ? ('1-' + vis + ' of ' + vis) : '0 of 0';
+                                }
+                                var noRow = document.getElementById('crm_lost_no_records_row');
+                                if (noRow) {
+                                    if (vis === 0 &amp;&amp; rows.length > 0) {
+                                        noRow.style.display = '';
+                                    } else {
+                                        noRow.style.display = 'none';
+                                    }
+                                }
+                            });
+                        });
+                    </script>
 
                 </div>
 
+            </div>
 
+        </t>
+
+    </template>
+
+    <!-- ===================================================== -->
+    <!-- LOST OPPORTUNITIES PAGE (MATCHING PICTURE 2)          -->
+    <!-- ===================================================== -->
+
+    <template id="portal_lost_opportunities" name="CRM Portal Lost Opportunities">
+
+        <t t-call="web.frontend_layout">
+
+            <div class="container-fluid px-4 py-4 crm-lead-page">
+
+                <div class="crm-lost-page-container">
+
+                    <!-- PAGE HEADER -->
+                    <div class="crm-lost-header">
+
+                        <div class="crm-lost-header-left">
+                            <div class="crm-lost-icon-badge">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                                </svg>
+                            </div>
+
+                            <div>
+                                <h3 class="crm-lost-title">Lost opportunities</h3>
+                                <p class="crm-lost-subtitle">Opportunities that were marked as lost.</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <a href="/my/leads"
+                               class="crm-lost-back-btn">
+                                <i class="fa fa-arrow-left me-1"/>
+                                Back to pipeline
+                            </a>
+                        </div>
+
+                    </div>
+
+                    <!-- 3 STAT CARDS -->
+                    <t t-set="curr_sym" t-value="currency_symbol or request.env.company.currency_id.symbol or '$'"/>
+                    <t t-set="calc_total_lost_rev" t-value="total_lost_revenue if total_lost_revenue is not None else sum(lost_leads.mapped('expected_revenue'))"/>
+                    <t t-set="reason_names" t-value="[l.lost_reason_id.name for l in lost_leads if l.lost_reason_id]"/>
+                    <div class="crm-lost-stats-grid">
+
+                        <!-- Card 1: Count -->
+                        <div class="crm-lost-stat-card">
+                            <div class="crm-lost-stat-label">Lost opportunities</div>
+                            <div class="crm-lost-stat-val">
+                                <t t-esc="len(lost_leads)"/>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Revenue lost -->
+                        <div class="crm-lost-stat-card">
+                            <div class="crm-lost-stat-label">Revenue lost</div>
+                            <div class="crm-lost-stat-val">
+                                <t t-if="formatted_total_revenue">
+                                    <t t-esc="formatted_total_revenue"/>
+                                </t>
+                                <t t-else="">
+                                    <t t-esc="'%s{:,.0f}'.format(calc_total_lost_rev) % curr_sym if calc_total_lost_rev == int(calc_total_lost_rev) else '%s{:,.2f}'.format(calc_total_lost_rev) % curr_sym"/>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Top reason -->
+                        <div class="crm-lost-stat-card">
+                            <div class="crm-lost-stat-label">Top reason</div>
+                            <div class="crm-lost-stat-reason">
+                                <t t-if="top_reason">
+                                    <t t-esc="'%s · %s' % (top_reason, top_reason_count)"/>
+                                </t>
+                                <t t-elif="reason_names">
+                                    <t t-set="calc_top_reason" t-value="max(reason_names, key=reason_names.count)"/>
+                                    <t t-esc="'%s · %s' % (calc_top_reason, reason_names.count(calc_top_reason))"/>
+                                </t>
+                                <t t-else="">
+                                    -
+                                </t>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- MAIN LIST CARD -->
+                    <div class="crm-lost-card">
+
+                        <!-- CARD HEADER -->
+                        <div class="crm-lost-card-header">
+                            <div class="crm-lost-card-title-group">
+                                <span class="crm-lost-card-title">Lost opportunities</span>
+                                <span class="crm-lost-count-badge" id="crm_lost_badge_count">
+                                    <t t-esc="len(lost_leads)"/>
+                                </span>
+                            </div>
+
+                            <div class="crm-lost-search-wrapper">
+                                <i class="fa fa-search crm-lost-search-icon"/>
+                                <input type="text"
+                                       id="crm_lost_search_input"
+                                       class="crm-lost-search-input"
+                                       placeholder="Search name or company"/>
+                            </div>
+                        </div>
+
+                        <!-- TABLE -->
+                        <div class="crm-lost-table-responsive">
+
+                            <table class="crm-lost-table">
+
+                                <thead>
+                                    <tr>
+                                        <th>OPPORTUNITY</th>
+                                        <th>SALESPERSON</th>
+                                        <th>LOST REASON</th>
+                                        <th>LOST ON</th>
+                                        <th>REVENUE</th>
+                                        <th>ACTION</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="crm_lost_tbody">
+
+                                    <t t-if="lost_leads">
+
+                                        <t t-foreach="lost_leads" t-as="lead">
+
+                                            <t t-set="partner_display"
+                                               t-value="lead.partner_name or (lead.partner_id.name if lead.partner_id and lead.partner_id.is_company else (lead.partner_id.parent_id.name if lead.partner_id and lead.partner_id.parent_id else (lead.contact_name or '—')))"/>
+
+                                            <tr class="crm-lost-row"
+                                                t-att-data-search="('%s %s %s %s' % (lead.name or '', partner_display or '', lead.user_id.name or '', lead.lost_reason_id.name or '')).lower()"
+                                                t-att-data-revenue="lead.expected_revenue or 0">
+
+                                                <td>
+                                                    <div class="crm-lost-name">
+                                                        <t t-esc="lead.name"/>
+                                                    </div>
+                                                    <div class="crm-lost-subtext">
+                                                        <t t-esc="partner_display"/>
+                                                    </div>
+                                                </td>
+
+                                                <td>
+                                                    <div class="crm-user-cell">
+                                                        <t t-if="lead.user_id and lead.user_id.name">
+                                                            <span class="crm-user-avatar-initials">
+                                                                <t t-esc="''.join([p[0].upper() for p in lead.user_id.name.split()[:2]])"/>
+                                                            </span>
+                                                            <span class="crm-user-name">
+                                                                <t t-esc="lead.user_id.name"/>
+                                                            </span>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <span class="crm-user-avatar-unassigned">
+                                                                <i class="fa fa-user-o"/>
+                                                            </span>
+                                                            <span class="crm-user-name text-muted">
+                                                                Unassigned
+                                                            </span>
+                                                        </t>
+                                                    </div>
+                                                </td>
+
+                                                <td>
+                                                    <span class="crm-lost-reason-pill">
+                                                        <span class="crm-lost-reason-dot"/>
+                                                        <t t-esc="lead.lost_reason_id.name if lead.lost_reason_id else 'Not specified'"/>
+                                                    </span>
+                                                </td>
+
+                                                <td>
+                                                    <span class="crm-lost-date">
+                                                        <t t-esc="((lead.date_closed or lead.write_date).strftime('%b %d, %Y')) if (lead.date_closed or lead.write_date) else '-'"/>
+                                                    </span>
+                                                </td>
+
+                                                <td>
+                                                    <span class="crm-lost-revenue">
+                                                        <t t-esc="'%s{:,.2f}'.format(lead.expected_revenue or 0.0) % curr_sym"/>
+                                                    </span>
+                                                </td>
+
+                                                <td>
+                                                    <a t-att-href="'/my/leads/%s' % lead.id"
+                                                       class="crm-lost-view-btn">
+                                                        View
+                                                    </a>
+                                                </td>
+
+                                            </tr>
+
+                                        </t>
+
+                                    </t>
+
+                                    <t t-else="">
+
+                                        <tr>
+                                            <td colspan="6" class="text-center py-5">
+                                                <i class="fa fa-inbox fa-2x text-muted mb-3"/>
+                                                <p class="text-muted mb-0">No lost opportunities found.</p>
+                                            </td>
+                                        </tr>
+
+                                    </t>
+
+                                    <!-- Search no records row -->
+                                    <tr id="crm_lost_no_records_row" style="display: none;">
+                                        <td colspan="6" class="text-center py-5">
+                                            <i class="fa fa-search fa-2x text-muted mb-3"/>
+                                            <p class="text-muted mb-0">No matching records found.</p>
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                        <!-- CARD FOOTER -->
+                        <div class="crm-lost-footer">
+                            <div class="crm-lost-footer-count" id="crm_lost_footer_count">
+                                <t t-if="lost_leads">
+                                    1-<t t-esc="len(lost_leads)"/> of <t t-esc="len(lost_leads)"/>
+                                </t>
+                                <t t-else="">
+                                    0 of 0
+                                </t>
+                            </div>
+                            <div class="crm-lost-footer-total" id="crm_lost_footer_total">
+                                Total lost <t t-esc="'%s{:,.2f}'.format(calc_total_lost_rev) % curr_sym"/>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Client-side filter script -->
+                    <script type="text/javascript">
+                        document.addEventListener('DOMContentLoaded', function () {
+                            var input = document.getElementById('crm_lost_search_input');
+                            if (!input) return;
+                            var currSym = "<t t-esc="curr_sym"/>";
+                            input.addEventListener('input', function () {
+                                var q = input.value.toLowerCase().trim();
+                                var rows = document.querySelectorAll('.crm-lost-row');
+                                var vis = 0;
+                                var totalRev = 0;
+                                rows.forEach(function (r) {
+                                    var txt = r.getAttribute('data-search') || '';
+                                    var match = (!q || txt.indexOf(q) !== -1);
+                                    r.style.display = match ? '' : 'none';
+                                    if (match) {
+                                        vis++;
+                                        var rev = parseFloat(r.getAttribute('data-revenue') || '0');
+                                        if (!isNaN(rev)) {
+                                            totalRev += rev;
+                                        }
+                                    }
+                                });
+                                var badge = document.getElementById('crm_lost_badge_count');
+                                if (badge) badge.textContent = vis;
+                                var count = document.getElementById('crm_lost_footer_count');
+                                if (count) {
+                                    count.textContent = vis > 0 ? ('1-' + vis + ' of ' + vis) : '0 of 0';
+                                }
+                                var totalEl = document.getElementById('crm_lost_footer_total');
+                                if (totalEl) {
+                                    totalEl.textContent = 'Total lost ' + currSym + totalRev.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                }
+                                var noRow = document.getElementById('crm_lost_no_records_row');
+                                if (noRow) {
+                                    if (vis === 0 &amp;&amp; rows.length > 0) {
+                                        noRow.style.display = '';
+                                    } else {
+                                        noRow.style.display = 'none';
+                                    }
+                                }
+                            });
+                        });
+                    </script>
+
+                </div>
 
             </div>
 

@@ -138,6 +138,10 @@ class CRMPortal(CustomerPortal):
         # LOST LEADS VIEW
         # -----------------------------------------------------
 
+        # -----------------------------------------------------
+        # LOST LEADS & OPPORTUNITIES VIEWS
+        # -----------------------------------------------------
+
         domain = self._get_lead_domain()
 
         if request.httprequest.args.get('stage') == 'lost_leads':
@@ -154,11 +158,26 @@ class CRMPortal(CustomerPortal):
                 order='write_date desc, id desc'
             )
 
+            from datetime import datetime
+            curr_month = datetime.now().strftime('%Y-%m')
+            lost_this_month = len([
+                l for l in lost_leads
+                if (l.date_closed or l.write_date) and (l.date_closed or l.write_date).strftime('%Y-%m') == curr_month
+            ])
+            reason_names = [l.lost_reason_id.name for l in lost_leads if l.lost_reason_id]
+            top_reason = None
+            top_reason_count = 0
+            if reason_names:
+                top_reason = max(set(reason_names), key=reason_names.count)
+                top_reason_count = reason_names.count(top_reason)
+
             return request.render(
                 'crm_portal.portal_lost_leads',
                 {
                     'lost_leads': lost_leads,
-                    'is_lead_type': True,
+                    'lost_this_month': lost_this_month,
+                    'top_reason': top_reason,
+                    'top_reason_count': top_reason_count,
                 }
             )
 
@@ -176,11 +195,30 @@ class CRMPortal(CustomerPortal):
                 order='write_date desc, id desc'
             )
 
+            total_lost_revenue = sum(lost_leads.mapped('expected_revenue'))
+            currency_symbol = request.env.company.currency_id.symbol or '$'
+            formatted_total_revenue = (
+                f"{currency_symbol}{total_lost_revenue:,.0f}"
+                if total_lost_revenue == int(total_lost_revenue)
+                else f"{currency_symbol}{total_lost_revenue:,.2f}"
+            )
+
+            reason_names = [l.lost_reason_id.name for l in lost_leads if l.lost_reason_id]
+            top_reason = None
+            top_reason_count = 0
+            if reason_names:
+                top_reason = max(set(reason_names), key=reason_names.count)
+                top_reason_count = reason_names.count(top_reason)
+
             return request.render(
-                'crm_portal.portal_lost_leads',
+                'crm_portal.portal_lost_opportunities',
                 {
                     'lost_leads': lost_leads,
-                    'is_lead_type': False,
+                    'total_lost_revenue': total_lost_revenue,
+                    'formatted_total_revenue': formatted_total_revenue,
+                    'currency_symbol': currency_symbol,
+                    'top_reason': top_reason,
+                    'top_reason_count': top_reason_count,
                 }
             )
 
@@ -348,6 +386,15 @@ class CRMPortal(CustomerPortal):
     )
     def portal_my_lost_leads(self, **kwargs):
         return request.redirect('/my/leads?stage=lost_leads')
+
+    @http.route(
+        '/my/lost-opportunities',
+        type='http',
+        auth='user',
+        website=True
+    )
+    def portal_my_lost_opportunities(self, **kwargs):
+        return request.redirect('/my/leads?stage=lost')
 
     # =========================================================
     # QUICK CREATE LEAD

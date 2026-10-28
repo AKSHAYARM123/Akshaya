@@ -86,6 +86,35 @@ window.setLeadPriorityManual = function (starEl, val, leadId) {
 };
 
 function initLeadsList() {
+    // Lost leads & opportunities instant search filter (Picture 3)
+    const lostInput = document.getElementById('crm_lost_search_input');
+    if (lostInput) {
+        lostInput.addEventListener('input', function () {
+            const q = lostInput.value.toLowerCase().trim();
+            const rows = document.querySelectorAll('.crm-lost-row');
+            let vis = 0;
+            let rev = 0;
+            rows.forEach(function (r) {
+                const txt = r.getAttribute('data-search') || '';
+                const match = (!q || txt.indexOf(q) !== -1);
+                r.style.display = match ? '' : 'none';
+                if (match) {
+                    vis++;
+                }
+            });
+            const badge = document.getElementById('crm_lost_badge_count');
+            if (badge) badge.textContent = vis;
+            const countEl = document.getElementById('crm_lost_footer_count');
+            if (countEl) {
+                countEl.textContent = vis > 0 ? ('1-' + vis + ' of ' + vis) : '0 of 0';
+            }
+            const noRow = document.getElementById('crm_lost_no_records_row');
+            if (noRow) {
+                noRow.style.display = (vis === 0 && rows.length > 0) ? '' : 'none';
+            }
+        });
+    }
+
     if (window.__crm_leads_list_initialized) return;
     window.__crm_leads_list_initialized = true;
 
