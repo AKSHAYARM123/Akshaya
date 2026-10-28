@@ -541,10 +541,16 @@
     padding: 7px 18px !important;
     font-size: 13.5px !important;
     font-weight: 500 !important;
-    display: inline-flex !important;
+    display: inline-flex;
     align-items: center !important;
     cursor: pointer;
     transition: all 0.2s ease !important;
+}
+
+.crm-btn-hidden,
+#btn_new_opportunity.crm-btn-hidden,
+#btn_new_lead.crm-btn-hidden {
+    display: none !important;
 }
 
 .crm-btn-primary:hover {
@@ -1566,8 +1572,8 @@
         padding: 18px 15px;
     }
 }
-/* Keep only Home and Contact Us in the website navigation */
-#top_menu > li:not(:has(> a[href="/"])):not(:has(> a[href="/contactus"])) {
+/* Keep Home, Contact Us, and the portal user menu visible */
+#top_menu > li:not(.o_no_autohide_item):not(:has(> a[href="/"])):not(:has(> a[href="/contactus"])) {
     display: none !important;
 }
 
@@ -3945,3 +3951,294 @@ body .crm-lead-page .crm-bottom-bar .btn-primary:hover {
 }
 
 
+
+
+/* =========================================================
+   MODERN PORTAL CRM LEAD LIST VIEW (MATCHING DESIGN)
+   ========================================================= */
+
+.crm-modern-list-card {
+    background: #ffffff;
+    border: 1px solid #eaecf0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05);
+    overflow: hidden;
+    margin-top: 12px;
+    margin-bottom: 32px;
+}
+
+.crm-modern-list-table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.crm-modern-list-table thead th {
+    background: #ffffff;
+    color: #667085;
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 14px 20px;
+    border-top: none;
+    border-bottom: 1px solid #eaecf0;
+    white-space: nowrap;
+}
+
+.crm-modern-list-table tbody tr.crm-list-row {
+    transition: background-color 0.15s ease;
+}
+
+.crm-modern-list-table tbody tr.crm-list-row:hover {
+    background-color: #f9fafb;
+}
+
+.crm-modern-list-table tbody td {
+    padding: 14px 20px;
+    border-bottom: 1px solid #f2f4f7;
+    vertical-align: middle;
+}
+
+.crm-modern-list-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Lead Column */
+.crm-lead-title-link {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #101828;
+    text-decoration: none;
+    display: inline-block;
+    line-height: 1.35;
+    transition: color 0.15s ease;
+}
+
+.crm-lead-title-link:hover {
+    color: #2563eb;
+}
+
+.crm-lead-sub-contact {
+    font-size: 12.5px;
+    color: #667085;
+    font-weight: 400;
+    margin-top: 2px;
+    line-height: 1.25;
+}
+
+/* Salesperson Column */
+.crm-user-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.crm-user-avatar-initials {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #dbeafe;
+    color: #2563eb;
+    font-size: 11.5px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.crm-user-avatar-unassigned {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    border: 1.5px dashed #cbd5e1;
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.crm-user-name-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: #101828;
+    white-space: nowrap;
+}
+
+.crm-user-name-unassigned {
+    font-size: 13px;
+    font-weight: 400;
+    color: #94a3b8;
+    white-space: nowrap;
+}
+
+/* Closing Column */
+.crm-closing-date-normal {
+    font-size: 13px;
+    font-weight: 500;
+    color: #101828;
+    white-space: nowrap;
+}
+
+.crm-closing-date-overdue {
+    font-size: 13px;
+    font-weight: 500;
+    color: #b91c1c !important;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.crm-closing-date-overdue i {
+    font-size: 12px;
+    color: #b91c1c;
+}
+
+/* Stage Pill Badges */
+.crm-stage-pill {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.25;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.crm-stage-new {
+    background-color: #fef3c7;
+    color: #b45309;
+}
+
+.crm-stage-qualified {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+.crm-stage-proposition {
+    background-color: #dcfce7;
+    color: #15803d;
+}
+
+.crm-stage-won {
+    background-color: #d1fae5;
+    color: #047857;
+}
+
+.crm-stage-lost {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.crm-stage-default {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+/* Priority Stars */
+.crm-stars-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 16px;
+    line-height: 1;
+    user-select: none;
+}
+
+/* Revenue Column */
+.crm-revenue-text {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #101828;
+    white-space: nowrap;
+}
+
+/* Footer & Pagination Bar */
+.crm-modern-list-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    border-top: 1px solid #eaecf0;
+    background-color: #ffffff;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.crm-footer-count {
+    font-size: 12.5px;
+    color: #667085;
+    font-weight: 400;
+}
+
+.crm-footer-pagination {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.crm-page-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: #667085;
+    background: #ffffff;
+    border: 1px solid #eaecf0;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    min-width: 28px;
+    height: 28px;
+}
+
+.crm-page-nav-btn:hover:not(:disabled) {
+    background: #f9fafb;
+    color: #101828;
+    border-color: #d0d5dd;
+}
+
+.crm-page-num-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #667085;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    border: none;
+    background: transparent;
+}
+
+.crm-page-num-btn:hover {
+    background: #f9fafb;
+    color: #101828;
+}
+
+.crm-page-num-btn.active {
+    background: #dbeafe;
+    color: #2563eb;
+    font-weight: 600;
+}
+
+.crm-footer-total {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #101828;
+    white-space: nowrap;
+}

@@ -1,5 +1,5 @@
 import logging
-from odoo import http
+from odoo import http, fields
 from odoo.http import request
 from odoo.addons.portal.controllers.portal import CustomerPortal
 from odoo.addons.website.controllers.main import Website
@@ -184,6 +184,24 @@ class CRMPortal(CustomerPortal):
                 }
             )
 
+        if request.httprequest.args.get('stage') == 'won':
+            won_domain = domain + [
+                ('type', '!=', 'lead'),
+                '|', ('stage_id.is_won', '=', True), ('probability', '=', 100),
+            ]
+
+            won_leads = Lead.search(
+                won_domain,
+                order='write_date desc, id desc'
+            )
+
+            return request.render(
+                'crm_portal.portal_won_leads',
+                {
+                    'won_leads': won_leads,
+                }
+            )
+
         # -----------------------------------------------------
         # ACTIVE LEADS & PIPELINE OPPORTUNITIES
         # -----------------------------------------------------
@@ -261,7 +279,32 @@ class CRMPortal(CustomerPortal):
         total_leads_count = Lead.search_count(lead_domain)
         total_opportunities_count = Lead.search_count(opp_domain)
 
-        avail_opp_domain = [('type', '=', 'opportunity')]
+        from datetime import datetime
+        now = datetime.now()
+        first_day_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        leads_month_domain = lead_domain + [('create_date', '>=', first_day_of_month)]
+        leads_this_month_count = Lead.search_count(leads_month_domain)
+
+        converted_domain = [('type', '=', 'opportunity'), ('date_conversion', '!=', False)]
+        if not user.has_group('base.group_system'):
+            converted_domain.append(('user_id', '=', user.id))
+        converted_leads_count = Lead.search_count(converted_domain)
+
+        total_leads_for_rate = total_leads_count + converted_leads_count
+        conversion_rate = round(converted_leads_count / total_leads_for_rate * 100, 1) if total_leads_for_rate else 0.0
+
+        won_domain = [('type', '=', 'opportunity'), '|', ('stage_id.is_won', '=', True), ('probability', '=', 100)]
+        if not user.has_group('base.group_system'):
+            won_domain.append(('user_id', '=', user.id))
+        won_opps = Lead.search(won_domain)
+        calc_won_revenue = sum(won_opps.mapped('expected_revenue'))
+        calc_won_count = len(won_opps)
+
+        avail_opp_domain = [
+            ('type', '=', 'opportunity'),
+            ('stage_id.is_won', '=', False),
+            ('probability', '<', 100),
+        ]
         if user.share:
             avail_opp_domain.append(('user_id', '=', user.id))
         available_opportunities = Lead.search(avail_opp_domain, order='create_date desc, id desc', limit=100)
@@ -276,7 +319,12 @@ class CRMPortal(CustomerPortal):
                 'leads': leads,
                 'crm_leads': crm_leads,
                 'total_leads_count': total_leads_count,
+                'leads_this_month_count': leads_this_month_count,
+                'converted_leads_count': converted_leads_count,
+                'conversion_rate': conversion_rate,
                 'total_opportunities_count': total_opportunities_count,
+                'calc_won_revenue': calc_won_revenue,
+                'calc_won_count': calc_won_count,
                 'stages': stages,
                 'leads_by_stage': leads_by_stage,
 
@@ -508,6 +556,9 @@ class CRMPortal(CustomerPortal):
             'function': post.get('function', '').strip() or False,
             'description': post.get('description', '').strip() or False,
         }
+
+        if post.get('date_deadline'):
+            values['date_deadline'] = post.get('date_deadline').strip()
 
         if assign_user_id:
             values['user_id'] = assign_user_id
@@ -949,12 +1000,15 @@ class CRMPortal(CustomerPortal):
                 '/my/leads'
             )
 
-        lead.write({
+        lead.sudo().write({
             'stage_id': stage.id,
         })
 
-        if stage.is_won and hasattr(lead, '_update_partner_on_won'):
-            lead._update_partner_on_won()
+        if stage.is_won:
+            lead.sudo().action_set_won()
+            if hasattr(lead, '_update_partner_on_won'):
+                lead.sudo()._update_partner_on_won()
+            return request.redirect('/my/leads?won=1')
 
         if lead.type == 'lead':
             return request.redirect(
@@ -963,6 +1017,321 @@ class CRMPortal(CustomerPortal):
 
         return request.redirect(
             '/my/leads'
+        )
+
+    # =========================================================
+    # NEW LEAD / OPPORTUNITY FORM VIEW
+    # =========================================================
+
+    @http.route(
+        [
+            '/my/opportunity/new',
+            '/my/leads/new',
+        ],
+        type='http',
+        auth='user',
+        website=True,
+        methods=['GET', 'POST']
+    )
+    def portal_lead_new(
+            self,
+            **post
+    ):
+        user = request.env.user
+
+        Lead = request.env['crm.lead'].sudo()
+        Stage = request.env['crm.stage'].sudo()
+        Team = request.env['crm.team'].sudo()
+        Tag = request.env['crm.tag'].sudo()
+        User = request.env['res.users'].sudo()
+        Country = request.env['res.country'].sudo()
+        State = request.env['res.country.state'].sudo()
+        Partner = request.env['res.partner'].sudo()
+        Campaign = request.env['utm.campaign'].sudo() if 'utm.campaign' in request.env else False
+        Medium = request.env['utm.medium'].sudo() if 'utm.medium' in request.env else False
+        Source = request.env['utm.source'].sudo() if 'utm.source' in request.env else False
+        LostReason = request.env['crm.lost.reason'].sudo()
+
+        is_opp_route = 'opportunity' in request.httprequest.path
+        req_type = 'opportunity' if is_opp_route else (post.get('type') or request.httprequest.args.get('type') or 'opportunity')
+
+        # -----------------------------------------------------
+        # POST: CREATE RECORD
+        # -----------------------------------------------------
+        if request.httprequest.method == 'POST':
+            name = post.get('name', '').strip()
+            expected_revenue = post.get('expected_revenue', '0').strip()
+            probability = post.get('probability', '0').strip()
+            date_deadline = post.get('date_deadline', '').strip()
+            contact_name = post.get('contact_name', '').strip()
+            email_from = post.get('email_from', '').strip()
+            phone = post.get('phone', '').strip()
+            website = post.get('website', '').strip()
+            function = post.get('function', '').strip()
+            email_cc = post.get('email_cc', '').strip()
+            priority = post.get('priority', '').strip()
+            state_id = post.get('state_id', '').strip()
+            partner_id = post.get('partner_id', '').strip()
+            description_raw = post.get('description', '').strip()
+            description = plaintext2html(description_raw) if description_raw else False
+
+            company_name = (
+                post.get('company_name')
+                or post.get('partner_name')
+                or ''
+            ).strip()
+
+            street = post.get('street', '').strip()
+            street2 = post.get('street2', '').strip()
+            city = post.get('city', '').strip()
+            zip_code = post.get('zip', '').strip()
+            country_id = post.get('country_id', '').strip()
+
+            salesperson_id = (
+                post.get('salesperson_id')
+                or post.get('user_id')
+                or ''
+            ).strip()
+
+            sales_team_id = (
+                post.get('sales_team_id')
+                or post.get('team_id')
+                or ''
+            ).strip()
+
+            stage_id = post.get('stage_id', '').strip()
+            tag_ids = request.httprequest.form.getlist('tag_ids')
+
+            # Revenue
+            try:
+                expected_revenue = float(expected_revenue or 0)
+            except (ValueError, TypeError):
+                expected_revenue = 0.0
+
+            # Probability
+            try:
+                probability = float(probability or 0)
+            except (ValueError, TypeError):
+                probability = 0.0
+            probability = max(0.0, min(100.0, probability))
+
+            # Salesperson
+            user_id = user.id
+            if salesperson_id:
+                try:
+                    salesperson = User.browse(int(salesperson_id))
+                    if salesperson.exists():
+                        user_id = salesperson.id
+                except (ValueError, TypeError):
+                    pass
+
+            # Sales Team
+            team_id = False
+            if sales_team_id:
+                try:
+                    team = Team.browse(int(sales_team_id))
+                    if team.exists():
+                        team_id = team.id
+                except (ValueError, TypeError):
+                    pass
+
+            # Stage
+            new_stage_id = False
+            first_stage = Stage.search([], order='sequence, id', limit=1)
+            if stage_id:
+                try:
+                    stage = Stage.browse(int(stage_id))
+                    if stage.exists():
+                        new_stage_id = stage.id
+                except (ValueError, TypeError):
+                    pass
+            if not new_stage_id and req_type == 'opportunity' and first_stage:
+                new_stage_id = first_stage.id
+
+            # Country
+            new_country_id = False
+            if country_id:
+                try:
+                    country = Country.browse(int(country_id))
+                    if country.exists():
+                        new_country_id = country.id
+                except (ValueError, TypeError):
+                    pass
+
+            # Tags
+            converted_tag_ids = []
+            for tid in tag_ids:
+                try:
+                    tag = Tag.browse(int(tid))
+                    if tag.exists():
+                        converted_tag_ids.append(tag.id)
+                except (ValueError, TypeError):
+                    continue
+
+            # Partner resolution
+            lead_partner = False
+            company_partner = False
+            contact_partner = False
+            if partner_id:
+                try:
+                    p = Partner.browse(int(partner_id))
+                    if p.exists():
+                        lead_partner = p
+                except (ValueError, TypeError):
+                    pass
+
+            if not lead_partner and req_type != 'lead':
+                if company_name:
+                    company_partner = Partner.search([
+                        ('name', '=ilike', company_name),
+                        ('is_company', '=', True)
+                    ], limit=1)
+                    if not company_partner:
+                        company_partner = Partner.create({
+                            'name': company_name,
+                            'is_company': True,
+                            'street': street,
+                            'city': city,
+                            'zip': zip_code,
+                            'country_id': new_country_id or False,
+                        })
+                    lead_partner = company_partner
+                if contact_name:
+                    contact_domain = [
+                        ('name', '=ilike', contact_name),
+                        ('is_company', '=', False)
+                    ]
+                    if company_partner:
+                        contact_domain.append(('parent_id', '=', company_partner.id))
+                    contact_partner = Partner.search(contact_domain, limit=1)
+                    if not contact_partner and company_partner:
+                        contact_partner = Partner.create({
+                            'name': contact_name,
+                            'is_company': False,
+                            'parent_id': company_partner.id,
+                            'email': email_from or False,
+                            'phone': phone or False,
+                        })
+                    if contact_partner:
+                        lead_partner = contact_partner
+
+            lead_vals = {
+                'name': name or ('New Opportunity' if req_type == 'opportunity' else 'New Lead'),
+                'type': req_type,
+                'email_from': email_from or False,
+                'phone': phone or False,
+                'description': description,
+                'user_id': user_id,
+                'team_id': team_id,
+                'expected_revenue': expected_revenue,
+                'probability': probability,
+                'date_deadline': date_deadline or False,
+                'stage_id': new_stage_id or False,
+                'priority': priority if priority in ('0', '1', '2', '3') else '0',
+                'website': website or False,
+                'function': function or False,
+                'email_cc': email_cc or False,
+                'street': street or False,
+                'street2': street2 or False,
+                'city': city or False,
+                'zip': zip_code or False,
+                'country_id': new_country_id or False,
+                'contact_name': contact_name or False,
+                'partner_name': company_name or False,
+                'partner_id': lead_partner.id if lead_partner else False,
+                'tag_ids': [(6, 0, converted_tag_ids)],
+            }
+
+            if state_id:
+                try:
+                    lead_vals['state_id'] = int(state_id)
+                except (ValueError, TypeError):
+                    pass
+
+            if post.get('campaign_id'):
+                try:
+                    lead_vals['campaign_id'] = int(post['campaign_id'])
+                except (ValueError, TypeError):
+                    pass
+
+            if post.get('medium_id'):
+                try:
+                    lead_vals['medium_id'] = int(post['medium_id'])
+                except (ValueError, TypeError):
+                    pass
+
+            if post.get('source_id'):
+                try:
+                    lead_vals['source_id'] = int(post['source_id'])
+                except (ValueError, TypeError):
+                    pass
+
+            if post.get('referred'):
+                lead_vals['referred'] = post.get('referred', '').strip() or False
+
+            try:
+                new_lead = Lead.create(lead_vals)
+                if post.get('crm_action') == 'save_and_close':
+                    return request.redirect(
+                        '/my/leads?type=lead&view=kanban' if req_type == 'lead' else '/my/leads'
+                    )
+                return request.redirect('/my/leads/%s?saved=1' % new_lead.id)
+            except Exception as e:
+                _logger.exception("Error creating lead from form: %s", e)
+                return request.redirect('/my/leads?error=1')
+
+        # -----------------------------------------------------
+        # GET: RENDER FORM VIEW
+        # -----------------------------------------------------
+        stages = Stage.search([], order='sequence, id')
+        first_stage = stages[0] if stages else False
+
+        lead = Lead.new({
+            'name': '',
+            'type': req_type,
+            'user_id': user.id,
+            'stage_id': first_stage.id if first_stage else False,
+            'priority': '0',
+            'expected_revenue': 0.0,
+            'probability': 0.0,
+            'active': True,
+            'company_currency': request.env.company.currency_id,
+        })
+
+        teams = Team.search([], order='name')
+        tags = Tag.search([], order='name')
+        users = User.search([('active', '=', True)], order='name')
+        countries = Country.search([], order='name')
+        states = State.search([], order='name')
+        lost_reasons = LostReason.search([], order='name')
+        campaigns = Campaign.search([], order='name') if Campaign else []
+        mediums = Medium.search([], order='name') if Medium else []
+        sources = Source.search([], order='name') if Source else []
+        partners = Partner.search([('active', '=', True)], order='name', limit=200)
+        company_partners = Partner.search([('is_company', '=', True), ('active', '=', True)], order='name', limit=200)
+        companies = request.env['res.company'].sudo().search([])
+        available_opportunities = Lead.search([('type', '=', 'opportunity')], order='create_date desc, id desc', limit=100)
+
+        return request.render(
+            'crm_portal.portal_lead_detail',
+            {
+                'lead': lead,
+                'lead_description': '',
+                'stages': stages,
+                'teams': teams,
+                'tags': tags,
+                'users': users,
+                'countries': countries,
+                'states': states,
+                'partners': partners,
+                'company_partners': company_partners,
+                'campaigns': campaigns,
+                'mediums': mediums,
+                'sources': sources,
+                'lost_reasons': lost_reasons,
+                'companies': companies,
+                'available_opportunities': available_opportunities,
+            }
         )
 
     # =========================================================
@@ -1069,17 +1438,17 @@ class CRMPortal(CustomerPortal):
                     except (ValueError, TypeError):
                         pass
                 if pre_won_vals:
-                    lead.write(pre_won_vals)
+                    lead.sudo().write(pre_won_vals)
 
-                # Execute Odoo's standard CRM Won workflow.
-                lead.action_set_won()
+                # Execute Odoo's standard CRM Won workflow using sudo
+                lead.sudo().action_set_won()
 
                 # Ensure won partner check executed
                 if hasattr(lead, '_update_partner_on_won'):
-                    lead._update_partner_on_won()
+                    lead.sudo()._update_partner_on_won()
 
                 return request.redirect(
-                    '/my/leads/%s?won=1' % lead.id
+                    '/my/leads?won=1'
                 )
 
             # -------------------------------------------------
@@ -1892,20 +2261,20 @@ class CRMPortal(CustomerPortal):
                         records_to_merge = Lead.browse(all_to_merge_ids).exists()
                         if len(records_to_merge) > 1:
                             try:
-                                result_opp = records_to_merge.merge_opportunity(
+                                result_opp = records_to_merge.sudo().merge_opportunity(
                                     user_id=user_id_int or (lead.user_id.id if lead.user_id else user.id),
                                     team_id=team_id_int or (lead.team_id.id if lead.team_id else False),
                                     auto_unlink=True
                                 )
-                                result_opp.action_unarchive()
+                                result_opp.sudo().action_unarchive()
                                 if result_opp.type != 'opportunity':
-                                    result_opp.write({'type': 'opportunity'})
+                                    result_opp.sudo().write({'type': 'opportunity'})
                                 if first_stage and not result_opp.stage_id:
-                                    result_opp.write({'stage_id': first_stage.id})
+                                    result_opp.sudo().write({'stage_id': first_stage.id})
                                 converted_lead_id = result_opp.id
                             except Exception as e:
                                 _logger.exception("Error merging opportunities: %s", e)
-                                lead.write({
+                                lead.sudo().write({
                                     'type': 'opportunity',
                                     'user_id': user_id_int or lead.user_id.id or user.id,
                                     'team_id': team_id_int or lead.team_id.id,
@@ -1913,7 +2282,7 @@ class CRMPortal(CustomerPortal):
                                 })
                                 converted_lead_id = lead.id
                         else:
-                            lead.write({
+                            lead.sudo().write({
                                 'type': 'opportunity',
                                 'user_id': user_id_int or lead.user_id.id or user.id,
                                 'team_id': team_id_int or lead.team_id.id,
@@ -1921,7 +2290,7 @@ class CRMPortal(CustomerPortal):
                             })
                             converted_lead_id = lead.id
             else:
-                # Standard Convert to opportunity
+                # Standard Convert to opportunity (direct with sudo, avoiding backend transient wizard check)
                 for lead in leads_to_convert:
                     if self._check_lead_access(lead):
                         converted_lead_id = lead.id
@@ -1950,91 +2319,45 @@ class CRMPortal(CustomerPortal):
                         if post.get('phone'):
                             pre_vals['phone'] = post.get('phone').strip()
                         if pre_vals:
-                            lead.write(pre_vals)
+                            lead.sudo().write(pre_vals)
 
                         saved_partner_name = lead.partner_name or resolved_company_name
                         saved_contact_name = lead.contact_name or resolved_contact_name
 
                         Partner = request.env['res.partner'].sudo()
                         lead_company_partner_id = company_partner_id_int
-                        if customer_action == 'create' and saved_partner_name and not lead_company_partner_id:
-                            company_partner = Partner.search([
-                                ('name', '=ilike', saved_partner_name),
-                                ('is_company', '=', True)
-                            ], limit=1)
-                            if not company_partner:
-                                comp_vals = {
-                                    'name': saved_partner_name,
-                                    'is_company': True,
-                                }
-                                if lead.street:
-                                    comp_vals['street'] = lead.street
-                                if lead.street2:
-                                    comp_vals['street2'] = lead.street2
-                                if lead.city:
-                                    comp_vals['city'] = lead.city
-                                if lead.zip:
-                                    comp_vals['zip'] = lead.zip
-                                if lead.state_id:
-                                    comp_vals['state_id'] = lead.state_id.id
-                                if lead.country_id:
-                                    comp_vals['country_id'] = lead.country_id.id
-                                if lead.website:
-                                    comp_vals['website'] = lead.website
-                                company_partner = Partner.create(comp_vals)
-                            lead_company_partner_id = company_partner.id
+                        target_partner = False
 
-                        try:
-                            wiz_vals = {
-                                'name': 'convert',
-                                'action': customer_action if customer_action in ('create', 'exist') else 'create',
-                            }
-                            if user_id_int:
-                                wiz_vals['user_id'] = user_id_int
-                            if team_id_int:
-                                wiz_vals['team_id'] = team_id_int
-                            if lead_company_partner_id:
-                                wiz_vals['commercial_partner_id'] = lead_company_partner_id
-                            if customer_action == 'exist' and partner_id_int:
-                                wiz_vals['partner_id'] = partner_id_int
+                        if customer_action == 'exist' and partner_id_int:
+                            target_partner = Partner.browse(partner_id_int)
+                        elif customer_action == 'create':
+                            if saved_partner_name and not lead_company_partner_id:
+                                company_partner = Partner.search([
+                                    ('name', '=ilike', saved_partner_name),
+                                    ('is_company', '=', True)
+                                ], limit=1)
+                                if not company_partner:
+                                    comp_vals = {
+                                        'name': saved_partner_name,
+                                        'is_company': True,
+                                    }
+                                    if lead.street:
+                                        comp_vals['street'] = lead.street
+                                    if lead.street2:
+                                        comp_vals['street2'] = lead.street2
+                                    if lead.city:
+                                        comp_vals['city'] = lead.city
+                                    if lead.zip:
+                                        comp_vals['zip'] = lead.zip
+                                    if lead.state_id:
+                                        comp_vals['state_id'] = lead.state_id.id
+                                    if lead.country_id:
+                                        comp_vals['country_id'] = lead.country_id.id
+                                    if lead.website:
+                                        comp_vals['website'] = lead.website
+                                    company_partner = Partner.create(comp_vals)
+                                lead_company_partner_id = company_partner.id
 
-                            wizard = request.env['crm.lead2opportunity.partner'].sudo().with_context(
-                                active_ids=[lead.id],
-                                active_id=lead.id,
-                                active_model='crm.lead'
-                            ).create(wiz_vals)
-                            wizard.action_apply()
-                        except Exception as e:
-                            _logger.exception("Error converting lead via wizard: %s", e)
-                            vals = {'type': 'opportunity'}
-                            if first_stage and not lead.stage_id:
-                                vals['stage_id'] = first_stage.id
-                            if user_id_int:
-                                vals['user_id'] = user_id_int
-                            if team_id_int:
-                                vals['team_id'] = team_id_int
-                            if customer_action == 'exist' and partner_id_int:
-                                vals['partner_id'] = partner_id_int
-                            elif lead_company_partner_id:
-                                vals['partner_id'] = lead_company_partner_id
-                            lead.write(vals)
-
-                        # Ensure company and contact information remain preserved on the opportunity
-                        post_vals = {}
-                        if lead.type != 'opportunity':
-                            post_vals['type'] = 'opportunity'
-                        if first_stage and not lead.stage_id:
-                            post_vals['stage_id'] = first_stage.id
-                        if user_id_int and lead.user_id.id != user_id_int:
-                            post_vals['user_id'] = user_id_int
-                        if team_id_int and lead.team_id.id != team_id_int:
-                            post_vals['team_id'] = team_id_int
-                        if saved_partner_name:
-                            post_vals['partner_name'] = saved_partner_name
-                        if saved_contact_name and not lead.contact_name:
-                            post_vals['contact_name'] = saved_contact_name
-
-                        if customer_action == 'create':
                             if lead_company_partner_id:
                                 if saved_contact_name:
                                     contact_partner = Partner.search([
@@ -2056,11 +2379,49 @@ class CRMPortal(CustomerPortal):
                                                 'email': lead.email_from or False,
                                                 'phone': lead.phone or False,
                                             })
-                                    post_vals['partner_id'] = contact_partner.id
-                                    if contact_partner.parent_id.id != lead_company_partner_id:
-                                        contact_partner.sudo().write({'parent_id': lead_company_partner_id})
-                                elif not lead.partner_id:
-                                    post_vals['partner_id'] = lead_company_partner_id
+                                    target_partner = contact_partner
+                                else:
+                                    target_partner = Partner.browse(lead_company_partner_id)
+                            elif saved_contact_name:
+                                contact_partner = Partner.search([
+                                    ('name', '=ilike', saved_contact_name),
+                                    ('is_company', '=', False)
+                                ], limit=1)
+                                if not contact_partner:
+                                    contact_partner = Partner.create({
+                                        'name': saved_contact_name,
+                                        'is_company': False,
+                                        'email': lead.email_from or False,
+                                        'phone': lead.phone or False,
+                                    })
+                                target_partner = contact_partner
+
+                        # Direct, safe opportunity conversion using sudo
+                        from odoo import fields
+                        conv_vals = {
+                            'type': 'opportunity',
+                            'date_conversion': fields.Datetime.now(),
+                        }
+                        if first_stage and not lead.stage_id:
+                            conv_vals['stage_id'] = first_stage.id
+                        if user_id_int:
+                            conv_vals['user_id'] = user_id_int
+                        elif user.share and not lead.user_id:
+                            conv_vals['user_id'] = user.id
+                        if team_id_int:
+                            conv_vals['team_id'] = team_id_int
+                        if target_partner:
+                            conv_vals['partner_id'] = target_partner.id
+                        elif customer_action == 'exist' and partner_id_int:
+                            conv_vals['partner_id'] = partner_id_int
+                        elif lead_company_partner_id:
+                            conv_vals['partner_id'] = lead_company_partner_id
+                        if saved_partner_name:
+                            conv_vals['partner_name'] = saved_partner_name
+                        if saved_contact_name:
+                            conv_vals['contact_name'] = saved_contact_name
+
+                        lead.sudo().write(conv_vals)
 
                         # If customer created with parent company, ensure parent_id is set
                         if lead_company_partner_id and lead.partner_id and not lead.partner_id.is_company and not lead.partner_id.parent_id:
@@ -2069,11 +2430,8 @@ class CRMPortal(CustomerPortal):
                         # If customer_action was exist and partner belongs to a company, set partner_name
                         if customer_action == 'exist' and lead.partner_id:
                             parent_comp = lead.partner_id.parent_id or (lead.partner_id if lead.partner_id.is_company else False)
-                            if parent_comp:
-                                post_vals['partner_name'] = parent_comp.name
-
-                        if post_vals:
-                            lead.write(post_vals)
+                            if parent_comp and not lead.partner_name:
+                                lead.sudo().write({'partner_name': parent_comp.name})
 
         redirect_url = post.get('redirect')
         if not redirect_url or (converted_lead_id and '/my/leads/' in redirect_url):
@@ -2089,7 +2447,7 @@ class CRMPortal(CustomerPortal):
 
     @http.route(
         '/my/leads/<int:lead_id>/priority',
-        type='json',
+        type='jsonrpc',
         auth='user',
         methods=['POST']
     )

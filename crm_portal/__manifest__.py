@@ -25,6 +25,8 @@ Administrators can:
     ],
 
     'data': [
+        'security/ir.model.access.csv',
+        'security/crm_portal_security.xml',
         'views/portal_crm_templates.xml',
     ],
 

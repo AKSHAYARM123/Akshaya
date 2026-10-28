@@ -69,6 +69,22 @@
                         name="csrf_token"
                         t-att-value="request.csrf_token()"/>
 
+                <!-- Notification Alerts -->
+                <div t-if="request.params.get('won')" class="alert alert-success alert-dismissible fade show mb-3 py-2 shadow-sm border-0 d-flex align-items-center" role="alert" style="background: #ecfdf5; color: #065f46; border-left: 4px solid #10b981 !important; border-radius: 8px;">
+                    <i class="fa fa-trophy text-warning me-2 fs-5"/>
+                    <div class="flex-grow-1">
+                        <strong>Opportunity Won!</strong> The opportunity has been marked as Won and moved from the active pipeline.
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div t-if="request.params.get('converted')" class="alert alert-success alert-dismissible fade show mb-3 py-2 shadow-sm border-0 d-flex align-items-center" role="alert" style="background: #eef2ff; color: #3730a3; border-left: 4px solid #6366f1 !important; border-radius: 8px;">
+                    <i class="fa fa-check-circle text-primary me-2 fs-5"/>
+                    <div class="flex-grow-1">
+                        <strong>Lead Converted!</strong> The lead was successfully converted to an opportunity.
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
                 <!-- ================================================= -->
                 <!-- KPI METRICS ROW                                   -->
                 <!-- ================================================= -->
@@ -78,25 +94,34 @@
                 <t t-set="calc_pipeline_val" t-value="sum(opportunities.mapped('expected_revenue'))"/>
                 <t t-set="calc_won_leads"
                    t-value="opportunities.filtered(lambda l: (l.stage_id and l.stage_id.is_won) or (l.stage_id and 'won' in (l.stage_id.name or '').lower()) or l.probability == 100)"/>
-                <t t-set="calc_won_revenue" t-value="sum(calc_won_leads.mapped('expected_revenue'))"/>
+                <t t-set="calc_won_revenue" t-value="calc_won_revenue if calc_won_revenue is not None else sum(calc_won_leads.mapped('expected_revenue'))"/>
+                <t t-set="calc_won_count_val" t-value="calc_won_count if calc_won_count is not None else len(calc_won_leads)"/>
                 <t t-set="calc_win_rate"
-                   t-value="round(len(calc_won_leads) / len(opportunities) * 100, 1) if len(opportunities) else 0.0"/>
+                   t-value="round(calc_won_count_val / (calc_total_opportunities if calc_total_opportunities &gt;= calc_won_count_val else (calc_total_opportunities + calc_won_count_val)) * 100, 1) if calc_total_opportunities else 0.0"/>
 
-                <div class="crm-kpi-grid">
+                <!-- ================================================= -->
+                <!-- KPI METRICS: OPPORTUNITIES (PIPELINE MODE)        -->
+                <!-- ================================================= -->
+                <div class="crm-kpi-grid" id="crm_kpi_opportunities">
                     <!-- Total Opportunities -->
                     <div class="crm-kpi-card">
-                        <div class="crm-kpi-icon crm-kpi-icon-purple">
-                            <i class="fa fa-users"/>
+                        <div class="crm-kpi-icon" style="background-color: #f3e8ff; color: #7c3aed; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
                         </div>
                         <div class="crm-kpi-content">
-                            <div class="crm-kpi-label">
+                            <div class="crm-kpi-label" style="font-size: 13px; color: #64748b; font-weight: 500; margin-bottom: 2px;">
                                 Total Opportunities
                             </div>
                             <div class="crm-kpi-value-row">
-                                <span class="crm-kpi-value" id="kpi_total_leads">
+                                <span class="crm-kpi-value" id="kpi_total_opportunities" style="font-size: 24px; font-weight: 700; color: #0f172a; line-height: 1.2;">
                                     <t t-esc="calc_total_opportunities"/>
                                 </span>
-                                <span class="crm-kpi-trend">
+                                <span class="crm-kpi-trend" style="color: #10b981; font-size: 11.5px; font-weight: 500;">
                                     <i class="fa fa-arrow-up"/>
                                     2 this month
                                 </span>
@@ -106,16 +131,20 @@
 
                     <!-- Pipeline Value -->
                     <div class="crm-kpi-card">
-                        <div class="crm-kpi-icon crm-kpi-icon-blue">
-                            <i class="fa fa-bar-chart"/>
+                        <div class="crm-kpi-icon" style="background-color: #e0f2fe; color: #0284c7; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="20" x2="18" y2="10"/>
+                                <line x1="12" y1="20" x2="12" y2="4"/>
+                                <line x1="6" y1="20" x2="6" y2="14"/>
+                            </svg>
                         </div>
                         <div class="crm-kpi-content">
-                            <div class="crm-kpi-label">Pipeline Value</div>
+                            <div class="crm-kpi-label" style="font-size: 13px; color: #64748b; font-weight: 500; margin-bottom: 2px;">Pipeline Value</div>
                             <div class="crm-kpi-value-row">
-                                <span class="crm-kpi-value" id="kpi_pipeline_val">$
+                                <span class="crm-kpi-value" id="kpi_pipeline_val" style="font-size: 24px; font-weight: 700; color: #0f172a; line-height: 1.2;">$
                                     <t t-esc="'{:,.2f}'.format(calc_pipeline_val)"/>
                                 </span>
-                                <span class="crm-kpi-trend">
+                                <span class="crm-kpi-trend" style="color: #10b981; font-size: 11.5px; font-weight: 500;">
                                     <i class="fa fa-arrow-up"/>
                                     12%
                                 </span>
@@ -125,16 +154,22 @@
 
                     <!-- Expected Revenue (Won) -->
                     <div class="crm-kpi-card">
-                        <div class="crm-kpi-icon crm-kpi-icon-green">
-                            <i class="fa fa-trophy"/>
+                        <div class="crm-kpi-icon" style="background-color: #dcfce7; color: #16a34a; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+                                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+                                <path d="M4 22h16"/>
+                                <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1h10c.55 0 1-.45 1-1v-1c0-.55-.45-1-1-1h-2c-.55 0-1-.45-1-1v-2.34"/>
+                                <path d="M18 4H6v7a6 6 0 0 0 12 0V4z"/>
+                            </svg>
                         </div>
                         <div class="crm-kpi-content">
-                            <div class="crm-kpi-label">Expected Revenue (Won)</div>
+                            <div class="crm-kpi-label" style="font-size: 13px; color: #64748b; font-weight: 500; margin-bottom: 2px;">Expected Revenue (Won)</div>
                             <div class="crm-kpi-value-row">
-                                <span class="crm-kpi-value" id="kpi_won_revenue">$
+                                <span class="crm-kpi-value" id="kpi_won_revenue" style="font-size: 24px; font-weight: 700; color: #0f172a; line-height: 1.2;">$
                                     <t t-esc="'{:,.2f}'.format(calc_won_revenue)"/>
                                 </span>
-                                <span class="crm-kpi-trend">
+                                <span class="crm-kpi-trend" style="color: #10b981; font-size: 11.5px; font-weight: 500;">
                                     <i class="fa fa-arrow-up"/>
                                     8%
                                 </span>
@@ -144,17 +179,95 @@
 
                     <!-- Win Rate -->
                     <div class="crm-kpi-card">
-                        <div class="crm-kpi-icon crm-kpi-icon-orange">
-                            <i class="fa fa-pie-chart"/>
+                        <div class="crm-kpi-icon" style="background-color: #ffedd5; color: #ea580c; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="5" x2="5" y2="19"/>
+                                <circle cx="6.5" cy="6.5" r="2.5" fill="currentColor"/>
+                                <circle cx="17.5" cy="17.5" r="2.5" fill="currentColor"/>
+                            </svg>
                         </div>
                         <div class="crm-kpi-content">
-                            <div class="crm-kpi-label">Win Rate</div>
+                            <div class="crm-kpi-label" style="font-size: 13px; color: #64748b; font-weight: 500; margin-bottom: 2px;">Win Rate</div>
                             <div class="crm-kpi-value-row">
-                                <span class="crm-kpi-value" id="kpi_win_rate"><t t-esc="int(calc_win_rate)"/>%
+                                <span class="crm-kpi-value" id="kpi_win_rate" style="font-size: 24px; font-weight: 700; color: #0f172a; line-height: 1.2;"><t t-esc="int(calc_win_rate)"/>%
                                 </span>
-                                <span class="crm-kpi-trend">
+                                <span class="crm-kpi-trend" style="color: #10b981; font-size: 11.5px; font-weight: 500;">
                                     <i class="fa fa-arrow-up"/>
                                     5%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================================================= -->
+                <!-- KPI METRICS: LEADS (MATCHING PHOTO 1)             -->
+                <!-- ================================================= -->
+                <div class="crm-kpi-grid" id="crm_kpi_leads" style="display: none;">
+                    <!-- Total leads -->
+                    <div class="crm-kpi-card">
+                        <div class="crm-kpi-icon" style="background-color: #dbeafe; color: #2563eb; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                        </div>
+                        <div class="crm-kpi-content">
+                            <div class="crm-kpi-label" style="font-size: 13px; color: #64748b; font-weight: 500; margin-bottom: 2px;">Total leads</div>
+                            <div class="crm-kpi-value-row">
+                                <span class="crm-kpi-value" id="kpi_lead_total_leads" style="font-size: 24px; font-weight: 700; color: #0f172a; line-height: 1.2;">
+                                    <t t-esc="total_leads_count if total_leads_count is not None else len(crm_leads)"/>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- New this month -->
+                    <div class="crm-kpi-card">
+                        <div class="crm-kpi-icon" style="background-color: #fef3c7; color: #d97706; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/>
+                            </svg>
+                        </div>
+                        <div class="crm-kpi-content">
+                            <div class="crm-kpi-label" style="font-size: 13px; color: #64748b; font-weight: 500; margin-bottom: 2px;">New this month</div>
+                            <div class="crm-kpi-value-row">
+                                <span class="crm-kpi-value" id="kpi_lead_new_month" style="font-size: 24px; font-weight: 700; color: #0f172a; line-height: 1.2;">
+                                    <t t-esc="leads_this_month_count if leads_this_month_count is not None else 0"/>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Converted -->
+                    <div class="crm-kpi-card">
+                        <div class="crm-kpi-icon" style="background-color: #dcfce7; color: #16a34a; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 17h16M16 13l4 4-4 4M20 7H4M8 3L4 7l4 4"/>
+                            </svg>
+                        </div>
+                        <div class="crm-kpi-content">
+                            <div class="crm-kpi-label" style="font-size: 13px; color: #64748b; font-weight: 500; margin-bottom: 2px;">Converted</div>
+                            <div class="crm-kpi-value-row">
+                                <span class="crm-kpi-value" id="kpi_lead_converted" style="font-size: 24px; font-weight: 700; color: #0f172a; line-height: 1.2;">
+                                    <t t-esc="converted_leads_count if converted_leads_count is not None else 0"/>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Conversion rate -->
+                    <div class="crm-kpi-card">
+                        <div class="crm-kpi-icon" style="background-color: #dbeafe; color: #2563eb; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <span style="font-size: 20px; font-weight: 700; line-height: 1;">%</span>
+                        </div>
+                        <div class="crm-kpi-content">
+                            <div class="crm-kpi-label" style="font-size: 13px; color: #64748b; font-weight: 500; margin-bottom: 2px;">Conversion rate</div>
+                            <div class="crm-kpi-value-row">
+                                <span class="crm-kpi-value" id="kpi_lead_conversion_rate" style="font-size: 24px; font-weight: 700; color: #0f172a; line-height: 1.2;">
+                                    <t t-esc="'{}%'.format(conversion_rate if conversion_rate is not None else 0)"/>
                                 </span>
                             </div>
                         </div>
@@ -227,6 +340,7 @@
                                 <li>
                                     <hr class="dropdown-divider"/>
                                 </li>
+
                                 <li>
                                     <a class="dropdown-item crm-filter-stage-opt"
                                        href="/my/leads?stage=lost"
@@ -297,11 +411,19 @@
                     </div>
 
                     <!-- RIGHT: BUTTONS & VIEW SWITCHERS -->
-                    <div class="crm-toolbar-right">
-                        <!-- New Opportunity / Lead Button -->
-                        <button type="button" class="btn crm-btn-primary" id="btn_toggle_create_lead" title="New Opportunity">
+                    <div class="crm-toolbar-right d-flex align-items-center gap-2">
+                        <!-- New Opportunity Button -->
+                        <button type="button" class="btn crm-btn-primary" id="btn_new_opportunity" title="New Opportunity">
                             <i class="fa fa-plus me-1"/> New Opportunity
                         </button>
+
+                        <!-- New Lead Button -->
+                        <button type="button" class="btn crm-btn-primary crm-btn-hidden d-none" id="btn_new_lead" title="New Lead" style="display: none !important;">
+                            <i class="fa fa-plus me-1"/> New Lead
+                        </button>
+
+                        <!-- Compatibility alias for legacy scripts -->
+                        <button type="button" id="btn_toggle_create_lead" style="display:none;"></button>
 
 
 
@@ -794,89 +916,257 @@
                 <!-- ========================================================= -->
 
                 <div id="crm_list_view_container" class="crm-list-view-table-wrapper" style="display:none;">
-                    <div class="table-responsive bg-white rounded-3 border shadow-sm p-3">
-                        <table class="table table-hover align-middle mb-0 crm-list-table">
-                            <thead>
-                                <tr class="text-muted small text-uppercase">
-                                    <th>Opportunity / Lead</th>
-                                    <th>Company / Contact</th>
-                                    <th>Salesperson</th>
-                                    <th>Expected Closing</th>
-                                    <th>Stage</th>
-                                    <th>Priority</th>
-                                    <th class="text-end pe-3">Expected Revenue</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <t t-foreach="leads" t-as="lead">
-                                    <tr class="crm-list-row"
-                                        t-att-data-lead-id="lead.id"
-                                        t-att-data-type="lead.type or 'lead'"
-                                        t-att-data-stage-id="lead.stage_id.id if lead.stage_id else 0"
-                                        t-att-data-priority="lead.priority or '0'"
-                                        t-att-data-user-id="lead.user_id.id if lead.user_id else 0"
-                                        t-att-data-date="str(lead.date_deadline or lead.create_date)[:10] if (lead.date_deadline or lead.create_date) else ''"
-                                        t-att-data-search="('%s %s %s %s %s' % (lead.name or '', lead.partner_id.name if lead.partner_id else '', lead.contact_name or '', lead.email_from or '', ' '.join(lead.tag_ids.mapped('name')))).lower()">
-                                        <td>
-                                            <div class="d-flex align-items-center gap-1">
-                                                <t t-if="lead.type == 'lead'">
-                                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 10px; padding: 2px 6px;">Lead</span>
+                    <div class="crm-modern-list-card">
+                        <div class="table-responsive mb-0">
+                            <table class="table align-middle mb-0 crm-modern-list-table crm-list-table">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4">OPPORTUNITY</th>
+                                        <th>SALESPERSON</th>
+                                        <th>CLOSING</th>
+                                        <th>STAGE</th>
+                                        <th>PRIORITY</th>
+                                        <th class="text-end pe-4">REVENUE</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="leads" t-as="lead">
+                                        <tr class="crm-list-row"
+                                            t-att-data-lead-id="lead.id"
+                                            t-att-data-type="lead.type or 'lead'"
+                                            t-att-data-stage-id="lead.stage_id.id if lead.stage_id else 0"
+                                            t-att-data-priority="lead.priority or '0'"
+                                            t-att-data-user-id="lead.user_id.id if lead.user_id else 0"
+                                            t-att-data-date="str(lead.date_deadline or lead.create_date)[:10] if (lead.date_deadline or lead.create_date) else ''"
+                                            t-att-data-revenue="lead.expected_revenue or 0"
+                                            t-att-data-search="('%s %s %s %s %s' % (lead.name or '', lead.partner_id.name if lead.partner_id else '', lead.contact_name or '', lead.email_from or '', ' '.join(lead.tag_ids.mapped('name')))).lower()">
+                                            <!-- LEAD -->
+                                            <td class="ps-4">
+                                                <div>
+                                                    <a t-att-href="'/my/leads/%s' % lead.id" class="crm-lead-title-link">
+                                                        <t t-esc="lead.name"/>
+                                                    </a>
+                                                    <div class="crm-lead-sub-contact">
+                                                        <t t-esc="lead.partner_name or (lead.partner_id.name if lead.partner_id and lead.partner_id.is_company else (lead.partner_id.parent_id.name if lead.partner_id and lead.partner_id.parent_id else (lead.contact_name or '-')))"/>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <!-- SALESPERSON -->
+                                            <td>
+                                                <div class="crm-user-cell">
+                                                    <t t-if="lead.user_id">
+                                                        <div class="crm-user-avatar-initials" t-att-title="lead.user_id.name">
+                                                            <t t-set="u_words" t-value="(lead.user_id.name or '').split()"/>
+                                                            <t t-esc="''.join([w[0].upper() for w in u_words[:2]]) if u_words else 'U'"/>
+                                                        </div>
+                                                        <span class="crm-user-name-text">
+                                                            <t t-esc="lead.user_id.name"/>
+                                                        </span>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <div class="crm-user-avatar-unassigned" title="Unassigned">
+                                                            <span>?</span>
+                                                        </div>
+                                                        <span class="crm-user-name-unassigned">Unassigned</span>
+                                                    </t>
+                                                </div>
+                                            </td>
+
+                                            <!-- CLOSING -->
+                                            <td>
+                                                <t t-set="lead_closing" t-value="lead.date_deadline or lead.create_date"/>
+                                                <t t-if="lead_closing">
+                                                    <div class="crm-closing-date-normal" t-att-data-deadline="str(lead.date_deadline or '')[:10]">
+                                                        <t t-esc="lead_closing.strftime('%b %d, %Y')"/>
+                                                    </div>
                                                 </t>
-                                                <a t-att-href="'/my/leads/%s' % lead.id"
-                                                   class="fw-semibold text-decoration-none text-dark">
-                                                    <t t-esc="lead.name"/>
-                                                </a>
+                                                <t t-else="">
+                                                    <span style="color: #94a3b8;">-</span>
+                                                </t>
+                                            </td>
+
+                                            <!-- STAGE -->
+                                            <td>
+                                                <t t-set="st_name" t-value="(lead.stage_id.name or '').lower() if lead.stage_id else ''"/>
+                                                <span t-attf-class="crm-stage-pill #{'crm-stage-new' if 'new' in st_name else ('crm-stage-qualified' if 'qualif' in st_name else ('crm-stage-proposition' if 'prop' in st_name else ('crm-stage-won' if 'won' in st_name else ('crm-stage-lost' if 'lost' in st_name else 'crm-stage-default'))))}">
+                                                    <t t-esc="lead.stage_id.name if lead.stage_id else '-'"/>
+                                                </span>
+                                            </td>
+
+                                            <!-- PRIORITY -->
+                                            <td>
+                                                <span class="crm-list-stars crm-stars-group" t-att-data-lead-id="lead.id">
+                                                    <span class="crm-star-card-opt" data-val="1" t-att-data-lead-id="lead.id" onclick="event.stopPropagation(); (window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 1, this.getAttribute('data-lead-id')) : null)" t-att-style="'cursor:pointer; font-size: 16px; color: %s;' % ('#d97706' if (int(lead.priority or 0) >= 1) else '#d0d5dd')"><t t-esc="'★' if (int(lead.priority or 0) >= 1) else '☆'"/></span>
+                                                    <span class="crm-star-card-opt" data-val="2" t-att-data-lead-id="lead.id" onclick="event.stopPropagation(); (window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 2, this.getAttribute('data-lead-id')) : null)" t-att-style="'cursor:pointer; font-size: 16px; color: %s;' % ('#d97706' if (int(lead.priority or 0) >= 2) else '#d0d5dd')"><t t-esc="'★' if (int(lead.priority or 0) >= 2) else '☆'"/></span>
+                                                    <span class="crm-star-card-opt" data-val="3" t-att-data-lead-id="lead.id" onclick="event.stopPropagation(); (window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 3, this.getAttribute('data-lead-id')) : null)" t-att-style="'cursor:pointer; font-size: 16px; color: %s;' % ('#d97706' if (int(lead.priority or 0) >= 3) else '#d0d5dd')"><t t-esc="'★' if (int(lead.priority or 0) >= 3) else '☆'"/></span>
+                                                </span>
+                                            </td>
+
+                                            <!-- REVENUE -->
+                                            <td class="text-end pe-4">
+                                                <span class="crm-revenue-text">
+                                                    $ <t t-esc="'{:,.2f}'.format(lead.expected_revenue or 0.0)"/>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <tr id="crm_list_no_records" style="display:none;">
+                                        <td colspan="6" class="text-center py-5">
+                                            <div class="text-muted">
+                                                <i class="fa fa-inbox fa-3x mb-3 text-secondary"/>
+                                                <h5>No records found</h5>
+                                                <p class="small">No matching records found for the selected filter or search criteria.</p>
                                             </div>
                                         </td>
-                                        <td>
-                                            <span class="text-muted">
-                                                <t t-esc="lead.partner_name or (lead.partner_id.name if lead.partner_id and lead.partner_id.is_company else (lead.partner_id.parent_id.name if lead.partner_id and lead.partner_id.parent_id else (lead.contact_name or '-')))"/>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <t t-if="lead.user_id">
-                                                <span class="text-muted">
-                                                    <t t-esc="lead.user_id.name"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- FOOTER BAR -->
+                        <div class="crm-modern-list-footer">
+                            <div class="crm-footer-count" id="crm_list_count_display">
+                                <t t-set="total_rec_count" t-value="len(leads) if leads else 0"/>
+                                <t t-esc="'1-%s of %s' % (min(total_rec_count, 20), total_rec_count) if total_rec_count else '0 of 0'"/>
+                            </div>
+                            <div class="crm-footer-pagination" id="crm_list_pagination">
+                                <button type="button" class="crm-page-nav-btn" id="crm_page_prev" title="Previous page">&lt;</button>
+                                <button type="button" class="crm-page-num-btn active" data-page="1">1</button>
+                                <button type="button" class="crm-page-num-btn" data-page="2">2</button>
+                                <button type="button" class="crm-page-num-btn" data-page="3">3</button>
+                                <button type="button" class="crm-page-nav-btn" id="crm_page_next" title="Next page">&gt;</button>
+                            </div>
+                            <div class="crm-footer-total" id="crm_list_total_display">
+                                Total $<t t-esc="'{:,.2f}'.format(sum(leads.mapped('expected_revenue')) if leads else 0.0)"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- ========================================================= -->
+                <!-- LEADS LIST VIEW CONTAINER (For Lead Mode)                 -->
+                <!-- ========================================================= -->
+
+                <div id="crm_leads_list_view_container" class="crm-list-view-table-wrapper" style="display:none;">
+                    <div class="crm-modern-list-card">
+                        <div class="table-responsive mb-0">
+                            <table class="table align-middle mb-0 crm-modern-list-table crm-list-table">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4">LEAD</th>
+                                        <th>EMAIL</th>
+                                        <th>SALESPERSON</th>
+                                        <th>PRIORITY</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="leads" t-as="lead">
+                                        <tr class="crm-list-row crm-lead-list-row"
+                                            t-att-data-lead-id="lead.id"
+                                            t-att-data-type="lead.type or 'lead'"
+                                            t-att-data-priority="lead.priority or '0'"
+                                            t-att-data-user-id="lead.user_id.id if lead.user_id else 0"
+                                            t-att-data-date="str(lead.date_deadline or lead.create_date)[:10] if (lead.date_deadline or lead.create_date) else ''"
+                                            t-att-data-revenue="lead.expected_revenue or 0"
+                                            t-att-data-search="('%s %s %s %s %s' % (lead.name or '', lead.partner_id.name if lead.partner_id else '', lead.contact_name or '', lead.email_from or '', ' '.join(lead.tag_ids.mapped('name')))).lower()">
+                                            <!-- LEAD -->
+                                            <td class="ps-4">
+                                                <div>
+                                                    <a t-att-href="'/my/leads/%s' % lead.id" class="crm-lead-title-link">
+                                                        <t t-esc="lead.name"/>
+                                                    </a>
+                                                    <div class="crm-lead-sub-contact">
+                                                        <t t-esc="lead.partner_name or (lead.partner_id.name if lead.partner_id and lead.partner_id.is_company else (lead.partner_id.parent_id.name if lead.partner_id and lead.partner_id.parent_id else (lead.contact_name or '-')))"/>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <!-- EMAIL -->
+                                            <td>
+                                                <t t-if="lead.email_from">
+                                                    <a t-att-href="'mailto:%s' % lead.email_from" class="text-decoration-none" style="color: #475569; font-size: 13px; font-weight: 500;">
+                                                        <i class="fa fa-envelope-o text-muted me-1" style="font-size: 12px;"/>
+                                                        <t t-esc="lead.email_from"/>
+                                                    </a>
+                                                    <div t-if="lead.phone" style="font-size: 12px; color: #667085; margin-top: 2px;">
+                                                        <i class="fa fa-phone text-muted me-1" style="font-size: 11px;"/>
+                                                        <t t-esc="lead.phone"/>
+                                                    </div>
+                                                </t>
+                                                <t t-elif="lead.phone">
+                                                    <a t-att-href="'tel:%s' % lead.phone" class="text-decoration-none" style="color: #475569; font-size: 13px; font-weight: 500;">
+                                                        <i class="fa fa-phone text-muted me-1" style="font-size: 12px;"/>
+                                                        <t t-esc="lead.phone"/>
+                                                    </a>
+                                                </t>
+                                                <t t-else="">
+                                                    <span style="color: #94a3b8;">-</span>
+                                                </t>
+                                            </td>
+
+                                            <!-- SALESPERSON -->
+                                            <td>
+                                                <div class="crm-user-cell">
+                                                    <t t-if="lead.user_id">
+                                                        <div class="crm-user-avatar-initials" t-att-title="lead.user_id.name">
+                                                            <t t-set="u_words" t-value="(lead.user_id.name or '').split()"/>
+                                                            <t t-esc="''.join([w[0].upper() for w in u_words[:2]]) if u_words else 'U'"/>
+                                                        </div>
+                                                        <span class="crm-user-name-text">
+                                                            <t t-esc="lead.user_id.name"/>
+                                                        </span>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <div class="crm-user-avatar-unassigned" title="Unassigned">
+                                                            <span>?</span>
+                                                        </div>
+                                                        <span class="crm-user-name-unassigned">Unassigned</span>
+                                                    </t>
+                                                </div>
+                                            </td>
+
+                                            <!-- PRIORITY -->
+                                            <td>
+                                                <span class="crm-list-stars crm-stars-group" t-att-data-lead-id="lead.id">
+                                                    <span class="crm-star-card-opt" data-val="1" t-att-data-lead-id="lead.id" onclick="event.stopPropagation(); (window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 1, this.getAttribute('data-lead-id')) : null)" t-att-style="'cursor:pointer; font-size: 16px; color: %s;' % ('#d97706' if (int(lead.priority or 0) >= 1) else '#d0d5dd')"><t t-esc="'★' if (int(lead.priority or 0) >= 1) else '☆'"/></span>
+                                                    <span class="crm-star-card-opt" data-val="2" t-att-data-lead-id="lead.id" onclick="event.stopPropagation(); (window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 2, this.getAttribute('data-lead-id')) : null)" t-att-style="'cursor:pointer; font-size: 16px; color: %s;' % ('#d97706' if (int(lead.priority or 0) >= 2) else '#d0d5dd')"><t t-esc="'★' if (int(lead.priority or 0) >= 2) else '☆'"/></span>
+                                                    <span class="crm-star-card-opt" data-val="3" t-att-data-lead-id="lead.id" onclick="event.stopPropagation(); (window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 3, this.getAttribute('data-lead-id')) : null)" t-att-style="'cursor:pointer; font-size: 16px; color: %s;' % ('#d97706' if (int(lead.priority or 0) >= 3) else '#d0d5dd')"><t t-esc="'★' if (int(lead.priority or 0) >= 3) else '☆'"/></span>
                                                 </span>
-                                            </t>
-                                            <t t-else="">
-                                                <span class="text-muted">-</span>
-                                            </t>
-                                        </td>
-                                        <td>
-                                            <span class="text-muted">
-                                                <t t-esc="(lead.date_deadline or lead.create_date).strftime('%b %d, %Y') if (lead.date_deadline or lead.create_date) else '-'"/>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge rounded-pill bg-light text-dark border">
-                                                <t t-esc="lead.stage_id.name if lead.stage_id else '-'"/>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="crm-list-stars" t-att-data-lead-id="lead.id">
-                                                <span class="crm-star-card-opt" data-val="1" t-att-data-lead-id="lead.id" onclick="event.stopPropagation(); (window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 1, this.getAttribute('data-lead-id')) : null)" t-att-style="'cursor:pointer; font-size: 13px; color: %s;' % ('#f59e0b' if (int(lead.priority or 0) &gt;= 1) else '#cbd5e1')"><t t-esc="'★' if (int(lead.priority or 0) &gt;= 1) else '☆'"/></span>
-                                                <span class="crm-star-card-opt" data-val="2" t-att-data-lead-id="lead.id" onclick="event.stopPropagation(); (window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 2, this.getAttribute('data-lead-id')) : null)" t-att-style="'cursor:pointer; font-size: 13px; color: %s;' % ('#f59e0b' if (int(lead.priority or 0) &gt;= 2) else '#cbd5e1')"><t t-esc="'★' if (int(lead.priority or 0) &gt;= 2) else '☆'"/></span>
-                                                <span class="crm-star-card-opt" data-val="3" t-att-data-lead-id="lead.id" onclick="event.stopPropagation(); (window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 3, this.getAttribute('data-lead-id')) : null)" t-att-style="'cursor:pointer; font-size: 13px; color: %s;' % ('#f59e0b' if (int(lead.priority or 0) &gt;= 3) else '#cbd5e1')"><t t-esc="'★' if (int(lead.priority or 0) &gt;= 3) else '☆'"/></span>
-                                            </span>
-                                        </td>
-                                        <td class="text-end pe-3 fw-semibold">
-                                            $
-                                            <t t-esc="'{:,.2f}'.format(lead.expected_revenue or 0.0)"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <tr id="crm_leads_list_no_records" style="display:none;">
+                                        <td colspan="4" class="text-center py-5">
+                                            <div class="text-muted">
+                                                <i class="fa fa-inbox fa-3x mb-3 text-secondary"/>
+                                                <h5>No leads found</h5>
+                                                <p class="small">No matching leads found for the selected filter or search criteria.</p>
+                                            </div>
                                         </td>
                                     </tr>
-                                </t>
-                                <tr id="crm_list_no_records" style="display:none;">
-                                    <td colspan="7" class="text-center py-5">
-                                        <div class="text-muted">
-                                            <i class="fa fa-inbox fa-3x mb-3 text-secondary"/>
-                                            <h5>No records found</h5>
-                                            <p class="small">No matching records found for the selected filter or search criteria.</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- FOOTER BAR -->
+                        <div class="crm-modern-list-footer">
+                            <div class="crm-footer-count" id="crm_leads_list_count_display">
+                                <t t-set="total_lead_recs" t-value="len(crm_leads) if crm_leads else len(leads.filtered(lambda l: l.type == 'lead'))"/>
+                                <t t-esc="'1-%s of %s' % (min(total_lead_recs, 20), total_lead_recs) if total_lead_recs else '0 of 0'"/>
+                            </div>
+                            <div class="crm-footer-pagination" id="crm_leads_list_pagination">
+                                <button type="button" class="crm-page-nav-btn" id="crm_leads_page_prev" title="Previous page">&lt;</button>
+                                <button type="button" class="crm-page-num-btn active" data-page="1">1</button>
+                                <button type="button" class="crm-page-num-btn" data-page="2">2</button>
+                                <button type="button" class="crm-page-num-btn" data-page="3">3</button>
+                                <button type="button" class="crm-page-nav-btn" id="crm_leads_page_next" title="Next page">&gt;</button>
+                            </div>
+                            <div class="crm-footer-total" id="crm_leads_list_total_display">
+                                Total Leads: <t t-esc="len(crm_leads) if crm_leads else len(leads.filtered(lambda l: l.type == 'lead'))"/>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -886,7 +1176,7 @@
                 <!-- ========================================================= -->
 
                 <div id="crm_create_lead_modal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(30,41,59,0.55); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px; overflow-y:auto;">
-                    <div class="crm-quick-create-card border-0 shadow-lg" style="width:100%; max-width:620px; margin:auto; background:#ffffff; border-radius:12px; padding:20px 24px; position:relative; max-height:92vh; overflow-y:auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05);">
+                    <div class="crm-modal-create-card border-0 shadow-lg" style="width:100%; max-width:620px; margin:auto; background:#ffffff; border-radius:12px; padding:20px 24px; position:relative; max-height:92vh; overflow-y:auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05);">
                         <!-- Header matching Picture 2 -->
                         <div class="d-flex justify-content-between align-items-center pb-2">
                             <div class="d-flex align-items-center gap-2">
@@ -905,168 +1195,300 @@
                         <form action="/my/leads/quick-create" method="post" id="crm_leads_create_form">
                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                             <input type="hidden" name="type" value="opportunity" id="crm_create_lead_type"/>
+                            <input type="hidden" name="stage_id" id="crm_create_lead_stage_id" value=""/>
                             <input type="hidden" name="priority" value="0" id="crm_lead_priority_input" class="crm-quick-priority-val"/>
                             <input type="hidden" name="redirect" id="crm_create_lead_redirect" value="/my/leads"/>
-                            <input type="hidden" name="expected_revenue" value="0"/>
 
-                            <!-- Top: Lead Name Title matching Picture 2 -->
-                            <div class="mb-2" style="position: relative;">
-                                <i class="fa fa-pencil text-muted position-absolute" style="top: 10px; left: 12px; font-size: 12px; opacity: 0.65;"/>
-                                <input type="text" name="name" class="form-control shadow-none"
-                                       placeholder="New lead" required="required" autocomplete="off"
-                                       style="padding-left: 32px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12.5px; height: 34px; color: #1e293b;"/>
-                            </div>
-
-                            <!-- Probability matching Picture 2 -->
-                            <div class="d-flex align-items-center gap-2 mb-3">
-                                <span class="text-muted" style="font-size: 12px; font-weight: 500;">Probability <i class="fa fa-info-circle text-muted ms-1" style="font-size: 11px; opacity: 0.7;"/></span>
-                                <div class="d-flex align-items-center" style="border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; height: 28px;">
-                                    <input type="number" step="0.01" min="0" max="100" name="probability" class="form-control border-0 text-center shadow-none px-1" placeholder="0.00" value="0.00" style="font-size: 12px; width: 60px; height: 100%;"/>
-                                    <span class="bg-light text-muted px-2 d-flex align-items-center border-start" style="font-size: 11px; height: 100%; border-color: #e2e8f0 !important;">%</span>
+                            <!-- ================================================= -->
+                            <!-- OPPORTUNITY FIELDS (MATCHING PHOTO 2)             -->
+                            <!-- ================================================= -->
+                            <div id="crm_modal_fields_opportunity">
+                                <!-- Top: Opportunity Title matching Photo 2 -->
+                                <div class="mb-3" style="position: relative;">
+                                    <i class="fa fa-pencil text-muted position-absolute" style="top: 11px; left: 12px; font-size: 13px; opacity: 0.65;"/>
+                                    <input type="text" name="name" class="form-control shadow-none"
+                                           placeholder="e.g. Quote for 12 Tables" required="required" autocomplete="off"
+                                           style="padding-left: 34px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; height: 38px; color: #0f172a; font-weight: 600;"/>
                                 </div>
-                            </div>
 
-                            <!-- Two Columns matching Picture 2 -->
-                            <div class="row g-3">
-                                <!-- LEFT COLUMN -->
-                                <div class="col-12 col-md-6">
-                                    <!-- Company Name -->
-                                    <div class="mb-2">
-                                        <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Company Name <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
-                                        <div class="position-relative">
-                                            <i class="fa fa-building-o text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65;"/>
-                                            <input type="text" name="company_name" class="form-control shadow-none" placeholder="Company Name" autocomplete="off" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;"/>
+                                <!-- Revenue & Probability Bar matching Photo 2 -->
+                                <div class="d-flex align-items-center flex-wrap gap-4 mb-3 py-2 px-3 rounded-2" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="text-muted" style="font-size: 12px; font-weight: 500;">Expected Revenue</span>
+                                        <div class="d-flex align-items-center" style="border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; height: 30px; background: #fff;">
+                                            <span class="bg-light text-muted px-2 d-flex align-items-center border-end" style="font-size: 12px; height: 100%; border-color: #cbd5e1 !important;">$</span>
+                                            <input type="number" step="0.01" min="0" name="expected_revenue" class="form-control border-0 shadow-none px-2" placeholder="0.00" value="0.00" style="font-size: 12.5px; width: 110px; height: 100%;"/>
                                         </div>
                                     </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="text-muted" style="font-size: 12px; font-weight: 500;">at</span>
+                                        <span class="text-muted" style="font-size: 12px; font-weight: 500;">Probability</span>
+                                        <div class="d-flex align-items-center" style="border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; height: 30px; background: #fff;">
+                                            <input type="number" step="0.01" min="0" max="100" name="probability" class="form-control border-0 text-center shadow-none px-1" placeholder="10.00" value="10.00" style="font-size: 12px; width: 60px; height: 100%;"/>
+                                            <span class="bg-light text-muted px-2 d-flex align-items-center border-start" style="font-size: 11px; height: 100%; border-color: #cbd5e1 !important;">%</span>
+                                        </div>
+                                    </div>
+                                </div>
 
-                                    <!-- Address -->
-                                    <div class="mb-2">
-                                        <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Address <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
-                                        <input type="text" name="street" class="form-control mb-1 shadow-none" placeholder="Street..." autocomplete="off" style="border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 30px;"/>
-                                        <input type="text" name="street2" class="form-control mb-1 shadow-none" placeholder="Street 2..." autocomplete="off" style="border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 30px;"/>
-                                        <div class="row g-1 mb-1">
-                                            <div class="col-5">
-                                                <input type="text" name="city" class="form-control shadow-none" placeholder="City" autocomplete="off" style="border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 30px;"/>
-                                            </div>
-                                            <div class="col-4">
-                                                <select name="state_id" class="form-select shadow-none" style="border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 30px;">
-                                                    <option value="">State</option>
-                                                    <t t-foreach="states" t-as="st">
-                                                        <option t-att-value="st.id"><t t-esc="st.name"/></option>
+                                <!-- Two Columns matching Photo 2 -->
+                                <div class="row g-3">
+                                    <!-- LEFT COLUMN -->
+                                    <div class="col-12 col-md-6">
+                                        <!-- Contact (matching Photo 2) -->
+                                        <div class="mb-2">
+                                            <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Contact <i class="fa fa-question-circle-o text-muted ms-1" style="font-size: 10px; opacity: 0.7;" title="Customer or Contact"/></label>
+                                            <div class="position-relative">
+                                                <i class="fa fa-user-o text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65; pointer-events: none;"/>
+                                                <select name="partner_id" id="crm_opp_partner_id" class="form-select shadow-none" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;">
+                                                    <option value="">Select or create Contact...</option>
+                                                    <t t-foreach="partners" t-as="p">
+                                                        <option t-att-value="p.id" t-att-data-name="p.name" t-att-data-email="p.email or ''" t-att-data-phone="p.phone or ''"><t t-esc="p.name"/></option>
                                                     </t>
                                                 </select>
                                             </div>
-                                            <div class="col-3">
-                                                <input type="text" name="zip" class="form-control shadow-none" placeholder="ZIP" autocomplete="off" style="border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 30px;"/>
+                                        </div>
+
+                                        <!-- Email (matching Photo 2) -->
+                                        <div class="mb-2">
+                                            <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Email</label>
+                                            <div class="position-relative">
+                                                <i class="fa fa-envelope-o text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65;"/>
+                                                <input type="email" name="email_from" id="crm_opp_email" class="form-control shadow-none" placeholder="Email" autocomplete="off" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;"/>
                                             </div>
                                         </div>
-                                        <select name="country_id" class="form-select shadow-none" style="border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 30px;">
-                                            <option value="">Country</option>
-                                            <t t-foreach="countries" t-as="cnt">
-                                                <option t-att-value="cnt.id"><t t-esc="cnt.name"/></option>
-                                            </t>
-                                        </select>
-                                    </div>
 
-                                    <!-- Website -->
-                                    <div class="mb-2">
-                                        <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Website <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
-                                        <div class="position-relative">
-                                            <i class="fa fa-globe text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65;"/>
-                                            <input type="text" name="website" class="form-control shadow-none" placeholder="e.g. https://www.odoo.com" autocomplete="off" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;"/>
+                                        <!-- Phone (matching Photo 2) -->
+                                        <div class="mb-2">
+                                            <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Phone</label>
+                                            <div class="position-relative">
+                                                <i class="fa fa-phone text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65;"/>
+                                                <input type="text" name="phone" id="crm_opp_phone" class="form-control shadow-none" placeholder="Phone" autocomplete="off" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;"/>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <!-- Salesperson -->
-                                    <div class="mb-2">
-                                        <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Salesperson <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
-                                        <div class="position-relative">
-                                            <i class="fa fa-user-circle-o text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65; pointer-events: none;"/>
-                                            <select name="user_id" class="form-select shadow-none" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;">
-                                                <t t-foreach="users" t-as="u">
-                                                    <option t-att-value="u.id" t-att-selected="u.id == request.env.user.id"><t t-esc="u.name"/></option>
-                                                </t>
-                                            </select>
+                                    <!-- RIGHT COLUMN -->
+                                    <div class="col-12 col-md-6">
+                                        <!-- Salesperson (matching Photo 2) -->
+                                        <div class="mb-2">
+                                            <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Salesperson</label>
+                                            <div class="position-relative">
+                                                <i class="fa fa-user-circle-o text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65; pointer-events: none;"/>
+                                                <select name="user_id" class="form-select shadow-none" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;">
+                                                    <t t-foreach="users" t-as="u">
+                                                        <option t-att-value="u.id" t-att-selected="u.id == request.env.user.id"><t t-esc="u.name"/></option>
+                                                    </t>
+                                                </select>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <!-- Sales Team -->
-                                    <div class="mb-2">
-                                        <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Sales Team <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
-                                        <div class="position-relative">
-                                            <i class="fa fa-users text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65; pointer-events: none;"/>
-                                            <select name="team_id" class="form-select shadow-none" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;">
-                                                <option value="">Select Team</option>
-                                                <t t-foreach="teams" t-as="tm">
-                                                    <option t-att-value="tm.id"><t t-esc="tm.name"/></option>
+                                        <!-- Expected Closing & Priority matching Photo 2 -->
+                                        <div class="mb-2">
+                                            <div class="row g-2">
+                                                <div class="col-7">
+                                                    <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Expected Closing <i class="fa fa-question-circle-o text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
+                                                    <input type="date" name="date_deadline" class="form-control shadow-none" style="border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;"/>
+                                                </div>
+                                                <div class="col-5">
+                                                    <label class="form-label mb-1 d-block" style="font-size: 12px; font-weight: 500; color: #475569;">Priority</label>
+                                                    <div class="crm-quick-stars d-inline-flex align-items-center gap-1 mt-1" id="crm_opp_stars_container" title="Set Priority" style="cursor: pointer; color: #cbd5e1; font-size: 17px;">
+                                                        <span class="crm-star-select" data-val="1" onclick="(window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 1) : null)" style="cursor: pointer; user-select: none; color: #cbd5e1; font-size: 17px; padding: 0 2px;">☆</span>
+                                                        <span class="crm-star-select" data-val="2" onclick="(window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 2) : null)" style="cursor: pointer; user-select: none; color: #cbd5e1; font-size: 17px; padding: 0 2px;">☆</span>
+                                                        <span class="crm-star-select" data-val="3" onclick="(window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 3) : null)" style="cursor: pointer; user-select: none; color: #cbd5e1; font-size: 17px; padding: 0 2px;">☆</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tags matching Photo 2 -->
+                                        <div class="mb-2">
+                                            <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Tags <i class="fa fa-question-circle-o text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
+                                            <div class="d-flex flex-wrap align-items-center gap-1 p-2 position-relative" style="border: 1px solid #e2e8f0; border-radius: 6px; min-height: 40px; background: #fff;">
+                                                <t t-foreach="tags" t-as="tag">
+                                                    <label class="m-0 crm-tag-chip" style="cursor: pointer;">
+                                                        <input type="checkbox" name="tag_ids" t-att-value="tag.id" class="d-none crm-tag-cb" onchange="this.nextElementSibling.classList.toggle('active-tag', this.checked)"/>
+                                                        <span class="badge border d-inline-flex align-items-center gap-1 py-1 px-2 crm-tag-badge" style="font-size: 11px; font-weight: 500; background: #f8fafc; color: #64748b; border-color: #e2e8f0; border-radius: 4px; transition: all 0.15s;">
+                                                            <t t-esc="tag.name"/>
+                                                            <i class="fa fa-times" style="font-size: 9px; opacity: 0.6;"/>
+                                                        </span>
+                                                    </label>
                                                 </t>
-                                            </select>
+                                                <i class="fa fa-chevron-down text-muted position-absolute" style="top: 10px; right: 10px; font-size: 10px; opacity: 0.5; pointer-events: none;"/>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- RIGHT COLUMN -->
-                                <div class="col-12 col-md-6">
-                                    <!-- Contact Name -->
-                                    <div class="mb-2">
-                                        <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Contact Name <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
-                                        <div class="position-relative">
-                                            <i class="fa fa-user-o text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65;"/>
-                                            <input type="text" name="contact_name" class="form-control shadow-none" placeholder="Contact Name" autocomplete="off" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;"/>
+                                <!-- Description / Notes Tab matching Photo 2 -->
+                                <div class="mt-2">
+                                    <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Notes</label>
+                                    <textarea name="description" class="form-control shadow-none" placeholder="Add a description..." rows="2" style="font-size: 12px; border: 1px solid #e2e8f0; border-radius: 6px; color: #334155;"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- ================================================= -->
+                            <!-- LEAD FIELDS (MATCHING PHOTO 1)                    -->
+                            <!-- ================================================= -->
+                            <div id="crm_modal_fields_lead" style="display: none;">
+                                <!-- Top: Lead Name Title matching Picture 1 -->
+                                <div class="mb-2" style="position: relative;">
+                                    <i class="fa fa-pencil text-muted position-absolute" style="top: 10px; left: 12px; font-size: 12px; opacity: 0.65;"/>
+                                    <input type="text" name="name" class="form-control shadow-none"
+                                           placeholder="New lead" required="required" autocomplete="off"
+                                           style="padding-left: 32px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12.5px; height: 34px; color: #1e293b;"/>
+                                </div>
+
+                                <!-- Probability matching Picture 1 -->
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <span class="text-muted" style="font-size: 12px; font-weight: 500;">Probability <i class="fa fa-info-circle text-muted ms-1" style="font-size: 11px; opacity: 0.7;"/></span>
+                                    <div class="d-flex align-items-center" style="border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; height: 28px;">
+                                        <input type="number" step="0.01" min="0" max="100" name="probability" class="form-control border-0 text-center shadow-none px-1" placeholder="0.00" value="0.00" style="font-size: 12px; width: 60px; height: 100%;"/>
+                                        <span class="bg-light text-muted px-2 d-flex align-items-center border-start" style="font-size: 11px; height: 100%; border-color: #e2e8f0 !important;">%</span>
+                                    </div>
+                                </div>
+
+                                <!-- Two Columns matching Picture 1 -->
+                                <div class="row g-3">
+                                    <!-- LEFT COLUMN -->
+                                    <div class="col-12 col-md-6">
+                                        <!-- Company Name -->
+                                        <div class="mb-2">
+                                            <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Company Name <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
+                                            <div class="position-relative">
+                                                <i class="fa fa-building-o text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65;"/>
+                                                <input type="text" name="company_name" class="form-control shadow-none" placeholder="Company Name" autocomplete="off" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;"/>
+                                            </div>
+                                        </div>
+
+                                        <!-- Address -->
+                                        <div class="mb-2">
+                                            <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Address <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
+                                            <input type="text" name="street" class="form-control mb-1 shadow-none" placeholder="Street..." autocomplete="off" style="border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 30px;"/>
+                                            <input type="text" name="street2" class="form-control mb-1 shadow-none" placeholder="Street 2..." autocomplete="off" style="border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 30px;"/>
+                                            <div class="row g-1 mb-1">
+                                                <div class="col-5">
+                                                    <input type="text" name="city" class="form-control shadow-none" placeholder="City" autocomplete="off" style="border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 30px;"/>
+                                                </div>
+                                                <div class="col-4">
+                                                    <select name="state_id" class="form-select shadow-none" style="border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 30px;">
+                                                        <option value="">State</option>
+                                                        <t t-foreach="states" t-as="st">
+                                                            <option t-att-value="st.id"><t t-esc="st.name"/></option>
+                                                        </t>
+                                                    </select>
+                                                </div>
+                                                <div class="col-3">
+                                                    <input type="text" name="zip" class="form-control shadow-none" placeholder="ZIP" autocomplete="off" style="border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 30px;"/>
+                                                </div>
+                                            </div>
+                                            <select name="country_id" class="form-select shadow-none" style="border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 30px;">
+                                                <option value="">Country</option>
+                                                <t t-foreach="countries" t-as="cnt">
+                                                    <option t-att-value="cnt.id"><t t-esc="cnt.name"/></option>
+                                                </t>
+                                            </select>
+                                        </div>
+
+                                        <!-- Website -->
+                                        <div class="mb-2">
+                                            <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Website <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
+                                            <div class="position-relative">
+                                                <i class="fa fa-globe text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65;"/>
+                                                <input type="text" name="website" class="form-control shadow-none" placeholder="e.g. https://www.odoo.com" autocomplete="off" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;"/>
+                                            </div>
+                                        </div>
+
+                                        <!-- Salesperson -->
+                                        <div class="mb-2">
+                                            <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Salesperson <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
+                                            <div class="position-relative">
+                                                <i class="fa fa-user-circle-o text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65; pointer-events: none;"/>
+                                                <select name="user_id" class="form-select shadow-none" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;">
+                                                    <t t-foreach="users" t-as="u">
+                                                        <option t-att-value="u.id" t-att-selected="u.id == request.env.user.id"><t t-esc="u.name"/></option>
+                                                    </t>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <!-- Sales Team -->
+                                        <div class="mb-2">
+                                            <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Sales Team <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
+                                            <div class="position-relative">
+                                                <i class="fa fa-users text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65; pointer-events: none;"/>
+                                                <select name="team_id" class="form-select shadow-none" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;">
+                                                    <option value="">Select Team</option>
+                                                    <t t-foreach="teams" t-as="tm">
+                                                        <option t-att-value="tm.id"><t t-esc="tm.name"/></option>
+                                                    </t>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <!-- Email -->
-                                    <div class="mb-2">
-                                        <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Email <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
-                                        <div class="position-relative">
-                                            <i class="fa fa-envelope-o text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65;"/>
-                                            <input type="email" name="email_from" class="form-control shadow-none" placeholder="Email" autocomplete="off" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;"/>
+                                    <!-- RIGHT COLUMN -->
+                                    <div class="col-12 col-md-6">
+                                        <!-- Contact Name -->
+                                        <div class="mb-2">
+                                            <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Contact Name <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
+                                            <div class="position-relative">
+                                                <i class="fa fa-user-o text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65;"/>
+                                                <input type="text" name="contact_name" class="form-control shadow-none" placeholder="Contact Name" autocomplete="off" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;"/>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <!-- Job Position -->
-                                    <div class="mb-2">
-                                        <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Job Position <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
-                                        <div class="position-relative">
-                                            <i class="fa fa-id-badge text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65;"/>
-                                            <input type="text" name="function" class="form-control shadow-none" placeholder="Job Position" autocomplete="off" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;"/>
+                                        <!-- Email -->
+                                        <div class="mb-2">
+                                            <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Email <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
+                                            <div class="position-relative">
+                                                <i class="fa fa-envelope-o text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65;"/>
+                                                <input type="email" name="email_from" class="form-control shadow-none" placeholder="Email" autocomplete="off" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;"/>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <!-- Phone -->
-                                    <div class="mb-2">
-                                        <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Phone <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
-                                        <div class="position-relative">
-                                            <i class="fa fa-phone text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65;"/>
-                                            <input type="text" name="phone" class="form-control shadow-none" placeholder="Phone" autocomplete="off" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;"/>
+                                        <!-- Job Position -->
+                                        <div class="mb-2">
+                                            <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Job Position <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
+                                            <div class="position-relative">
+                                                <i class="fa fa-id-badge text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65;"/>
+                                                <input type="text" name="function" class="form-control shadow-none" placeholder="Job Position" autocomplete="off" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;"/>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <!-- Priority -->
-                                    <div class="mb-2">
-                                        <label class="form-label mb-1 d-block" style="font-size: 12px; font-weight: 500; color: #475569;">Priority</label>
-                                        <div class="crm-quick-stars d-inline-flex align-items-center gap-1" id="crm_lead_stars_container" title="Set Priority" style="cursor: pointer; color: #cbd5e1; font-size: 18px;">
-                                            <span class="crm-star-select" data-val="1" onclick="(window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 1) : null)" style="cursor: pointer; user-select: none; color: #cbd5e1; font-size: 18px; padding: 0 3px;">☆</span>
-                                            <span class="crm-star-select" data-val="2" onclick="(window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 2) : null)" style="cursor: pointer; user-select: none; color: #cbd5e1; font-size: 18px; padding: 0 3px;">☆</span>
-                                            <span class="crm-star-select" data-val="3" onclick="(window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 3) : null)" style="cursor: pointer; user-select: none; color: #cbd5e1; font-size: 18px; padding: 0 3px;">☆</span>
+                                        <!-- Phone -->
+                                        <div class="mb-2">
+                                            <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Phone <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
+                                            <div class="position-relative">
+                                                <i class="fa fa-phone text-muted position-absolute" style="top: 9px; left: 10px; font-size: 12px; opacity: 0.65;"/>
+                                                <input type="text" name="phone" class="form-control shadow-none" placeholder="Phone" autocomplete="off" style="padding-left: 28px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; height: 32px;"/>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <!-- Tags matching Picture 2 -->
-                                    <div class="mb-2">
-                                        <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Tags <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
-                                        <div class="d-flex flex-wrap align-items-center gap-1 p-2 position-relative" style="border: 1px solid #e2e8f0; border-radius: 6px; min-height: 52px; background: #fff;">
-                                            <t t-foreach="tags" t-as="tag">
-                                                <label class="m-0 crm-tag-chip" style="cursor: pointer;">
-                                                    <input type="checkbox" name="tag_ids" t-att-value="tag.id" class="d-none crm-tag-cb" onchange="this.nextElementSibling.classList.toggle('active-tag', this.checked)"/>
-                                                    <span class="badge border d-inline-flex align-items-center gap-1 py-1 px-2 crm-tag-badge" style="font-size: 11px; font-weight: 500; background: #f8fafc; color: #64748b; border-color: #e2e8f0; border-radius: 4px; transition: all 0.15s;">
-                                                        <t t-esc="tag.name"/>
-                                                        <i class="fa fa-times" style="font-size: 9px; opacity: 0.6;"/>
-                                                    </span>
-                                                </label>
-                                            </t>
-                                            <i class="fa fa-chevron-down text-muted position-absolute" style="top: 10px; right: 10px; font-size: 10px; opacity: 0.5; pointer-events: none;"/>
+                                        <!-- Priority -->
+                                        <div class="mb-2">
+                                            <label class="form-label mb-1 d-block" style="font-size: 12px; font-weight: 500; color: #475569;">Priority</label>
+                                            <div class="crm-quick-stars d-inline-flex align-items-center gap-1" id="crm_lead_stars_container" title="Set Priority" style="cursor: pointer; color: #cbd5e1; font-size: 18px;">
+                                                <span class="crm-star-select" data-val="1" onclick="(window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 1) : null)" style="cursor: pointer; user-select: none; color: #cbd5e1; font-size: 18px; padding: 0 3px;">☆</span>
+                                                <span class="crm-star-select" data-val="2" onclick="(window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 2) : null)" style="cursor: pointer; user-select: none; color: #cbd5e1; font-size: 18px; padding: 0 3px;">☆</span>
+                                                <span class="crm-star-select" data-val="3" onclick="(window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 3) : null)" style="cursor: pointer; user-select: none; color: #cbd5e1; font-size: 18px; padding: 0 3px;">☆</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tags matching Picture 1 -->
+                                        <div class="mb-2">
+                                            <label class="form-label mb-1" style="font-size: 12px; font-weight: 500; color: #475569;">Tags <i class="fa fa-info-circle text-muted ms-1" style="font-size: 10px; opacity: 0.7;"/></label>
+                                            <div class="d-flex flex-wrap align-items-center gap-1 p-2 position-relative" style="border: 1px solid #e2e8f0; border-radius: 6px; min-height: 52px; background: #fff;">
+                                                <t t-foreach="tags" t-as="tag">
+                                                    <label class="m-0 crm-tag-chip" style="cursor: pointer;">
+                                                        <input type="checkbox" name="tag_ids" t-att-value="tag.id" class="d-none crm-tag-cb" onchange="this.nextElementSibling.classList.toggle('active-tag', this.checked)"/>
+                                                        <span class="badge border d-inline-flex align-items-center gap-1 py-1 px-2 crm-tag-badge" style="font-size: 11px; font-weight: 500; background: #f8fafc; color: #64748b; border-color: #e2e8f0; border-radius: 4px; transition: all 0.15s;">
+                                                            <t t-esc="tag.name"/>
+                                                            <i class="fa fa-times" style="font-size: 9px; opacity: 0.6;"/>
+                                                        </span>
+                                                    </label>
+                                                </t>
+                                                <i class="fa fa-chevron-down text-muted position-absolute" style="top: 10px; right: 10px; font-size: 10px; opacity: 0.5; pointer-events: none;"/>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -2302,7 +2724,7 @@
 
                     <form id="crm_lead_form"
                           method="post"
-                          t-att-action="'/my/leads/%s' % lead.id">
+                          t-att-action="'/my/leads/%s' % lead.id if (lead and lead.id and str(lead.id).isdigit()) else ('/my/opportunity/new' if (lead and lead.type == 'opportunity') else '/my/leads/new')">
 
                         <input type="hidden"
                                name="csrf_token"
@@ -2414,32 +2836,37 @@
                                     <div class="crm-mockup-header-icon">
                                         <i class="fa fa-users"/>
                                     </div>
-                                    <h1 class="crm-mockup-header-title">
-                                        <t t-esc="lead.name or 'New Lead'"/>
-                                    </h1>
+                                    <input type="text"
+                                           name="name"
+                                           class="crm-mockup-title-inline-input"
+                                           t-att-value="lead.name or 'New Lead'"
+                                           required="required"
+                                           title="Click to edit Lead Title"/>
                                 </div>
                                 <div class="crm-mockup-header-actions">
-                                    <button type="button"
-                                            id="btn_open_convert_modal"
-                                            class="crm-btn-convert-pill crm-trigger-convert-modal"
-                                            title="Convert to Opportunity"
-                                            t-att-data-lead-id="lead.id"
-                                            t-att-data-lead-name="lead.name or 'Opportunity'"
-                                            t-att-data-user-id="lead.user_id.id if lead.user_id else ''"
-                                            t-att-data-team-id="lead.team_id.id if lead.team_id else ''"
-                                            t-att-data-partner-id="lead.partner_id.id if lead.partner_id else ''"
-                                            t-att-data-company-name="lead.partner_name or (lead.partner_id.parent_id.name if lead.partner_id and lead.partner_id.parent_id else (lead.partner_id.name if lead.partner_id and lead.partner_id.is_company else ''))"
-                                            t-att-data-company-id="lead.partner_id.parent_id.id if lead.partner_id and lead.partner_id.parent_id else (lead.partner_id.id if lead.partner_id and lead.partner_id.is_company else '')"
-                                            t-att-data-redirect="'/my/leads/%s?converted=1' % lead.id"
-                                            onclick="var compInp = document.querySelector('#crm_lead_form input[name=\'company_name\']') || document.querySelector('input[name=\'company_name\']'); var cname = (compInp &amp;&amp; compInp.value) ? compInp.value.trim() : this.getAttribute('data-company-name'); openConvertModal(this.getAttribute('data-lead-id'), this.getAttribute('data-lead-name'), this.getAttribute('data-user-id'), this.getAttribute('data-team-id'), this.getAttribute('data-partner-id'), this.getAttribute('data-redirect'), cname, this.getAttribute('data-company-id')); return false;">
-                                        Convert to Opportunity
-                                    </button>
-                                    <button type="button"
-                                            id="crm_portal_lost_open"
-                                            class="crm-btn-lost-pill"
-                                            onclick="openLostModal()">
-                                        Lost
-                                    </button>
+                                    <t t-if="lead and lead.id and str(lead.id).isdigit()">
+                                        <button type="button"
+                                                id="btn_open_convert_modal"
+                                                class="crm-btn-convert-pill crm-trigger-convert-modal"
+                                                title="Convert to Opportunity"
+                                                t-att-data-lead-id="lead.id"
+                                                t-att-data-lead-name="lead.name or 'Opportunity'"
+                                                t-att-data-user-id="lead.user_id.id if lead.user_id else ''"
+                                                t-att-data-team-id="lead.team_id.id if lead.team_id else ''"
+                                                t-att-data-partner-id="lead.partner_id.id if lead.partner_id else ''"
+                                                t-att-data-company-name="lead.partner_name or (lead.partner_id.parent_id.name if lead.partner_id and lead.partner_id.parent_id else (lead.partner_id.name if lead.partner_id and lead.partner_id.is_company else ''))"
+                                                t-att-data-company-id="lead.partner_id.parent_id.id if lead.partner_id and lead.partner_id.parent_id else (lead.partner_id.id if lead.partner_id and lead.partner_id.is_company else '')"
+                                                t-att-data-redirect="'/my/leads/%s?converted=1' % lead.id"
+                                                onclick="var compInp = document.querySelector('#crm_lead_form input[name=\'company_name\']') || document.querySelector('input[name=\'company_name\']'); var cname = (compInp &amp;&amp; compInp.value) ? compInp.value.trim() : this.getAttribute('data-company-name'); openConvertModal(this.getAttribute('data-lead-id'), this.getAttribute('data-lead-name'), this.getAttribute('data-user-id'), this.getAttribute('data-team-id'), this.getAttribute('data-partner-id'), this.getAttribute('data-redirect'), cname, this.getAttribute('data-company-id')); return false;">
+                                            Convert to Opportunity
+                                        </button>
+                                        <button type="button"
+                                                id="crm_portal_lost_open"
+                                                class="crm-btn-lost-pill"
+                                                onclick="openLostModal()">
+                                            Lost
+                                        </button>
+                                    </t>
                                     <a href="/my/leads?type=lead&amp;view=kanban" class="crm-btn-cancel-pill">
                                         Cancel
                                     </a>
@@ -2449,7 +2876,6 @@
                                 </div>
                             </div>
 
-                            <input type="hidden" name="name" t-att-value="lead.name"/>
 
                             <!-- Probability Metric matching Backend Picture 2 -->
                             <div class="d-flex align-items-center gap-4 mb-3 flex-wrap">
@@ -2891,18 +3317,32 @@
                                            title="Click to edit Opportunity Title"/>
                                 </div>
                                 <div class="crm-mockup-header-actions">
-                                    <button type="button"
-                                            id="crm_portal_won_open"
-                                            class="crm-btn-won-pill"
-                                            onclick="openWonModal()">
-                                        Won
-                                    </button>
-                                    <button type="button"
-                                            id="crm_portal_lost_open"
-                                            class="crm-btn-lost-pill"
-                                            onclick="openLostModal()">
-                                        Lost
-                                    </button>
+                                    <t t-if="lead and lead.id and str(lead.id).isdigit()">
+                                        <t t-if="(lead.stage_id and lead.stage_id.is_won) or lead.probability == 100">
+                                            <span class="badge py-2 px-3 fw-semibold d-inline-flex align-items-center me-1" style="background-color: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; border-radius: 9999px; font-size: 13px;">
+                                                <i class="fa fa-trophy me-1 text-warning"/> Won
+                                            </span>
+                                        </t>
+                                        <t t-elif="not lead.active">
+                                            <span class="badge py-2 px-3 fw-semibold d-inline-flex align-items-center me-1" style="background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; border-radius: 9999px; font-size: 13px;">
+                                                <i class="fa fa-times-circle me-1"/> Lost
+                                            </span>
+                                        </t>
+                                        <t t-else="">
+                                            <button type="button"
+                                                    id="crm_portal_won_open"
+                                                    class="crm-btn-won-pill"
+                                                    onclick="openWonModal()">
+                                                Won
+                                            </button>
+                                            <button type="button"
+                                                    id="crm_portal_lost_open"
+                                                    class="crm-btn-lost-pill"
+                                                    onclick="openLostModal()">
+                                                Lost
+                                            </button>
+                                        </t>
+                                    </t>
                                     <a href="/my/leads" class="crm-btn-cancel-pill">
                                         Cancel
                                     </a>
@@ -2948,9 +3388,9 @@
                                         </div>
                                         <!-- Priority Stars -->
                                         <div class="crm-priority-stars d-inline-flex align-items-center ms-3" title="Set Priority">
-                                            <span class="crm-star-opt" data-val="1" t-att-data-lead-id="lead.id" onclick="(window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 1, this.getAttribute('data-lead-id')) : null)" t-att-style="'color: %s;' % ('#f59e0b' if (int(lead.priority or 0) &gt;= 1) else '#cbd5e1')"><t t-esc="'★' if (int(lead.priority or 0) &gt;= 1) else '☆'"/></span>
-                                            <span class="crm-star-opt" data-val="2" t-att-data-lead-id="lead.id" onclick="(window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 2, this.getAttribute('data-lead-id')) : null)" t-att-style="'color: %s;' % ('#f59e0b' if (int(lead.priority or 0) &gt;= 2) else '#cbd5e1')"><t t-esc="'★' if (int(lead.priority or 0) &gt;= 2) else '☆'"/></span>
-                                            <span class="crm-star-opt" data-val="3" t-att-data-lead-id="lead.id" onclick="(window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 3, this.getAttribute('data-lead-id')) : null)" t-att-style="'color: %s;' % ('#f59e0b' if (int(lead.priority or 0) &gt;= 3) else '#cbd5e1')"><t t-esc="'★' if (int(lead.priority or 0) &gt;= 3) else '☆'"/></span>
+                                            <span class="crm-star-opt" data-val="1" t-att-data-lead-id="lead.id if (lead and lead.id and str(lead.id).isdigit()) else ''" onclick="(window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 1, this.getAttribute('data-lead-id')) : null)" t-att-style="'color: %s;' % ('#f59e0b' if (int(lead.priority or 0) &gt;= 1) else '#cbd5e1')"><t t-esc="'★' if (int(lead.priority or 0) &gt;= 1) else '☆'"/></span>
+                                            <span class="crm-star-opt" data-val="2" t-att-data-lead-id="lead.id if (lead and lead.id and str(lead.id).isdigit()) else ''" onclick="(window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 2, this.getAttribute('data-lead-id')) : null)" t-att-style="'color: %s;' % ('#f59e0b' if (int(lead.priority or 0) &gt;= 2) else '#cbd5e1')"><t t-esc="'★' if (int(lead.priority or 0) &gt;= 2) else '☆'"/></span>
+                                            <span class="crm-star-opt" data-val="3" t-att-data-lead-id="lead.id if (lead and lead.id and str(lead.id).isdigit()) else ''" onclick="(window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 3, this.getAttribute('data-lead-id')) : null)" t-att-style="'color: %s;' % ('#f59e0b' if (int(lead.priority or 0) &gt;= 3) else '#cbd5e1')"><t t-esc="'★' if (int(lead.priority or 0) &gt;= 3) else '☆'"/></span>
                                         </div>
                                     </div>
                                 </div>
@@ -3417,10 +3857,12 @@
 
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Lead Name</th>
+                                        <th>
+                                            <t t-if="is_lead_type">Lead Name</t>
+                                            <t t-else="">Opportunity Name</t>
+                                        </th>
                                         <th>Company / Contact</th>
                                         <th>Lost Reason</th>
-                                        <th>Expected Revenue</th>
                                         <th>Salesperson</th>
                                         <th>Action</th>
                                     </tr>
@@ -3455,14 +3897,6 @@
                                                 </td>
 
                                                 <td>
-                                                    <t t-esc="lead.expected_revenue"
-                                                       t-options="{
-                                                       'widget': 'monetary',
-                                                       'display_currency': lead.company_currency
-                                                   }"/>
-                                                </td>
-
-                                                <td>
                                                     <t t-esc="
                                                     lead.user_id.name
                                                     if lead.user_id
@@ -3473,7 +3907,8 @@
                                                 <td>
                                                     <a t-att-href="'/my/leads/%s' % lead.id"
                                                        class="btn btn-sm btn-outline-secondary">
-                                                        View Lead
+                                                        <t t-if="is_lead_type">View Lead</t>
+                                                        <t t-else="">View Opportunity</t>
                                                     </a>
                                                 </td>
 
@@ -3486,7 +3921,7 @@
                                     <t t-else="">
 
                                         <tr>
-                                            <td colspan="6"
+                                            <td colspan="5"
                                                 class="text-center py-5">
 
                                                 <i class="fa fa-inbox fa-2x text-muted mb-3"/>
@@ -3519,6 +3954,105 @@
 
     </template>
 
+    <template id="portal_won_leads" name="CRM Portal Won Opportunities">
+        <t t-call="web.frontend_layout">
+            <div class="container-fluid px-4 py-4 crm-lead-page">
+                <div class="container">
+                    <!-- PAGE HEADER -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h3 class="mb-1 text-success">
+                                <i class="fa fa-trophy text-warning me-2"/>
+                                Won Opportunities
+                            </h3>
+                            <p class="text-muted mb-0">
+                                View opportunities marked as won.
+                            </p>
+                        </div>
+                        <a href="/my/leads" class="btn btn-outline-secondary">
+                            <i class="fa fa-arrow-left me-1"/>
+                            Back to Pipeline
+                        </a>
+                    </div>
+
+                    <!-- WON LEADS TABLE -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Won Opportunities</strong>
+                                <span class="badge bg-success ms-2">
+                                    <t t-esc="len(won_leads)"/>
+                                </span>
+                            </div>
+                            <span class="text-success fw-bold">
+                                Total Won: $ <t t-esc="'{:,.2f}'.format(sum(won_leads.mapped('expected_revenue')))"/>
+                            </span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Opportunity Name</th>
+                                        <th>Company / Contact</th>
+                                        <th>Salesperson</th>
+                                        <th>Expected Revenue</th>
+                                        <th>Won Date</th>
+                                        <th class="text-end pe-3">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-if="won_leads">
+                                        <t t-foreach="won_leads" t-as="lead">
+                                            <tr>
+                                                <td>
+                                                    <a t-att-href="'/my/leads/%s' % lead.id" class="fw-bold text-decoration-none text-dark">
+                                                        <t t-esc="lead.name"/>
+                                                    </a>
+                                                </td>
+                                                <td>
+                                                    <span class="text-muted">
+                                                        <t t-esc="lead.partner_name or (lead.partner_id.name if lead.partner_id and lead.partner_id.is_company else (lead.partner_id.parent_id.name if lead.partner_id and lead.partner_id.parent_id else (lead.contact_name or '-')))"/>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="text-muted">
+                                                        <t t-esc="lead.user_id.name if lead.user_id else '-'"/>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="fw-semibold text-success">
+                                                        $ <t t-esc="'{:,.2f}'.format(lead.expected_revenue or 0.0)"/>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="text-muted small">
+                                                        <t t-esc="(lead.date_closed or lead.write_date).strftime('%b %d, %Y') if (lead.date_closed or lead.write_date) else '-'"/>
+                                                    </span>
+                                                </td>
+                                                <td class="text-end pe-3">
+                                                    <a t-att-href="'/my/leads/%s' % lead.id" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fa fa-eye me-1"/> View Details
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </t>
+                                    <t t-else="">
+                                        <tr>
+                                            <td colspan="6" class="text-center py-5">
+                                                <i class="fa fa-inbox fa-2x text-muted mb-3"/>
+                                                <p class="text-muted mb-0">No won opportunities found.</p>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
 
     <!-- ===================================================== -->
     <!-- DEDICATED LEADS LIST PAGE WITH CONVERT & CREATE FORM  -->
@@ -3557,7 +4091,7 @@
 
                 <!-- QUICK CREATE FORM MODAL (MATCHING PHOTO) -->
                 <div id="crm_create_lead_modal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(30,41,59,0.55); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px; overflow-y:auto;">
-                    <div class="crm-quick-create-card border-0 shadow-lg" style="width:100%; max-width:620px; margin:auto; background:#ffffff; border-radius:12px; padding:20px 24px; position:relative; max-height:92vh; overflow-y:auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05);">
+                    <div class="crm-modal-create-card border-0 shadow-lg" style="width:100%; max-width:620px; margin:auto; background:#ffffff; border-radius:12px; padding:20px 24px; position:relative; max-height:92vh; overflow-y:auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05);">
                         <!-- Header matching Picture 2 -->
                         <div class="d-flex justify-content-between align-items-center pb-2">
                             <div class="d-flex align-items-center gap-2">
@@ -3767,94 +4301,127 @@
                     </div>
                 </div>
 
-                <!-- LEADS TABLE (STYLE MATCHING PICTURE 3) -->
-                <div class="table-responsive bg-white rounded-3 border shadow-sm p-3">
-                    <table class="table table-hover align-middle mb-0 crm-list-table" id="crm_leads_table">
-                        <thead>
-                            <tr class="text-muted small text-uppercase">
-                                <th style="width: 40px;" class="text-center">
-                                    <input type="checkbox" id="crm_select_all_leads" class="form-check-input"/>
-                                </th>
-                                <th>Opportunity / Lead</th>
-                                <th>Company / Contact</th>
-                                <th>Salesperson</th>
-                                <th>Expected Closing</th>
-                                <th>Priority</th>
-                                <th class="text-end pe-3">Expected Revenue</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <t t-if="leads">
-                                <t t-foreach="leads" t-as="lead">
-                                    <tr class="crm-list-row crm-lead-row"
-                                        t-att-data-lead-id="lead.id"
-                                        t-att-data-priority="lead.priority or '0'"
-                                        t-att-data-user-id="lead.user_id.id if lead.user_id else 0"
-                                        t-att-data-search="('%s %s %s %s' % (lead.name or '', lead.partner_id.name if lead.partner_id else '', lead.contact_name or '', lead.email_from or '')).lower()">
-                                        <td class="text-center">
-                                            <input type="checkbox" class="form-check-input crm-lead-checkbox" t-att-value="lead.id"/>
-                                        </td>
-                                        <td>
-                                            <a t-att-href="'/my/leads/%s' % lead.id" class="fw-semibold text-decoration-none text-dark">
-                                                <t t-esc="lead.name"/>
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <span class="text-muted">
-                                                <t t-esc="lead.partner_name or (lead.partner_id.name if lead.partner_id and lead.partner_id.is_company else (lead.partner_id.parent_id.name if lead.partner_id and lead.partner_id.parent_id else (lead.contact_name or '-')))"/>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <t t-if="lead.user_id">
-                                                <span class="text-muted">
-                                                    <t t-esc="lead.user_id.name"/>
+                                                <!-- LEADS TABLE (MATCHING MODERN DESIGN) -->
+                <div class="crm-modern-list-card">
+                    <div class="table-responsive mb-0">
+                        <table class="table align-middle mb-0 crm-modern-list-table crm-list-table" id="crm_leads_table">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">LEAD</th>
+                                    <th>EMAIL</th>
+                                    <th>SALESPERSON</th>
+                                    <th>PRIORITY</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-if="leads">
+                                    <t t-foreach="leads" t-as="lead">
+                                        <tr class="crm-list-row crm-lead-row"
+                                            t-att-data-lead-id="lead.id"
+                                            t-att-data-priority="lead.priority or '0'"
+                                            t-att-data-user-id="lead.user_id.id if lead.user_id else 0"
+                                            t-att-data-date="str(lead.date_deadline or lead.create_date)[:10] if (lead.date_deadline or lead.create_date) else ''"
+                                            t-att-data-revenue="lead.expected_revenue or 0"
+                                            t-att-data-search="('%s %s %s %s' % (lead.name or '', lead.partner_id.name if lead.partner_id else '', lead.contact_name or '', lead.email_from or '')).lower()">
+                                            <!-- LEAD -->
+                                            <td class="ps-4">
+                                                <div>
+                                                    <a t-att-href="'/my/leads/%s' % lead.id" class="crm-lead-title-link">
+                                                        <t t-esc="lead.name"/>
+                                                    </a>
+                                                    <div class="crm-lead-sub-contact">
+                                                        <t t-esc="lead.partner_name or (lead.partner_id.name if lead.partner_id and lead.partner_id.is_company else (lead.partner_id.parent_id.name if lead.partner_id and lead.partner_id.parent_id else (lead.contact_name or '-')))"/>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <!-- EMAIL -->
+                                            <td>
+                                                <t t-if="lead.email_from">
+                                                    <a t-att-href="'mailto:%s' % lead.email_from" class="text-decoration-none" style="color: #475569; font-size: 13px; font-weight: 500;">
+                                                        <i class="fa fa-envelope-o text-muted me-1" style="font-size: 12px;"/>
+                                                        <t t-esc="lead.email_from"/>
+                                                    </a>
+                                                    <div t-if="lead.phone" style="font-size: 12px; color: #667085; margin-top: 2px;">
+                                                        <i class="fa fa-phone text-muted me-1" style="font-size: 11px;"/>
+                                                        <t t-esc="lead.phone"/>
+                                                    </div>
+                                                </t>
+                                                <t t-elif="lead.phone">
+                                                    <a t-att-href="'tel:%s' % lead.phone" class="text-decoration-none" style="color: #475569; font-size: 13px; font-weight: 500;">
+                                                        <i class="fa fa-phone text-muted me-1" style="font-size: 12px;"/>
+                                                        <t t-esc="lead.phone"/>
+                                                    </a>
+                                                </t>
+                                                <t t-else="">
+                                                    <span style="color: #94a3b8;">-</span>
+                                                </t>
+                                            </td>
+
+                                            <!-- SALESPERSON -->
+                                            <td>
+                                                <div class="crm-user-cell">
+                                                    <t t-if="lead.user_id">
+                                                        <div class="crm-user-avatar-initials" t-att-title="lead.user_id.name">
+                                                            <t t-set="u_words" t-value="(lead.user_id.name or '').split()"/>
+                                                            <t t-esc="''.join([w[0].upper() for w in u_words[:2]]) if u_words else 'U'"/>
+                                                        </div>
+                                                        <span class="crm-user-name-text">
+                                                            <t t-esc="lead.user_id.name"/>
+                                                        </span>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <div class="crm-user-avatar-unassigned" title="Unassigned">
+                                                            <span>?</span>
+                                                        </div>
+                                                        <span class="crm-user-name-unassigned">Unassigned</span>
+                                                    </t>
+                                                </div>
+                                            </td>
+
+                                            <!-- PRIORITY -->
+                                            <td>
+                                                <span class="crm-list-stars crm-stars-group" t-att-data-lead-id="lead.id">
+                                                    <span class="crm-star-card-opt" data-val="1" t-att-data-lead-id="lead.id" onclick="event.stopPropagation(); (window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 1, this.getAttribute('data-lead-id')) : null)" t-att-style="'cursor:pointer; font-size: 16px; color: %s;' % ('#d97706' if (int(lead.priority or 0) >= 1) else '#d0d5dd')"><t t-esc="'★' if (int(lead.priority or 0) >= 1) else '☆'"/></span>
+                                                    <span class="crm-star-card-opt" data-val="2" t-att-data-lead-id="lead.id" onclick="event.stopPropagation(); (window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 2, this.getAttribute('data-lead-id')) : null)" t-att-style="'cursor:pointer; font-size: 16px; color: %s;' % ('#d97706' if (int(lead.priority or 0) >= 2) else '#d0d5dd')"><t t-esc="'★' if (int(lead.priority or 0) >= 2) else '☆'"/></span>
+                                                    <span class="crm-star-card-opt" data-val="3" t-att-data-lead-id="lead.id" onclick="event.stopPropagation(); (window.setLeadPriorityManual ? window.setLeadPriorityManual(this, 3, this.getAttribute('data-lead-id')) : null)" t-att-style="'cursor:pointer; font-size: 16px; color: %s;' % ('#d97706' if (int(lead.priority or 0) >= 3) else '#d0d5dd')"><t t-esc="'★' if (int(lead.priority or 0) >= 3) else '☆'"/></span>
                                                 </span>
-                                            </t>
-                                            <t t-else="">
-                                                <span class="text-muted">-</span>
-                                            </t>
-                                        </td>
-                                        <td>
-                                            <span class="text-muted">
-                                                <t t-esc="(lead.date_deadline or lead.create_date).strftime('%b %d, %Y') if (lead.date_deadline or lead.create_date) else '-'"/>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <t t-if="lead.priority == '3'">
-                                                <span style="color:#f59e0b;">★★★</span>
-                                            </t>
-                                            <t t-elif="lead.priority == '2'">
-                                                <span style="color:#f59e0b;">★★</span>
-                                                <span style="color:#cbd5e1;">☆</span>
-                                            </t>
-                                            <t t-elif="lead.priority == '1'">
-                                                <span style="color:#f59e0b;">★</span>
-                                                <span style="color:#cbd5e1;">☆☆</span>
-                                            </t>
-                                            <t t-else="">
-                                                <span style="color:#cbd5e1;">☆☆☆</span>
-                                            </t>
-                                        </td>
-                                        <td class="text-end fw-semibold pe-3">
-                                            $
-                                            <t t-esc="'{:,.2f}'.format(lead.expected_revenue or 0.0)"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </t>
+                                <t t-else="">
+                                    <tr>
+                                        <td colspan="4" class="text-center py-5">
+                                            <div class="text-muted">
+                                                <i class="fa fa-inbox fa-3x mb-3 text-secondary"/>
+                                                <h5>No leads found</h5>
+                                                <p class="small">Click the <strong>New Lead</strong> button above to create your first inquiry.</p>
+                                            </div>
                                         </td>
                                     </tr>
                                 </t>
-                            </t>
-                            <t t-else="">
-                                <tr>
-                                    <td colspan="7" class="text-center py-5">
-                                        <div class="text-muted">
-                                            <i class="fa fa-inbox fa-3x mb-3 text-secondary"/>
-                                            <h5>No leads found</h5>
-                                            <p class="small">Click the <strong>New Lead</strong> button above to create your first inquiry.</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </t>
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- FOOTER BAR -->
+                    <div class="crm-modern-list-footer">
+                        <div class="crm-footer-count">
+                            <t t-set="total_rec_count" t-value="len(leads) if leads else 0"/>
+                            <t t-esc="'1-%s of %s' % (min(total_rec_count, 20), total_rec_count) if total_rec_count else '0 of 0'"/>
+                        </div>
+                        <div class="crm-footer-pagination">
+                            <button type="button" class="crm-page-nav-btn" title="Previous page">&lt;</button>
+                            <button type="button" class="crm-page-num-btn active">1</button>
+                            <button type="button" class="crm-page-num-btn">2</button>
+                            <button type="button" class="crm-page-num-btn">3</button>
+                            <button type="button" class="crm-page-nav-btn" title="Next page">&gt;</button>
+                        </div>
+                        <div class="crm-footer-total">
+                            Total Leads: <t t-esc="len(leads) if leads else 0"/>
+                        </div>
+                    </div>
                 </div>
             </div>
 

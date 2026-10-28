@@ -99,10 +99,9 @@ class CrmLead(models.Model):
                     if contact_partner.parent_id != company_partner:
                         contact_partner.write({'parent_id': company_partner.id})
 
-                # Set partner_id to the contact (which has parent_id=company_partner),
-                # so partner_id.display_name shows "Company Name, Contact Name"
+                # Set partner_id to the company partner so customer is created as company
                 lead_vals = {
-                    'partner_id': contact_partner.id,
+                    'partner_id': company_partner.id,
                     'partner_name': company_name,
                     'contact_name': contact_name,
                 }
@@ -176,5 +175,11 @@ class CrmLead(models.Model):
                     )
                 )
                 if won_leads:
+                    to_finalize = won_leads.filtered(lambda l: l.probability != 100 or not l.date_closed)
+                    if to_finalize:
+                        to_finalize.with_context(skip_won_partner_check=True).write({
+                            'probability': 100.0,
+                            'date_closed': fields.Datetime.now(),
+                        })
                     won_leads.with_context(skip_won_partner_check=True)._update_partner_on_won()
         return res

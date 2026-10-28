@@ -119,7 +119,12 @@ function initLeadsList() {
         }
     }
 
-    if (btnToggle) btnToggle.addEventListener('click', openCreateModal);
+    if (btnToggle) {
+        btnToggle.addEventListener('click', function (e) {
+            e.preventDefault();
+            openCreateModal();
+        });
+    }
     if (btnClose) btnClose.addEventListener('click', closeCreateModal);
     if (btnCancel) btnCancel.addEventListener('click', closeCreateModal);
 
@@ -214,6 +219,22 @@ function initLeadsList() {
 
     leadCheckboxes.forEach(function (cb) {
         cb.addEventListener('change', updateSelection);
+    });
+
+
+    // Check overdue on date cells
+    const todayStr = new Date().toISOString().slice(0, 10);
+    document.querySelectorAll('#crm_leads_table .crm-closing-date-normal').forEach(function (el) {
+        const dl = el.getAttribute('data-deadline');
+        const row = el.closest('tr');
+        const stagePill = row ? row.querySelector('.crm-stage-pill') : null;
+        const isWon = stagePill && stagePill.classList.contains('crm-stage-won');
+        if (dl && dl < todayStr && !isWon) {
+            el.className = 'crm-closing-date-overdue';
+            if (!el.querySelector('i.fa-clock-o')) {
+                el.innerHTML = '<i class="fa fa-clock-o"></i> <span>' + el.textContent.trim() + '</span>';
+            }
+        }
     });
 
     // Search input filter

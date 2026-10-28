@@ -95,11 +95,13 @@ function initCrmPipeline() {
     /* ----------------------------------------------------- */
     /* NEW BUTTON and QUICK CREATE IN STAGES                 */
     /* ----------------------------------------------------- */
-    const allQuickCreates = document.querySelectorAll('.crm-quick-create-card');
+    const allQuickCreates = document.querySelectorAll('#crm_kanban_view .crm-quick-create-card');
 
-    // Column Header '+' buttons
+    // Column Header '+' buttons (Toggles inline quick create card from Picture 2)
     document.querySelectorAll('.crm-stage-add-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
             const stageId = btn.getAttribute('data-stage-id');
             const targetQuick = document.getElementById('crm_quick_create_' + stageId);
             if (targetQuick) {
@@ -107,8 +109,8 @@ function initCrmPipeline() {
                 allQuickCreates.forEach(q => q.style.display = 'none');
                 targetQuick.style.display = isHidden ? 'block' : 'none';
                 if (isHidden) {
-                    const input = targetQuick.querySelector('input[name="name"]');
-                    if (input) input.focus();
+                    const input = targetQuick.querySelector('input[name="company_name"]') || targetQuick.querySelector('input[name="name"]');
+                    if (input) setTimeout(() => input.focus(), 50);
                 }
             }
         });
@@ -116,9 +118,15 @@ function initCrmPipeline() {
 
     // Quick Create close and cancel buttons
     document.querySelectorAll('.crm-quick-cancel-btn, .crm-quick-close-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
             const card = btn.closest('.crm-quick-create-card');
-            if (card) card.style.display = 'none';
+            if (card) {
+                card.style.display = 'none';
+                const form = card.querySelector('form');
+                if (form) form.reset();
+            }
         });
     });
 
@@ -167,9 +175,12 @@ function initCrmPipeline() {
     }
 
     /* ----------------------------------------------------- */
-    /* NEW LEAD POPUP MODAL (FROM PIPELINE HEADER)           */
+    /* ----------------------------------------------------- */
+    /* NEW LEAD / OPPORTUNITY POPUP MODAL (WIZARD)           */
     /* ----------------------------------------------------- */
     const btnToggleLead = document.getElementById('btn_toggle_create_lead');
+    const btnNewOpp = document.getElementById('btn_new_opportunity');
+    const btnNewLead = document.getElementById('btn_new_lead');
     const createLeadModal = document.getElementById('crm_create_lead_modal');
     const btnCloseLead = document.getElementById('crm_close_create_card');
     const btnCancelLead = document.getElementById('crm_cancel_create_card');
@@ -188,62 +199,107 @@ function initCrmPipeline() {
         }
     }
 
-    function handleToggleCreate() {
-        if (currentMode === 'opportunity' && currentView === 'kanban') {
-            const firstStageQuick = document.querySelector('#crm_kanban_view .crm-quick-create-card');
-            if (firstStageQuick) {
-                const isHidden = firstStageQuick.style.display === 'none' || !firstStageQuick.style.display;
-                allQuickCreates.forEach(q => q.style.display = 'none');
-                firstStageQuick.style.display = isHidden ? 'block' : 'none';
-                if (isHidden) {
-                    const input = firstStageQuick.querySelector('input[name="name"]');
-                    if (input) {
-                        input.focus();
-                        firstStageQuick.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    }
-                }
-                return;
-            }
-        }
+    function openModalFor(mode, stageId) {
+        if (!createLeadModal) return;
 
-        const modalTitle = document.getElementById('crm_create_modal_title') || (createLeadModal ? createLeadModal.querySelector('h6') : null);
+        const isOpp = (mode === 'opportunity');
+        const oppSection = document.getElementById('crm_modal_fields_opportunity');
+        const leadSection = document.getElementById('crm_modal_fields_lead');
+        const modalTitle = document.getElementById('crm_create_modal_title') || createLeadModal.querySelector('h6');
         const modalTypeInput = document.getElementById('crm_create_lead_type');
         const modalForm = document.getElementById('crm_leads_create_form');
         const modalRedirect = document.getElementById('crm_create_lead_redirect');
         const modalPriorityInput = document.getElementById('crm_lead_priority_input');
-        const modalStarsContainer = document.getElementById('crm_lead_stars_container');
+        const modalStageInput = document.getElementById('crm_create_lead_stage_id');
 
-        if (currentMode === 'opportunity') {
-            if (modalTitle) modalTitle.textContent = 'New Opportunity';
-            if (modalTypeInput) modalTypeInput.value = 'opportunity';
-            if (modalForm) modalForm.action = '/my/leads/quick-create';
-            if (modalRedirect) modalRedirect.value = '/my/leads';
-            if (modalPriorityInput) modalPriorityInput.value = '0';
-            if (modalStarsContainer) {
-                const stars = modalStarsContainer.querySelectorAll('.crm-star-select');
-                stars.forEach(function (s) {
-                    s.textContent = '☆';
-                    s.style.color = '#cbd5e1';
-                });
-            }
-        } else {
-            if (modalTitle) modalTitle.textContent = 'New Lead';
-            if (modalTypeInput) modalTypeInput.value = 'lead';
-            if (modalForm) modalForm.action = '/my/leads/quick-create';
-            if (modalRedirect) modalRedirect.value = '/my/leads?type=lead&view=kanban';
-            if (modalPriorityInput) modalPriorityInput.value = '0';
-            if (modalStarsContainer) {
-                const stars = modalStarsContainer.querySelectorAll('.crm-star-select');
-                stars.forEach(function (s) {
-                    s.textContent = '☆';
-                    s.style.color = '#cbd5e1';
-                });
+        if (modalTitle) {
+            modalTitle.textContent = isOpp ? 'New Opportunity' : 'New Lead';
+        }
+        if (modalTypeInput) {
+            modalTypeInput.value = isOpp ? 'opportunity' : 'lead';
+        }
+        if (modalForm) {
+            modalForm.action = '/my/leads/quick-create';
+        }
+        if (modalRedirect) {
+            modalRedirect.value = isOpp ? '/my/leads' : '/my/leads?type=lead&view=kanban';
+        }
+        if (modalStageInput) {
+            modalStageInput.value = stageId || '';
+        }
+        if (modalPriorityInput) {
+            modalPriorityInput.value = '0';
+        }
+
+        // Toggle sections and enable only active section inputs
+        if (oppSection && leadSection) {
+            if (isOpp) {
+                oppSection.style.display = 'block';
+                leadSection.style.display = 'none';
+                oppSection.querySelectorAll('input, select, textarea').forEach(el => el.disabled = false);
+                leadSection.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
+                const firstInput = oppSection.querySelector('input[name="name"]');
+                if (firstInput) setTimeout(() => firstInput.focus(), 50);
+            } else {
+                oppSection.style.display = 'none';
+                leadSection.style.display = 'block';
+                oppSection.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
+                leadSection.querySelectorAll('input, select, textarea').forEach(el => el.disabled = false);
+                const firstInput = leadSection.querySelector('input[name="name"]');
+                if (firstInput) setTimeout(() => firstInput.focus(), 50);
             }
         }
+
+        // Reset priority stars
+        createLeadModal.querySelectorAll('.crm-star-select').forEach(function (s) {
+            s.textContent = '☆';
+            s.style.color = '#cbd5e1';
+        });
+
         openCreateLeadModal();
     }
 
-    if (btnToggleLead) btnToggleLead.addEventListener('click', handleToggleCreate);
+    // Auto-fill Opportunity contact details when partner is selected
+    const oppPartnerSelect = document.getElementById('crm_opp_partner_id');
+    if (oppPartnerSelect) {
+        oppPartnerSelect.addEventListener('change', function () {
+            const opt = oppPartnerSelect.options[oppPartnerSelect.selectedIndex];
+            if (opt) {
+                const emailInput = document.getElementById('crm_opp_email');
+                const phoneInput = document.getElementById('crm_opp_phone');
+                if (emailInput && opt.getAttribute('data-email')) {
+                    emailInput.value = opt.getAttribute('data-email');
+                }
+                if (phoneInput && opt.getAttribute('data-phone')) {
+                    phoneInput.value = opt.getAttribute('data-phone');
+                }
+            }
+        });
+    }
+
+    // Attach click events to open popup wizard directly
+    if (btnNewOpp) {
+        btnNewOpp.addEventListener('click', function (e) {
+            e.preventDefault();
+            openModalFor('opportunity');
+        });
+    }
+
+    if (btnNewLead) {
+        btnNewLead.addEventListener('click', function (e) {
+            e.preventDefault();
+            openModalFor('lead');
+        });
+    }
+
+    if (btnToggleLead) {
+        btnToggleLead.addEventListener('click', function (e) {
+            e.preventDefault();
+            openModalFor(currentMode);
+        });
+    }
+
+
     if (btnCloseLead) btnCloseLead.addEventListener('click', closeCreateLeadModal);
     if (btnCancelLead) btnCancelLead.addEventListener('click', closeCreateLeadModal);
 
@@ -314,6 +370,7 @@ function initCrmPipeline() {
     const kanbanContainer = document.getElementById('crm_kanban_view');
     const leadsKanbanContainer = document.getElementById('crm_leads_kanban_view');
     const listContainer = document.getElementById('crm_list_view_container');
+    const leadsListContainer = document.getElementById('crm_leads_list_view_container');
     const stagesDropdown = document.getElementById('dropdown_stages_wrapper');
     const btnPipeline = document.getElementById('dropdown_pipeline');
     const btnLeads = document.getElementById('dropdown_leads');
@@ -323,13 +380,35 @@ function initCrmPipeline() {
     function updateViewLayout() {
         activeFilters.type = currentMode;
 
+        // Toggle toolbar button: My Pipeline shows New Opportunity, My Leads shows New Lead
+        if (btnNewOpp) {
+            if (currentMode === 'opportunity') {
+                btnNewOpp.classList.remove('d-none', 'crm-btn-hidden');
+                btnNewOpp.style.setProperty('display', 'inline-flex', 'important');
+            } else {
+                btnNewOpp.classList.add('d-none', 'crm-btn-hidden');
+                btnNewOpp.style.setProperty('display', 'none', 'important');
+            }
+        }
+        if (btnNewLead) {
+            if (currentMode === 'lead') {
+                btnNewLead.classList.remove('d-none', 'crm-btn-hidden');
+                btnNewLead.style.setProperty('display', 'inline-flex', 'important');
+            } else {
+                btnNewLead.classList.add('d-none', 'crm-btn-hidden');
+                btnNewLead.style.setProperty('display', 'none', 'important');
+            }
+        }
+
         if (btnToggleLead) {
             if (currentMode === 'opportunity') {
                 btnToggleLead.innerHTML = '<i class="fa fa-plus me-1"></i> New Opportunity';
                 btnToggleLead.title = 'New Opportunity';
+                btnToggleLead.setAttribute('href', '#');
             } else {
                 btnToggleLead.innerHTML = '<i class="fa fa-plus me-1"></i> New Lead';
                 btnToggleLead.title = 'New Lead';
+                btnToggleLead.setAttribute('href', '#');
             }
         }
 
@@ -338,6 +417,19 @@ function initCrmPipeline() {
         }
         if (btnLeads) {
             btnLeads.classList.toggle('active', currentMode === 'lead');
+        }
+
+        // Toggle KPI row: Opportunities KPIs vs Leads KPIs (Photo 1)
+        const kpiOpportunities = document.getElementById('crm_kpi_opportunities');
+        const kpiLeads = document.getElementById('crm_kpi_leads');
+        if (kpiOpportunities && kpiLeads) {
+            if (currentMode === 'opportunity') {
+                kpiOpportunities.style.display = 'grid';
+                kpiLeads.style.display = 'none';
+            } else {
+                kpiOpportunities.style.display = 'none';
+                kpiLeads.style.display = 'grid';
+            }
         }
 
         if (stagesDropdown) {
@@ -356,9 +448,16 @@ function initCrmPipeline() {
         if (currentView === 'list') {
             if (kanbanContainer) kanbanContainer.style.display = 'none';
             if (leadsKanbanContainer) leadsKanbanContainer.style.display = 'none';
-            if (listContainer) listContainer.style.display = 'block';
+            if (currentMode === 'opportunity') {
+                if (listContainer) listContainer.style.display = 'block';
+                if (leadsListContainer) leadsListContainer.style.display = 'none';
+            } else {
+                if (listContainer) listContainer.style.display = 'none';
+                if (leadsListContainer) leadsListContainer.style.display = 'block';
+            }
         } else {
             if (listContainer) listContainer.style.display = 'none';
+            if (leadsListContainer) leadsListContainer.style.display = 'none';
             if (currentMode === 'opportunity') {
                 if (kanbanContainer) kanbanContainer.style.display = 'flex';
                 if (leadsKanbanContainer) leadsKanbanContainer.style.display = 'none';
@@ -369,6 +468,148 @@ function initCrmPipeline() {
         }
 
         applyFilters();
+    }
+
+    let crmOppListPage = 1;
+    let crmLeadListPage = 1;
+    const crmPageSize = 20;
+
+    function renderOppListPagination(matchingRows, totalRevenue) {
+        const total = matchingRows.length;
+        const totalPages = Math.max(1, Math.ceil(total / crmPageSize));
+        if (crmOppListPage > totalPages) crmOppListPage = totalPages;
+        if (crmOppListPage < 1) crmOppListPage = 1;
+
+        matchingRows.forEach(function (row, idx) {
+            const inPage = (idx >= (crmOppListPage - 1) * crmPageSize) && (idx < crmOppListPage * crmPageSize);
+            row.style.display = inPage ? '' : 'none';
+        });
+
+        const noRecordsRow = document.getElementById('crm_list_no_records');
+        if (noRecordsRow) {
+            noRecordsRow.style.display = (total === 0) ? '' : 'none';
+        }
+
+        const countEl = document.getElementById('crm_list_count_display');
+        if (countEl) {
+            if (total === 0) {
+                countEl.textContent = '0 of 0';
+            } else {
+                const start = (crmOppListPage - 1) * crmPageSize + 1;
+                const end = Math.min(total, crmOppListPage * crmPageSize);
+                countEl.textContent = start + '-' + end + ' of ' + total;
+            }
+        }
+
+        const totalEl = document.getElementById('crm_list_total_display');
+        if (totalEl) {
+            totalEl.textContent = 'Total $' + totalRevenue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        const pagContainer = document.getElementById('crm_list_pagination');
+        if (pagContainer) {
+            if (total <= crmPageSize) {
+                pagContainer.style.display = 'none';
+            } else {
+                pagContainer.style.display = 'inline-flex';
+                let html = '<button type="button" class="crm-page-nav-btn" id="crm_page_prev" ' + (crmOppListPage <= 1 ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : '') + ' title="Previous page">&lt;</button>';
+                for (let p = 1; p <= totalPages; p++) {
+                    html += '<button type="button" class="crm-page-num-btn ' + (p === crmOppListPage ? 'active' : '') + '" data-page="' + p + '">' + p + '</button>';
+                }
+                html += '<button type="button" class="crm-page-nav-btn" id="crm_page_next" ' + (crmOppListPage >= totalPages ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : '') + ' title="Next page">&gt;</button>';
+                pagContainer.innerHTML = html;
+
+                pagContainer.querySelectorAll('.crm-page-num-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        crmOppListPage = parseInt(this.getAttribute('data-page'));
+                        applyFilters();
+                    });
+                });
+                const prevBtn = document.getElementById('crm_page_prev');
+                if (prevBtn && crmOppListPage > 1) {
+                    prevBtn.addEventListener('click', function () {
+                        crmOppListPage -= 1;
+                        applyFilters();
+                    });
+                }
+                const nextBtn = document.getElementById('crm_page_next');
+                if (nextBtn && crmOppListPage < totalPages) {
+                    nextBtn.addEventListener('click', function () {
+                        crmOppListPage += 1;
+                        applyFilters();
+                    });
+                }
+            }
+        }
+    }
+
+    function renderLeadsListPagination(matchingRows) {
+        const total = matchingRows.length;
+        const totalPages = Math.max(1, Math.ceil(total / crmPageSize));
+        if (crmLeadListPage > totalPages) crmLeadListPage = totalPages;
+        if (crmLeadListPage < 1) crmLeadListPage = 1;
+
+        matchingRows.forEach(function (row, idx) {
+            const inPage = (idx >= (crmLeadListPage - 1) * crmPageSize) && (idx < crmLeadListPage * crmPageSize);
+            row.style.display = inPage ? '' : 'none';
+        });
+
+        const noRecordsRow = document.getElementById('crm_leads_list_no_records');
+        if (noRecordsRow) {
+            noRecordsRow.style.display = (total === 0) ? '' : 'none';
+        }
+
+        const countEl = document.getElementById('crm_leads_list_count_display');
+        if (countEl) {
+            if (total === 0) {
+                countEl.textContent = '0 of 0';
+            } else {
+                const start = (crmLeadListPage - 1) * crmPageSize + 1;
+                const end = Math.min(total, crmLeadListPage * crmPageSize);
+                countEl.textContent = start + '-' + end + ' of ' + total;
+            }
+        }
+
+        const totalEl = document.getElementById('crm_leads_list_total_display');
+        if (totalEl) {
+            totalEl.textContent = 'Total Leads: ' + total;
+        }
+
+        const pagContainer = document.getElementById('crm_leads_list_pagination');
+        if (pagContainer) {
+            if (total <= crmPageSize) {
+                pagContainer.style.display = 'none';
+            } else {
+                pagContainer.style.display = 'inline-flex';
+                let html = '<button type="button" class="crm-page-nav-btn" id="crm_leads_page_prev" ' + (crmLeadListPage <= 1 ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : '') + ' title="Previous page">&lt;</button>';
+                for (let p = 1; p <= totalPages; p++) {
+                    html += '<button type="button" class="crm-page-num-btn ' + (p === crmLeadListPage ? 'active' : '') + '" data-page="' + p + '">' + p + '</button>';
+                }
+                html += '<button type="button" class="crm-page-nav-btn" id="crm_leads_page_next" ' + (crmLeadListPage >= totalPages ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : '') + ' title="Next page">&gt;</button>';
+                pagContainer.innerHTML = html;
+
+                pagContainer.querySelectorAll('.crm-page-num-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        crmLeadListPage = parseInt(this.getAttribute('data-page'));
+                        applyFilters();
+                    });
+                });
+                const prevBtn = document.getElementById('crm_leads_page_prev');
+                if (prevBtn && crmLeadListPage > 1) {
+                    prevBtn.addEventListener('click', function () {
+                        crmLeadListPage -= 1;
+                        applyFilters();
+                    });
+                }
+                const nextBtn = document.getElementById('crm_leads_page_next');
+                if (nextBtn && crmLeadListPage < totalPages) {
+                    nextBtn.addEventListener('click', function () {
+                        crmLeadListPage += 1;
+                        applyFilters();
+                    });
+                }
+            }
+        }
     }
 
     function applyFilters() {
@@ -510,30 +751,25 @@ function initCrmPipeline() {
             }
         }
 
-        // Filter List Rows
-        const listRows = document.querySelectorAll('.crm-list-row');
-        let visibleRowCount = 0;
-        listRows.forEach(function (row) {
-            const rowType = row.getAttribute('data-type') || 'lead';
-            let matchesType = false;
-            if (currentMode === 'opportunity') {
-                if (rowType === 'opportunity') matchesType = true;
-            } else {
-                if (rowType === 'lead') matchesType = true;
-            }
+        const todayStr = new Date().toISOString().slice(0, 10);
 
+        // 1. Filter Opportunity List Rows
+        const oppRows = document.querySelectorAll('#crm_list_view_container .crm-list-row');
+        let matchingOppRows = [];
+        let visibleOppTotalRev = 0;
+
+        oppRows.forEach(function (row) {
+            const rowType = row.getAttribute('data-type') || 'lead';
             const searchData = row.getAttribute('data-search') || '';
             const stageId = row.getAttribute('data-stage-id');
             const priority = row.getAttribute('data-priority');
             const userId = row.getAttribute('data-user-id');
             const itemDate = row.getAttribute('data-date');
 
+            let matchesType = (rowType !== 'lead');
             let matchesSearch = !query || searchData.indexOf(query) !== -1;
             let matchesPipeline = activeFilters.pipeline !== 'starred' || (priority === '1' || priority === '2' || priority === '3');
-            let matchesStage = true;
-            if (currentMode === 'opportunity') {
-                matchesStage = activeFilters.stage === 'all' || stageId === activeFilters.stage;
-            }
+            let matchesStage = activeFilters.stage === 'all' || stageId === activeFilters.stage;
             let matchesUser = activeFilters.user !== 'unassigned' || (userId === '0' || !userId);
 
             let matchesDate = true;
@@ -557,25 +793,84 @@ function initCrmPipeline() {
                 }
             }
 
-            let visible = matchesType;
-            if (!matchesSearch) visible = false;
-            if (!matchesPipeline) visible = false;
-            if (!matchesStage) visible = false;
-            if (!matchesUser) visible = false;
-            if (!matchesDate) visible = false;
-            row.style.display = visible ? '' : 'none';
-            if (visible) visibleRowCount += 1;
-        });
+            let visible = matchesType && matchesSearch && matchesPipeline && matchesStage && matchesUser && matchesDate;
 
-        const noRecordsRow = document.getElementById('crm_list_no_records');
-        if (noRecordsRow) {
-            noRecordsRow.style.display = (visibleRowCount === 0) ? '' : 'none';
-        }
+            // Check overdue indicator on closing date cell
+            const dateCell = row.querySelector('.crm-closing-date-normal, .crm-closing-date-overdue');
+            if (dateCell) {
+                const dl = dateCell.getAttribute('data-deadline');
+                const stagePill = row.querySelector('.crm-stage-pill');
+                const isWon = stagePill && stagePill.classList.contains('crm-stage-won');
+                if (dl && dl < todayStr && !isWon) {
+                    dateCell.className = 'crm-closing-date-overdue';
+                    if (!dateCell.querySelector('i.fa-clock-o')) {
+                        dateCell.innerHTML = '<i class="fa fa-clock-o"></i> <span>' + dateCell.textContent.trim() + '</span>';
+                    }
+                }
+            }
+
+            if (visible) {
+                matchingOppRows.push(row);
+                visibleOppTotalRev += parseFloat(row.getAttribute('data-revenue') || 0);
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        renderOppListPagination(matchingOppRows, visibleOppTotalRev);
+
+        // 2. Filter Leads List Rows
+        const leadRows = document.querySelectorAll('#crm_leads_list_view_container .crm-list-row');
+        let matchingLeadRows = [];
+
+        leadRows.forEach(function (row) {
+            const rowType = row.getAttribute('data-type') || 'lead';
+            const searchData = row.getAttribute('data-search') || '';
+            const priority = row.getAttribute('data-priority');
+            const userId = row.getAttribute('data-user-id');
+            const itemDate = row.getAttribute('data-date');
+
+            let matchesType = (rowType === 'lead');
+            let matchesSearch = !query || searchData.indexOf(query) !== -1;
+            let matchesPipeline = activeFilters.pipeline !== 'starred' || (priority === '1' || priority === '2' || priority === '3');
+            let matchesUser = activeFilters.user !== 'unassigned' || (userId === '0' || !userId);
+
+            let matchesDate = true;
+            if (activeFilters.date === 'month') {
+                if (itemDate) {
+                    const now = new Date();
+                    const curYm = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+                    matchesDate = itemDate.startsWith(curYm);
+                }
+            } else if (activeFilters.date === 'quarter') {
+                if (itemDate) {
+                    const now = new Date();
+                    const qStartMonth = Math.floor(now.getMonth() / 3) * 3;
+                    const start = new Date(now.getFullYear(), qStartMonth, 1);
+                    const end = new Date(now.getFullYear(), qStartMonth + 3, 0);
+                    const d = new Date(itemDate);
+                    matchesDate = false;
+                    if (d >= start && end >= d) {
+                        matchesDate = true;
+                    }
+                }
+            }
+
+            let visible = matchesType && matchesSearch && matchesPipeline && matchesUser && matchesDate;
+
+            if (visible) {
+                matchingLeadRows.push(row);
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        renderLeadsListPagination(matchingLeadRows);
     }
 
     if (searchInput) {
         searchInput.addEventListener('input', function () {
             activeFilters.search = searchInput.value;
+            crmOppListPage = 1;
+            crmLeadListPage = 1;
             if (searchClear) searchClear.style.display = searchInput.value ? 'block' : 'none';
             applyFilters();
         });
