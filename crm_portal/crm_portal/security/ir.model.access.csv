@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_crm_lead_portal,crm.lead.portal,crm.model_crm_lead,base.group_portal,1,1,1,0
+access_crm_stage_portal,crm.stage.portal,crm.model_crm_stage,base.group_portal,1,0,0,0
+access_crm_team_portal,crm.team.portal,sales_team.model_crm_team,base.group_portal,1,0,0,0
+access_crm_tag_portal,crm.tag.portal,sales_team.model_crm_tag,base.group_portal,1,0,0,0
+access_crm_lost_reason_portal,crm.lost.reason.portal,crm.model_crm_lost_reason,base.group_portal,1,0,0,0
+access_crm_lead2opportunity_partner_portal,crm.lead2opportunity.partner.portal,crm.model_crm_lead2opportunity_partner,base.group_portal,1,1,1,1
