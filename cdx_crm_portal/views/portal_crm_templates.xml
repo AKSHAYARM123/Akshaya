@@ -17,7 +17,7 @@
 
                 <t
                         t-set="icon"
-                        t-value="'/crm_portal/static/src/img/crm-leads.svg'"/>
+                        t-value="'/cdx_crm_portal/static/src/img/crm-leads.svg'"/>
 
                 <t t-set="title">
                     Leads
@@ -1612,11 +1612,11 @@
 
 
                 <!-- CONVERT TO OPPORTUNITY MODAL IN PIPELINE/KANBAN VIEW -->
-                <t t-call="crm_portal.modal_convert_opportunity"/>
+                <t t-call="cdx_crm_portal.modal_convert_opportunity"/>
 
 
-                <script type="text/javascript" src="/crm_portal/static/src/js/crm_pipeline.js"/>
-                <script type="text/javascript" src="/crm_portal/static/src/js/crm_convert_modal.js"/>
+                <script type="text/javascript" src="/cdx_crm_portal/static/src/js/crm_pipeline.js"/>
+                <script type="text/javascript" src="/cdx_crm_portal/static/src/js/crm_convert_modal.js"/>
 
             </div>
 
@@ -3773,10 +3773,10 @@
                     </form>
 
                     <!-- CONVERT TO OPPORTUNITY MODAL (MATCHING PICTURE 2) -->
-                    <t t-call="crm_portal.modal_convert_opportunity"/>
+                    <t t-call="cdx_crm_portal.modal_convert_opportunity"/>
 
-                    <script type="text/javascript" src="/crm_portal/static/src/js/crm_lead_detail.js"/>
-                    <script type="text/javascript" src="/crm_portal/static/src/js/crm_convert_modal.js"/>
+                    <script type="text/javascript" src="/cdx_crm_portal/static/src/js/crm_lead_detail.js"/>
+                    <script type="text/javascript" src="/cdx_crm_portal/static/src/js/crm_convert_modal.js"/>
 
                 </div>
 
@@ -4826,10 +4826,10 @@
             </div>
 
             <!-- CONVERT TO OPPORTUNITY MODAL -->
-            <t t-call="crm_portal.modal_convert_opportunity"/>
+            <t t-call="cdx_crm_portal.modal_convert_opportunity"/>
 
-            <script type="text/javascript" src="/crm_portal/static/src/js/crm_leads_list.js"/>
-            <script type="text/javascript" src="/crm_portal/static/src/js/crm_convert_modal.js"/>
+            <script type="text/javascript" src="/cdx_crm_portal/static/src/js/crm_leads_list.js"/>
+            <script type="text/javascript" src="/cdx_crm_portal/static/src/js/crm_convert_modal.js"/>
         </t>
     </template>
 

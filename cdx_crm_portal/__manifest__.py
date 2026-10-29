@@ -32,11 +32,11 @@ Administrators can:
 
     'assets': {
         'web.assets_frontend': [
-            'crm_portal/static/src/css/crm_portal.css',
-            'crm_portal/static/src/js/crm_pipeline.js',
-            'crm_portal/static/src/js/crm_convert_modal.js',
-            'crm_portal/static/src/js/crm_lead_detail.js',
-            'crm_portal/static/src/js/crm_leads_list.js',
+            'cdx_crm_portal/static/src/css/crm_portal.css',
+            'cdx_crm_portal/static/src/js/crm_pipeline.js',
+            'cdx_crm_portal/static/src/js/crm_convert_modal.js',
+            'cdx_crm_portal/static/src/js/crm_lead_detail.js',
+            'cdx_crm_portal/static/src/js/crm_leads_list.js',
         ],
     },
 

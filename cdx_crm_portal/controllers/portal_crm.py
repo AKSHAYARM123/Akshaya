@@ -172,7 +172,7 @@ class CRMPortal(CustomerPortal):
                 top_reason_count = reason_names.count(top_reason)
 
             return request.render(
-                'crm_portal.portal_lost_leads',
+                'cdx_crm_portal.portal_lost_leads',
                 {
                     'lost_leads': lost_leads,
                     'lost_this_month': lost_this_month,
@@ -211,7 +211,7 @@ class CRMPortal(CustomerPortal):
                 top_reason_count = reason_names.count(top_reason)
 
             return request.render(
-                'crm_portal.portal_lost_opportunities',
+                'cdx_crm_portal.portal_lost_opportunities',
                 {
                     'lost_leads': lost_leads,
                     'total_lost_revenue': total_lost_revenue,
@@ -234,7 +234,7 @@ class CRMPortal(CustomerPortal):
             )
 
             return request.render(
-                'crm_portal.portal_won_leads',
+                'cdx_crm_portal.portal_won_leads',
                 {
                     'won_leads': won_leads,
                 }
@@ -352,7 +352,7 @@ class CRMPortal(CustomerPortal):
         company_partners = Partner.search([('is_company', '=', True), ('active', '=', True)], order='name', limit=200)
 
         return request.render(
-            'crm_portal.portal_my_leads',
+            'cdx_crm_portal.portal_my_leads',
             {
                 'leads': leads,
                 'crm_leads': crm_leads,
@@ -1360,7 +1360,7 @@ class CRMPortal(CustomerPortal):
         available_opportunities = Lead.search([('type', '=', 'opportunity')], order='create_date desc, id desc', limit=100)
 
         return request.render(
-            'crm_portal.portal_lead_detail',
+            'cdx_crm_portal.portal_lead_detail',
             {
                 'lead': lead,
                 'lead_description': '',
@@ -2155,7 +2155,7 @@ class CRMPortal(CustomerPortal):
         available_opportunities = Lead.search(avail_opp_domain, order='create_date desc, id desc', limit=100)
 
         return request.render(
-            'crm_portal.portal_lead_detail',
+            'cdx_crm_portal.portal_lead_detail',
             {
                 'lead': lead,
                 'lead_description': lead_description,
@@ -2209,7 +2209,7 @@ class CRMPortal(CustomerPortal):
         company_partners = Partner.search([('is_company', '=', True), ('active', '=', True)], order='name', limit=200)
 
         return request.render(
-            'crm_portal.portal_leads_list',
+            'cdx_crm_portal.portal_leads_list',
             {
                 'leads': leads,
                 'total_leads_count': len(leads),
