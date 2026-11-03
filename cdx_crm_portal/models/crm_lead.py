@@ -159,13 +159,39 @@ class CrmLead(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        if self.env.user.share:
+        is_admin_or_sales = bool(
+            not self.env.user.share
+            and not self.env.user.has_group('base.group_portal')
+            and self.env.user.has_group('base.group_user')
+            and (
+                self.env.user.has_group('base.group_system')
+                or self.env.user.has_group('base.group_erp_manager')
+                or self.env.user.has_group('sales_team.group_sale_manager')
+            )
+        )
+        if not is_admin_or_sales:
+            for vals in vals_list:
+                vals['user_id'] = self.env.user.id
+        else:
             for vals in vals_list:
                 if 'user_id' not in vals:
                     vals['user_id'] = self.env.user.id
         return super().create(vals_list)
 
     def write(self, vals):
+        if 'user_id' in vals and not self.env.su:
+            is_admin_or_sales = bool(
+                not self.env.user.share
+                and not self.env.user.has_group('base.group_portal')
+                and self.env.user.has_group('base.group_user')
+                and (
+                    self.env.user.has_group('base.group_system')
+                    or self.env.user.has_group('base.group_erp_manager')
+                    or self.env.user.has_group('sales_team.group_sale_manager')
+                )
+            )
+            if not is_admin_or_sales and vals['user_id'] != self.env.user.id:
+                vals['user_id'] = self.env.user.id
         res = super().write(vals)
         if not self.env.context.get('skip_won_partner_check'):
             # Detect when an opportunity is set to won or probability becomes 100

@@ -92,19 +92,19 @@ function syncCustomerUI() {
     var actExist = document.getElementById("crm_customer_action_exist");
     var compSec = document.getElementById("crm_convert_modal_company_section");
     var partSec = document.getElementById("crm_convert_modal_partner_section");
-    var compSel = document.getElementById("crm_convert_modal_company_select");
+    var compInp = document.getElementById("crm_convert_modal_company_input") || document.getElementById("crm_convert_modal_company_select");
     var partSel = document.getElementById("crm_convert_modal_partner_select");
 
     var isExist = !!(actExist && actExist.checked);
     if (isExist) {
         if (compSec) compSec.style.setProperty("display", "none", "important");
         if (partSec) partSec.style.setProperty("display", "flex", "important");
-        if (compSel) compSel.disabled = true;
+        if (compInp) compInp.disabled = true;
         if (partSel) partSel.disabled = false;
     } else {
         if (compSec) compSec.style.setProperty("display", "flex", "important");
         if (partSec) partSec.style.setProperty("display", "none", "important");
-        if (compSel) compSel.disabled = false;
+        if (compInp) compInp.disabled = false;
         if (partSel) partSel.disabled = true;
     }
 }
@@ -187,9 +187,21 @@ function openConvertModal(leadId, leadName, userId, teamId, partnerId, redirectU
         if (teamSel) teamSel.value = teamId;
     }
 
-    // Auto-select or add companyName in Company dropdown
+    // Set companyName in Company input / dropdown
+    var compInp = document.getElementById("crm_convert_modal_company_input");
+    if (compInp) {
+        compInp.value = (companyName && typeof companyName === 'string') ? companyName.trim() : "";
+    }
+
     var compSel = document.getElementById("crm_convert_modal_company_select");
     if (compSel) {
+        // Clean up any previously inserted temporary "new:..." options from previous modal opens
+        for (var i = compSel.options.length - 1; i >= 0; i--) {
+            if (compSel.options[i].value && compSel.options[i].value.indexOf("new:") === 0) {
+                compSel.remove(i);
+            }
+        }
+
         if (companyName) {
             var found = false;
             for (var i = 0; i < compSel.options.length; i++) {
@@ -211,6 +223,9 @@ function openConvertModal(leadId, leadName, userId, teamId, partnerId, redirectU
             }
         } else if (companyPartnerId) {
             compSel.value = String(companyPartnerId);
+        } else {
+            // When no company name or ID exists on the lead, default to "Don't link to a company"
+            compSel.value = "";
         }
     }
 
@@ -405,6 +420,22 @@ function initConvertModal() {
                     }
                 });
             }
+            // Ensure company_name from crm_convert_modal_company_input is submitted
+            var compInp = document.getElementById("crm_convert_modal_company_input");
+            if (compInp) {
+                var ex = convertForm.querySelector('input[name="company_name"]');
+                var val = (!compInp.disabled && compInp.value) ? compInp.value.trim() : "";
+                if (ex) {
+                    ex.value = val;
+                } else if (val) {
+                    ex = document.createElement("input");
+                    ex.type = "hidden";
+                    ex.name = "company_name";
+                    ex.value = val;
+                    convertForm.appendChild(ex);
+                }
+            }
+
             // If company_name is selected as new in crm_convert_modal_company_select
             var compSel = document.getElementById("crm_convert_modal_company_select");
             if (compSel && compSel.value && compSel.value.indexOf("new:") === 0) {

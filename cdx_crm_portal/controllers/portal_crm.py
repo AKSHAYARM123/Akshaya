@@ -90,6 +90,32 @@ class CRMPortal(CustomerPortal):
         ]
 
     # =========================================================
+    # ROLE & SALESPERSON HELPERS
+    # =========================================================
+
+    def _is_admin_or_salesperson(self, user=None):
+        """Check if user has Admin or Sales Manager role (who can assign/select other users)."""
+        user = user or request.env.user
+        if not user or user._is_public() or user.share or user.has_group('base.group_portal'):
+            return False
+        if not user.has_group('base.group_user'):
+            return False
+        return bool(
+            user.has_group('base.group_system')
+            or user.has_group('base.group_erp_manager')
+            or user.has_group('sales_team.group_sale_manager')
+        )
+
+    def _get_salespersons(self):
+        """Fetch all active users (including portal users) so Admin can select any user."""
+        User = request.env['res.users'].sudo()
+        public_user = request.env.ref('base.public_user', raise_if_not_found=False)
+        domain = [('active', '=', True)]
+        if public_user:
+            domain.append(('id', '!=', public_user.id))
+        return User.search(domain, order='name')
+
+    # =========================================================
     # CRM PIPELINE
     # =========================================================
 
@@ -289,7 +315,8 @@ class CRMPortal(CustomerPortal):
             order='name'
         )
 
-        users = User.search([('active', '=', True)], order='name')
+        users = self._get_salespersons()
+        is_admin_or_salesperson = self._is_admin_or_salesperson()
 
         countries = Country.search(
             [],
@@ -369,6 +396,7 @@ class CRMPortal(CustomerPortal):
                 'teams': teams,
                 'tags': tags,
                 'users': users,
+                'is_admin_or_salesperson': is_admin_or_salesperson,
                 'countries': countries,
                 'states': states,
                 'industries': industries,
@@ -527,10 +555,13 @@ class CRMPortal(CustomerPortal):
                 req_type = 'opportunity'
 
         assign_user_id = False
-        if post.get('user_id') and str(post.get('user_id')).isdigit():
-            assign_user_id = int(post.get('user_id'))
-        elif post.get('salesperson_id') and str(post.get('salesperson_id')).isdigit():
-            assign_user_id = int(post.get('salesperson_id'))
+        if self._is_admin_or_salesperson(user):
+            if post.get('user_id') and str(post.get('user_id')).isdigit():
+                assign_user_id = int(post.get('user_id'))
+            elif post.get('salesperson_id') and str(post.get('salesperson_id')).isdigit():
+                assign_user_id = int(post.get('salesperson_id'))
+            else:
+                assign_user_id = user.id
         else:
             assign_user_id = user.id
 
@@ -776,25 +807,21 @@ class CRMPortal(CustomerPortal):
 
         user_id = request.env.user.id
 
-        try:
-
-            if salesperson_id:
-
-                salesperson = request.env[
-                    'res.users'
-                ].sudo().browse(
-                    int(salesperson_id)
-                )
-
-                if salesperson.exists():
-                    user_id = salesperson.id
-
-        except (
-                ValueError,
-                TypeError
-        ):
-
-            pass
+        if self._is_admin_or_salesperson():
+            try:
+                if salesperson_id:
+                    salesperson = request.env[
+                        'res.users'
+                    ].sudo().browse(
+                        int(salesperson_id)
+                    )
+                    if salesperson.exists():
+                        user_id = salesperson.id
+            except (
+                    ValueError,
+                    TypeError
+            ):
+                pass
 
         # -----------------------------------------------------
         # SALES TEAM
@@ -1164,13 +1191,14 @@ class CRMPortal(CustomerPortal):
 
             # Salesperson
             user_id = user.id
-            if salesperson_id:
-                try:
-                    salesperson = User.browse(int(salesperson_id))
-                    if salesperson.exists():
-                        user_id = salesperson.id
-                except (ValueError, TypeError):
-                    pass
+            if self._is_admin_or_salesperson(user):
+                if salesperson_id:
+                    try:
+                        salesperson = User.browse(int(salesperson_id))
+                        if salesperson.exists():
+                            user_id = salesperson.id
+                    except (ValueError, TypeError):
+                        pass
 
             # Sales Team
             team_id = False
@@ -1347,7 +1375,10 @@ class CRMPortal(CustomerPortal):
 
         teams = Team.search([], order='name')
         tags = Tag.search([], order='name')
-        users = User.search([('active', '=', True)], order='name')
+        users = self._get_salespersons()
+        is_admin_or_salesperson = self._is_admin_or_salesperson()
+        if lead.user_id and is_admin_or_salesperson and lead.user_id not in users:
+            users = (lead.user_id | users)
         countries = Country.search([], order='name')
         states = State.search([], order='name')
         lost_reasons = LostReason.search([], order='name')
@@ -1368,6 +1399,7 @@ class CRMPortal(CustomerPortal):
                 'teams': teams,
                 'tags': tags,
                 'users': users,
+                'is_admin_or_salesperson': is_admin_or_salesperson,
                 'countries': countries,
                 'states': states,
                 'partners': partners,
@@ -1736,17 +1768,20 @@ class CRMPortal(CustomerPortal):
             # SALESPERSON
             # -------------------------------------------------
 
-            if salesperson_id:
-                try:
-                    salesperson = User.browse(
-                        int(salesperson_id)
-                    )
-                    if salesperson.exists():
-                        user_id = salesperson.id
-                except (
-                        ValueError,
-                        TypeError
-                ):
+            if self._is_admin_or_salesperson():
+                if salesperson_id:
+                    try:
+                        salesperson = User.browse(
+                            int(salesperson_id)
+                        )
+                        if salesperson.exists():
+                            user_id = salesperson.id
+                    except (
+                            ValueError,
+                            TypeError
+                    ):
+                        user_id = lead.user_id.id or request.env.user.id
+                else:
                     user_id = lead.user_id.id or request.env.user.id
             else:
                 user_id = lead.user_id.id or request.env.user.id
@@ -2093,7 +2128,8 @@ class CRMPortal(CustomerPortal):
             order='name'
         )
 
-        users = User.search([('active', '=', True)], order='name')
+        users = self._get_salespersons()
+        is_admin_or_salesperson = self._is_admin_or_salesperson()
 
         countries = Country.search(
             [],
@@ -2163,6 +2199,7 @@ class CRMPortal(CustomerPortal):
                 'teams': teams,
                 'tags': tags,
                 'users': users,
+                'is_admin_or_salesperson': is_admin_or_salesperson,
                 'countries': countries,
                 'states': states,
                 'partners': partners,
@@ -2213,7 +2250,8 @@ class CRMPortal(CustomerPortal):
             {
                 'leads': leads,
                 'total_leads_count': len(leads),
-                'users': request.env['res.users'].sudo().search([('active', '=', True)], order='name'),
+                'users': self._get_salespersons(),
+                'is_admin_or_salesperson': self._is_admin_or_salesperson(),
                 'teams': request.env['crm.team'].sudo().search([]),
                 'tags': request.env['crm.tag'].sudo().search([]),
                 'countries': request.env['res.country'].sudo().search([], order='name'),
@@ -2274,7 +2312,10 @@ class CRMPortal(CustomerPortal):
         customer_action = post.get('customer_action') or 'create'
         user = request.env.user
         user_id = post.get('user_id') or post.get('salesperson_id')
-        user_id_int = int(user_id) if user_id and str(user_id).isdigit() else (user.id if user.share else False)
+        if self._is_admin_or_salesperson(user):
+            user_id_int = int(user_id) if user_id and str(user_id).isdigit() else (user.id if user.share else False)
+        else:
+            user_id_int = user.id
 
         team_id = post.get('team_id')
         team_id_int = int(team_id) if team_id and str(team_id).isdigit() else False

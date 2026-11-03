@@ -1,0 +1,103 @@
+/* =========================================================
+   CRM PORTAL - CONVERT TO OPPORTUNITY MODAL (OPTIMIZED)
+   ========================================================= */
+
+#crm_convert_opportunity_modal {
+  display: none;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+  background: rgba(15, 23, 42, 0.5) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px !important;
+  overflow-y: auto !important;
+}
+.crm-convert-modal-card {
+  position: relative !important;
+  width: 100% !important;
+  max-width: 630px !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  margin: auto !important;
+  padding: 24px 28px !important;
+  background: #fff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+}
+.crm-custom-radio {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  width: 18px !important;
+  height: 18px !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 50% !important;
+  outline: none !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+  background-color: #fff !important;
+  transition: all 0.15s ease !important;
+  flex-shrink: 0 !important;
+  position: relative !important;
+}
+.crm-custom-radio:checked {
+  border-color: #6366f1 !important;
+  background-color: #6366f1 !important;
+  box-shadow: inset 0 0 0 3.5px #fff !important;
+}
+.crm-radio-label {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  cursor: pointer !important;
+  margin: 0 !important;
+  user-select: none !important;
+}
+.crm-radio-text {
+  font-size: 13.5px !important;
+  color: #1e293b !important;
+  font-weight: 400 !important;
+}
+.crm-radio-label:hover .crm-custom-radio:not(:checked) {
+  border-color: #94a3b8 !important;
+}
+.crm-btn-create-opp,
+.crm-btn-cancel-opp {
+  font-size: 13.5px !important;
+  border-radius: 8px !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: background 0.15s ease !important;
+}
+.crm-btn-create-opp {
+  background: #6366f1 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  padding: 9px 22px !important;
+  box-shadow: 0 1px 2px rgba(99, 102, 241, 0.2) !important;
+}
+.crm-btn-create-opp:hover { background: #4f46e5 !important; color: #fff !important; }
+.crm-btn-cancel-opp {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  font-weight: 500 !important;
+  padding: 9px 20px !important;
+}
+.crm-btn-cancel-opp:hover { background: #e2e8f0 !important; color: #1e293b !important; }
+.crm-convert-close-btn {
+  background: transparent !important;
+  border: none !important;
+  color: #64748b !important;
+  font-size: 24px !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  transition: color 0.15s ease !important;
+}
+.crm-convert-close-btn:hover { color: #0f172a !important; }

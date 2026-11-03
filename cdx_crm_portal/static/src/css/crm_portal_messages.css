@@ -1,0 +1,680 @@
+/* ========================================================================= */
+/* CRM PORTAL MESSAGING STYLES (Matching Reference Images 1 & 2)           */
+/* ========================================================================= */
+
+/* ------------------------------------------------------------------------- */
+/* 1. Header Messages Icon (Image 1)                                         */
+/* ------------------------------------------------------------------------- */
+
+.o_crm_portal_messages_item {
+    position: fixed !important;
+    bottom: 24px !important;
+    right: 24px !important;
+    z-index: 1060 !important;
+    display: inline-flex;
+    align-items: center;
+    margin: 0 !important;
+}
+
+.o_crm_portal_messages_toggle {
+    text-decoration: none !important;
+    outline: none !important;
+}
+
+.crm-chat-icon-circle {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.crm-chat-icon-circle:hover,
+.o_crm_portal_messages_item.show .crm-chat-icon-circle {
+    background: #f8fafc;
+    color: #1d4ed8;
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.2);
+    transform: scale(1.05);
+}
+
+.crm-chat-icon-svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.1;
+    transition: transform 0.2s ease;
+}
+
+.crm-chat-icon-circle:hover .crm-chat-icon-svg {
+    transform: scale(1.05);
+}
+
+/* Red Unread Notification Badge (Image 1) */
+.crm-chat-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #ef4444;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    line-height: 14px;
+    border-radius: 10px;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    animation: crmBadgePop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes crmBadgePop {
+    0% { transform: scale(0.3); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* ------------------------------------------------------------------------- */
+/* 2. Discuss Dropdown Menu (Image 2)                                        */
+/* ------------------------------------------------------------------------- */
+
+.crm-discuss-dropdown {
+    width: 380px;
+    max-width: calc(100vw - 32px);
+    border-radius: 14px !important;
+    border: 1px solid rgba(226, 232, 240, 0.95) !important;
+    background: #ffffff;
+    box-shadow: 0 16px 36px -6px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+    position: fixed !important;
+    bottom: 80px !important;
+    right: 24px !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    margin: 0 !important;
+    overflow: hidden;
+    z-index: 1070;
+    font-family: inherit;
+    animation: crmDropdownFade 0.2s ease-out;
+}
+
+@keyframes crmDropdownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-6px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Header & Tabs */
+.crm-discuss-header {
+    background: #ffffff;
+    padding: 10px 16px;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.crm-discuss-tabs {
+    display: flex;
+    gap: 4px;
+}
+
+.crm-tab-btn {
+    border: none;
+    background: transparent;
+    padding: 6px 12px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #64748b;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s ease;
+}
+
+.crm-tab-btn:hover {
+    color: #1e293b;
+    background: #f8fafc;
+}
+
+.crm-tab-btn.active {
+    color: #4f46e5;
+    font-weight: 600;
+    background: #eef2ff;
+}
+
+/* New Message Button */
+.crm-new-msg-btn {
+    border: 1px solid #e0e7ff;
+    background: #f5f7ff;
+    color: #4f46e5;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.15s ease;
+}
+
+.crm-new-msg-btn:hover {
+    background: #4f46e5;
+    color: #ffffff;
+    border-color: #4f46e5;
+    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
+}
+
+/* ------------------------------------------------------------------------- */
+/* 3. Conversation List (Image 2)                                            */
+/* ------------------------------------------------------------------------- */
+
+.crm-discuss-list-body {
+    max-height: 420px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.crm-discuss-list-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.crm-discuss-list-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.crm-discuss-list-body::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.crm-discuss-list-body::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Conversation Item */
+.crm-conv-item {
+    display: flex;
+    align-items: center;
+    padding: 11px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    user-select: none;
+}
+
+.crm-conv-item:last-child {
+    border-bottom: none;
+}
+
+.crm-conv-item:hover {
+    background-color: #f8fafc;
+}
+
+.crm-conv-item.unread {
+    background-color: #f5f8ff;
+}
+
+.crm-conv-item.unread:hover {
+    background-color: #edf3ff;
+}
+
+/* Avatars */
+.crm-conv-avatar-wrap {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+}
+
+.crm-conv-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.crm-channel-hash-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #ede9fe;
+    color: #6366f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.crm-online-dot {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #10b981;
+    border: 2px solid #ffffff;
+}
+
+/* Content Details */
+.crm-conv-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.crm-conv-title {
+    font-size: 13.5px;
+    color: #334155;
+    font-weight: 500;
+}
+
+.crm-conv-item.unread .crm-conv-title {
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.crm-conv-time {
+    font-size: 11.5px;
+    color: #94a3b8;
+    white-space: nowrap;
+    margin-left: 8px;
+}
+
+.crm-conv-item.unread .crm-conv-time {
+    color: #2563eb;
+    font-weight: 600;
+}
+
+.crm-conv-preview {
+    font-size: 12.5px;
+    color: #64748b;
+    line-height: 1.35;
+}
+
+.crm-conv-item.unread .crm-conv-preview {
+    color: #334155;
+    font-weight: 500;
+}
+
+.crm-conv-unread-pill {
+    background: #ef4444;
+    color: #ffffff;
+    font-size: 10.5px;
+    font-weight: 700;
+    height: 17px;
+    min-width: 17px;
+    line-height: 17px;
+    border-radius: 9px;
+    text-align: center;
+    padding: 0 5px;
+    margin-left: 8px;
+    flex-shrink: 0;
+}
+
+/* Empty State */
+.crm-empty-state {
+    text-align: center;
+    padding: 36px 20px;
+    color: #94a3b8;
+}
+
+.crm-empty-state i {
+    font-size: 36px;
+    color: #cbd5e1;
+    margin-bottom: 12px;
+}
+
+/* ------------------------------------------------------------------------- */
+/* 4. New Message Selector Pane                                              */
+/* ------------------------------------------------------------------------- */
+
+.crm-users-list {
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+.crm-user-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid #f8fafc;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.crm-user-item:hover {
+    background-color: #f1f5f9;
+}
+
+.crm-user-item-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 12px;
+}
+
+.crm-user-role-badge {
+    font-size: 10.5px;
+    padding: 2px 7px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.crm-role-internal {
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+.crm-role-portal {
+    background: #dcfce7;
+    color: #166534;
+}
+
+/* ------------------------------------------------------------------------- */
+/* 5. Chat Thread View (Inside Dropdown & Floating Window)                   */
+/* ------------------------------------------------------------------------- */
+
+.crm-thread-messages {
+    height: 330px;
+    max-height: 330px;
+    overflow-y: auto;
+    background: #fcfcfd;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.crm-thread-messages::-webkit-scrollbar {
+    width: 5px;
+}
+
+.crm-thread-messages::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+/* Message Bubble Rows */
+.crm-msg-row {
+    display: flex;
+    flex-direction: column;
+    max-width: 82%;
+}
+
+.crm-msg-row.crm-msg-in {
+    align-self: flex-start;
+}
+
+.crm-msg-row.crm-msg-out {
+    align-self: flex-end;
+}
+
+/* Sender Name (for incoming in channels) */
+.crm-msg-sender {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 2px;
+    margin-left: 2px;
+}
+
+/* Bubbles */
+.crm-msg-bubble {
+    padding: 8px 13px;
+    font-size: 13.5px;
+    line-height: 1.45;
+    word-break: break-word;
+    white-space: pre-wrap;
+    text-align: left;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.crm-msg-in .crm-msg-bubble {
+    background: #f1f5f9;
+    color: #1e293b;
+    border-radius: 14px 14px 14px 3px;
+}
+
+.crm-msg-out .crm-msg-bubble {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: #ffffff;
+    border-radius: 14px 14px 3px 14px;
+}
+
+.crm-msg-out .crm-msg-bubble p,
+.crm-msg-in .crm-msg-bubble p {
+    margin: 0;
+}
+
+/* Timestamp */
+.crm-msg-meta {
+    font-size: 10.5px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+.crm-msg-in .crm-msg-meta {
+    align-self: flex-start;
+    margin-left: 3px;
+}
+
+.crm-msg-out .crm-msg-meta {
+    align-self: flex-end;
+    margin-right: 3px;
+}
+
+/* Attachments */
+.crm-msg-attachment-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    margin-top: 4px;
+    border-radius: 6px;
+    font-size: 12px;
+    text-decoration: none;
+    transition: background 0.15s ease;
+}
+
+.crm-msg-in .crm-msg-attachment-item {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+.crm-msg-out .crm-msg-attachment-item {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+.crm-msg-attachment-item:hover {
+    opacity: 0.9;
+}
+
+.crm-msg-img-preview {
+    max-width: 100%;
+    max-height: 180px;
+    border-radius: 8px;
+    margin-top: 5px;
+    display: block;
+    cursor: pointer;
+}
+
+/* Attachment preview tags before sending */
+.crm-attach-tag {
+    background: #e0e7ff;
+    color: #3730a3;
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.crm-attach-tag-remove {
+    cursor: pointer;
+    font-weight: 700;
+}
+
+/* Composer Form */
+.crm-message-form {
+    width: 100%;
+}
+
+.crm-msg-input {
+    border-radius: 20px !important;
+    padding-left: 12px !important;
+    font-size: 13px !important;
+    border-color: #cbd5e1 !important;
+}
+
+.crm-msg-input:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+}
+
+.crm-send-btn {
+    border-radius: 20px !important;
+    background: #4f46e5 !important;
+    border-color: #4f46e5 !important;
+    font-size: 12.5px !important;
+    transition: all 0.15s ease !important;
+}
+
+.crm-send-btn:hover {
+    background: #4338ca !important;
+    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3) !important;
+}
+
+.crm-attach-label {
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    border-radius: 50% !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.crm-attach-label:hover {
+    background: #e2e8f0 !important;
+    color: #1e293b !important;
+}
+
+/* ------------------------------------------------------------------------- */
+/* 6. Floating Dockable Chat Window Widget                                   */
+/* ------------------------------------------------------------------------- */
+
+.crm-floating-chat-container {
+    position: fixed;
+    bottom: 24px;
+    right: 28px;
+    width: 360px;
+    max-width: calc(100vw - 32px);
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 20px 48px -6px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    z-index: 1070;
+    overflow: hidden;
+    animation: crmFloatSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes crmFloatSlideUp {
+    from {
+        transform: translateY(20px) scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.crm-float-header {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+}
+
+.crm-float-body {
+    height: 320px;
+    max-height: 320px;
+    overflow-y: auto;
+    background: #fcfcfd;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Minimized Floating Tab Pill */
+.crm-float-minimized-pill {
+    position: fixed;
+    bottom: 24px;
+    right: 28px;
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    color: #ffffff;
+    padding: 9px 18px;
+    border-radius: 24px;
+    cursor: pointer;
+    z-index: 1070;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.35);
+    transition: all 0.2s ease;
+}
+
+.crm-float-minimized-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(79, 70, 229, 0.45);
+}
+
+.crm-float-unread-dot {
+    width: 9px;
+    height: 9px;
+    background: #ef4444;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    margin-left: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .crm-discuss-dropdown {
+        width: 100vw;
+        max-width: 100vw;
+        border-radius: 0 !important;
+        margin-top: 0 !important;
+        position: fixed !important;
+        top: 56px !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: calc(100vh - 56px);
+    }
+    .crm-discuss-list-body,
+    .crm-thread-messages,
+    .crm-users-list {
+        max-height: calc(100vh - 180px) !important;
+        height: calc(100vh - 180px) !important;
+    }
+    .crm-floating-chat-container {
+        right: 12px;
+        left: 12px;
+        width: auto;
+        bottom: 12px;
+    }
+}

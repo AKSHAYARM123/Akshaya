@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ================================================================= -->
+    <!-- 1. LEGACY NAVBAR VIEW: Clean up navbar injection                  -->
+    <!-- ================================================================= -->
+    <template id="portal_header_messages" inherit_id="website.template_header_default" name="Portal Header Messages Systray">
+        <xpath expr="//t[@t-call='website.placeholder_header_text_element']" position="before">
+            <!-- Chatter icon relocated to CRM toolbar before New Opportunity button -->
+        </xpath>
+    </template>
+
+    <!-- ================================================================= -->
+    <!-- 2. MESSAGES ICON & DISCUSS DROPDOWN IN CRM DASHBOARD TOOLBAR      -->
+    <!-- ================================================================= -->
+    <template id="crm_portal_toolbar_messages" name="CRM Portal Toolbar Messages">
+        <div t-if="request.env.user and not request.env.user._is_public()" class="dropup o_crm_portal_messages_item position-relative me-1">
+            <!-- Chat Icon matching Reference Image 1 -->
+            <a href="#" role="button" class="nav-link o_crm_portal_messages_toggle position-relative d-flex align-items-center justify-content-center p-0" id="portalMessagesDropdownToggle" data-bs-toggle="dropdown" data-bs-display="static" data-bs-auto-close="outside" aria-expanded="false" title="Messages">
+                <div class="crm-chat-icon-circle">
+                    <svg class="crm-chat-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v5z"/>
+                        <path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/>
+                    </svg>
+                    <!-- Unread message count badge -->
+                    <span class="crm-chat-badge d-none" id="crm_portal_unread_badge">0</span>
+                </div>
+            </a>
+
+            <!-- Discuss-style Dropdown matching Reference Image 2 -->
+            <div class="dropdown-menu dropdown-menu-end crm-discuss-dropdown shadow-lg p-0 border-0" id="portalMessagesDropdownMenu" aria-labelledby="portalMessagesDropdownToggle">
+                
+                <!-- PANE 1: CONVERSATIONS LIST (Default View) -->
+                <div class="crm-pane crm-pane-conversations" id="crm_pane_conversations">
+                    <!-- Dropdown Top Bar: Tabs & New Message -->
+                    <div class="crm-discuss-header d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+                        <div class="crm-discuss-tabs d-flex gap-1" role="tablist">
+                            <button type="button" class="crm-tab-btn active" data-tab="all">All</button>
+                            <button type="button" class="crm-tab-btn" data-tab="chat">Chats</button>
+                            <button type="button" class="crm-tab-btn" data-tab="channel">Channels</button>
+                        </div>
+                        <div class="crm-discuss-actions">
+                            <button type="button" class="crm-new-msg-btn" id="crm_new_msg_btn" title="Start new conversation">
+                                <i class="fa fa-pencil me-1"></i> New Message
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Search / Quick Filter Bar -->
+                    <div class="px-3 pt-2 pb-1 border-bottom bg-light">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa fa-search"></i></span>
+                            <input type="text" class="form-control border-start-0 ps-1" id="crm_channel_search_input" placeholder="Search conversations..."/>
+                        </div>
+                    </div>
+
+                    <!-- Scrollable Conversations List Body -->
+                    <div class="crm-discuss-list-body" id="crm_portal_conversations_list">
+                        <div class="crm-loading-spinner text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+                            <div class="small">Loading messages...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANE 2: NEW MESSAGE SELECTOR -->
+                <div class="crm-pane crm-pane-new-msg d-none" id="crm_pane_new_msg">
+                    <div class="crm-new-msg-header d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-light">
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="btn btn-sm btn-link text-dark p-0 me-2 crm-back-to-list-btn" title="Back to conversations">
+                                <i class="fa fa-arrow-left"></i>
+                            </button>
+                            <span class="fw-bold small text-dark">New Conversation</span>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-link text-muted p-0 crm-close-dropdown-btn">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="p-2 border-bottom">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa fa-search"></i></span>
+                            <input type="text" class="form-control border-start-0 ps-1" id="crm_user_search_input" placeholder="Type a name or email..."/>
+                        </div>
+                    </div>
+                    <div class="crm-users-list" id="crm_portal_users_list">
+                        <div class="crm-loading-spinner text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+                            <div class="small">Loading authorized users...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANE 3: CHAT THREAD VIEW (Dropdown View) -->
+                <div class="crm-pane crm-pane-thread d-none" id="crm_pane_thread">
+                    <!-- Thread Header -->
+                    <div class="crm-thread-header d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-light">
+                        <div class="d-flex align-items-center min-w-0">
+                            <button type="button" class="btn btn-sm btn-link text-dark p-0 me-2 crm-back-to-list-btn" title="Back to list">
+                                <i class="fa fa-arrow-left"></i>
+                            </button>
+                            <div class="crm-thread-avatar-wrap position-relative me-2 flex-shrink-0">
+                                <img class="rounded-circle" id="crm_thread_avatar" src="/web/static/img/user_placeholder.jpg" width="32" height="32" alt="avatar"/>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="fw-bold small text-truncate" id="crm_thread_title" style="max-width: 170px;">Name</div>
+                                <div class="text-muted" style="font-size: 11px;" id="crm_thread_subtitle">Direct Message</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                            <button type="button" class="btn btn-sm btn-link text-muted p-0 crm-dock-float-btn" id="crm_dock_float_btn" title="Pop out into floating window">
+                                <i class="fa fa-external-link"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-link text-muted p-0 crm-close-dropdown-btn" title="Close">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Thread Messages History -->
+                    <div class="crm-thread-messages p-3" id="crm_thread_messages">
+                        <!-- Messages appended here dynamically -->
+                    </div>
+
+                    <!-- Attachment Preview Bar -->
+                    <div class="crm-attach-preview-bar d-flex flex-wrap gap-1 px-3 py-1 border-top bg-light d-none" id="crm_attach_preview_bar"></div>
+
+                    <!-- Message Composer -->
+                    <div class="crm-thread-footer p-2 border-top bg-white">
+                        <form class="crm-message-form d-flex align-items-center gap-1" id="crm_dropdown_msg_form">
+                            <label class="btn btn-sm btn-light border-0 text-muted p-1 crm-attach-label m-0" title="Attach file">
+                                <i class="fa fa-paperclip fs-6"></i>
+                                <input type="file" class="crm-file-input d-none" id="crm_dropdown_file_input" multiple="multiple"/>
+                            </label>
+                            <input type="text" class="form-control form-control-sm crm-msg-input" id="crm_dropdown_msg_input" placeholder="Type a message..." autocomplete="off"/>
+                            <button type="submit" class="btn btn-sm btn-primary crm-send-btn px-3" id="crm_dropdown_send_btn">
+                                <i class="fa fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </template>
+
+    <!-- ================================================================= -->
+    <!-- 2. DOCKABLE FLOATING CHAT WINDOW (Optional Bottom-Right Widget)   -->
+    <!-- ================================================================= -->
+    <template id="portal_floating_chat_widget" inherit_id="web.frontend_layout" name="Portal Floating Chat Widget">
+        <xpath expr="//div[@id='wrapwrap']" position="inside">
+            <t t-if="request.env.user and not request.env.user._is_public() and request.httprequest and request.httprequest.path and (request.httprequest.path.startswith('/my/leads') or request.httprequest.path.startswith('/my/opportunity') or request.httprequest.path.startswith('/my/crm-leads'))">
+                <div class="crm-floating-chat-container d-none" id="crm_floating_chat_widget">
+                <!-- Floating Window Header -->
+                <div class="crm-float-header d-flex align-items-center justify-content-between px-3 py-2 text-white">
+                    <div class="d-flex align-items-center min-w-0">
+                        <img class="rounded-circle me-2 flex-shrink-0" id="crm_float_avatar" src="/web/static/img/user_placeholder.jpg" width="28" height="28" alt="avatar"/>
+                        <div class="min-w-0">
+                            <div class="fw-bold small text-truncate text-white" id="crm_float_title" style="max-width: 180px;">Name</div>
+                            <div class="small opacity-75" style="font-size: 10.5px;" id="crm_float_subtitle">Online</div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                        <button type="button" class="btn btn-sm btn-link text-white p-0 opacity-75 hover-opacity-100" id="crm_float_minimize_btn" title="Minimize">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-link text-white p-0 opacity-75 hover-opacity-100" id="crm_float_close_btn" title="Close">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Floating Window Body (Messages) -->
+                <div class="crm-float-body" id="crm_float_messages">
+                    <!-- Messages rendered here -->
+                </div>
+
+                <!-- Floating Attachment Bar -->
+                <div class="crm-attach-preview-bar d-flex flex-wrap gap-1 px-3 py-1 border-top bg-light d-none" id="crm_float_attach_preview_bar"></div>
+
+                <!-- Floating Window Footer -->
+                <div class="crm-float-footer p-2 border-top bg-white">
+                    <form class="crm-message-form d-flex align-items-center gap-1" id="crm_float_msg_form">
+                        <label class="btn btn-sm btn-light border-0 text-muted p-1 crm-attach-label m-0" title="Attach file">
+                            <i class="fa fa-paperclip fs-6"></i>
+                            <input type="file" class="crm-file-input d-none" id="crm_float_file_input" multiple="multiple"/>
+                        </label>
+                        <input type="text" class="form-control form-control-sm crm-msg-input" id="crm_float_msg_input" placeholder="Type a message..." autocomplete="off"/>
+                        <button type="submit" class="btn btn-sm btn-primary crm-send-btn px-3" id="crm_float_send_btn">
+                            <i class="fa fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Minimized Tab Pill (if minimized) -->
+            <div class="crm-float-minimized-pill d-none shadow" id="crm_float_minimized_pill">
+                <i class="fa fa-commenting me-2"></i>
+                <span class="fw-semibold small text-truncate" id="crm_minimized_pill_name" style="max-width: 140px;">Chat</span>
+                <span class="crm-float-unread-dot d-none" id="crm_float_unread_dot"></span>
+            </div>
+            </t>
+        </xpath>
+    </template>
+</odoo>

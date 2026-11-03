@@ -22,21 +22,29 @@ Administrators can:
         'portal',
         'crm',
         'sale_crm',
+        'mail',
     ],
 
     'data': [
         'security/ir.model.access.csv',
         'security/crm_portal_security.xml',
+        'views/portal_messages_templates.xml',
         'views/portal_crm_templates.xml',
     ],
 
     'assets': {
         'web.assets_frontend': [
             'cdx_crm_portal/static/src/css/crm_portal.css',
+            'cdx_crm_portal/static/src/css/crm_portal_messages.css',
+            'cdx_crm_portal/static/src/css/crm_activity.css',
+            'cdx_crm_portal/static/src/css/crm_convert_modal.css',
+            'cdx_crm_portal/static/src/css/crm_lead_detail.css',
             'cdx_crm_portal/static/src/js/crm_pipeline.js',
             'cdx_crm_portal/static/src/js/crm_convert_modal.js',
             'cdx_crm_portal/static/src/js/crm_lead_detail.js',
             'cdx_crm_portal/static/src/js/crm_leads_list.js',
+            'cdx_crm_portal/static/src/js/crm_portal_messages.js',
+            'cdx_crm_portal/static/src/js/crm_activity.js',
         ],
     },
 
