@@ -252,8 +252,8 @@
     width: 42px;
     height: 42px;
     border-radius: 50%;
-    background: #ede9fe;
-    color: #6366f1;
+    background: #e0edfa;
+    color: #1e5ba3;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -452,7 +452,7 @@
 }
 
 .crm-msg-out .crm-msg-bubble {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    background: linear-gradient(135deg, #1e5ba3 0%, #154680 100%);
     color: #ffffff;
     border-radius: 14px 14px 3px 14px;
 }
@@ -545,14 +545,14 @@
 }
 
 .crm-msg-input:focus {
-    border-color: #6366f1 !important;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+    border-color: #1e5ba3 !important;
+    box-shadow: 0 0 0 3px rgba(30, 91, 163, 0.15) !important;
 }
 
 .crm-send-btn {
     border-radius: 20px !important;
-    background: #4f46e5 !important;
-    border-color: #4f46e5 !important;
+    background: #1e5ba3 !important;
+    border-color: #1e5ba3 !important;
     font-size: 12.5px !important;
     transition: all 0.15s ease !important;
 }
@@ -607,7 +607,7 @@
 }
 
 .crm-float-header {
-    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    background: linear-gradient(135deg, #1e5ba3 0%, #154680 100%);
 }
 
 .crm-float-body {
@@ -626,7 +626,7 @@
     position: fixed;
     bottom: 24px;
     right: 28px;
-    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    background: linear-gradient(135deg, #1e5ba3 0%, #154680 100%);
     color: #ffffff;
     padding: 9px 18px;
     border-radius: 24px;

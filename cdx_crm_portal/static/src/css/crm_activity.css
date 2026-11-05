@@ -259,8 +259,8 @@
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background-color: #ede9fe;
-    color: #7c3aed;
+    background-color: #1e5ba3;
+    color: #ffffff;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -488,6 +488,40 @@
     font-weight: 500;
     padding: 2px 0;
     user-select: text;
+}
+
+.crm-act-user-select {
+    flex: 1;
+    border: 1px solid #d1d5db;
+    background-color: #ffffff;
+    font-size: 13px;
+    color: #111827;
+    font-weight: 500;
+    padding: 4px 28px 4px 10px;
+    border-radius: 6px;
+    outline: none;
+    cursor: pointer;
+    font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 14px 14px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    line-height: 1.4;
+    height: 32px;
+    box-sizing: border-box;
+}
+
+.crm-act-user-select:hover {
+    border-color: #9ca3af;
+}
+
+.crm-act-user-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
 }
 
 /* Note row (Matching Picture 2: clean input with placeholder and underline) */

@@ -17,6 +17,19 @@ class PortalActivityController(http.Controller):
             return None
         return user
 
+    def _is_admin(self, user=None):
+        """Check if user has Admin or Sales Manager role (who can assign/select other users)."""
+        user = user or self._get_current_user()
+        if not user or user._is_public() or user.share or user.has_group('base.group_portal'):
+            return False
+        if not user.has_group('base.group_user'):
+            return False
+        return bool(
+            user.has_group('base.group_system')
+            or user.has_group('base.group_erp_manager')
+            or user.has_group('sales_team.group_sale_manager')
+        )
+
     def _format_date(self, dt):
         """Format a date or datetime to 'Mon DD, YYYY'."""
         if not dt:
@@ -40,8 +53,17 @@ class PortalActivityController(http.Controller):
         if not user:
             return {'error': 'Unauthorized'}
 
-        # Fetch active activity types
-        types = request.env['mail.activity.type'].sudo().search([('active', '=', True)], order='sequence asc, id asc')
+        # Fetch active activity types for CRM leads (generic or lead-specific)
+        domain = [
+            ('active', '=', True),
+            '|', ('res_model', '=', False), ('res_model', '=', 'crm.lead'),
+        ]
+        types = request.env['mail.activity.type'].sudo().search(domain, order='sequence asc, id asc')
+        # Filter out HR / time off / leave / allocation activity types
+        excluded_keywords = ['time off', 'allocation', 'leave']
+        types = types.filtered(
+            lambda t: not any(kw in (t.name or '').lower() for kw in excluded_keywords)
+        )
         type_list = []
         for t in types:
             # Map default icon based on category/name if not set
@@ -69,13 +91,19 @@ class PortalActivityController(http.Controller):
                 'delay_unit': t.delay_unit or 'days',
             })
 
+        is_admin = self._is_admin(user)
+
         # Fetch active users (salespersons / team members)
         public_user = request.env.ref('base.public_user', raise_if_not_found=False)
         domain = [('active', '=', True)]
         if public_user:
             domain.append(('id', '!=', public_user.id))
 
-        users = request.env['res.users'].sudo().search(domain, order='name asc', limit=50)
+        if is_admin:
+            users = request.env['res.users'].sudo().search(domain, order='name asc')
+        else:
+            users = user
+
         user_list = []
         for u in users:
             name = u.name or u.login or 'User'
@@ -92,6 +120,7 @@ class PortalActivityController(http.Controller):
 
         return {
             'success': True,
+            'is_admin': is_admin,
             'types': type_list,
             'users': user_list,
             'current_user': {
@@ -99,6 +128,7 @@ class PortalActivityController(http.Controller):
                 'name': curr_name,
                 'initials': curr_initials,
                 'avatar_url': f'/web/image/res.users/{user.id}/avatar_128',
+                'is_admin': is_admin,
             }
         }
 
@@ -166,7 +196,10 @@ class PortalActivityController(http.Controller):
             return {'error': 'Lead not found'}
 
         act_type_id = int(activity_type_id)
-        assigned_user_id = int(user_id) if user_id else user.id
+        if self._is_admin(user) and user_id:
+            assigned_user_id = int(user_id)
+        else:
+            assigned_user_id = user.id
 
         act = lead.sudo().activity_schedule(
             activity_type_id=act_type_id,
@@ -207,7 +240,7 @@ class PortalActivityController(http.Controller):
             vals['summary'] = summary.strip()
         if date_deadline:
             vals['date_deadline'] = date_deadline
-        if user_id is not None:
+        if user_id is not None and self._is_admin(user):
             vals['user_id'] = int(user_id) if user_id else user.id
         if note is not None:
             vals['note'] = note.strip()

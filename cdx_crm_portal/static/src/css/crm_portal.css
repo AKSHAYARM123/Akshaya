@@ -1,69 +1,539 @@
 /* =========================================================
-   CRM PORTAL - PIPELINE, LIST & DASHBOARD (OPTIMIZED)
+   1. DESIGN TOKENS & CSS VARIABLES
    ========================================================= */
-
-/* =========================================================
-   CRM PORTAL - PIPELINE / KANBAN
-   ODOO CRM STYLE
-   ========================================================= */
-
-/* ---------------------------------------------------------
-   PIPELINE PAGE
-   --------------------------------------------------------- */
-
-.crm-lead-page {
-    background: #f8f9fa;
-    min-height: calc(100vh - 80px);
+:root {
+    --crm-primary: #1e5ba3;
+    --crm-primary-hover: #154680;
+    --crm-primary-light: #e0edfa;
+    --crm-primary-border: #bfdbfe;
+    --crm-border: #e2e8f0;
+    --crm-border-hover: #cbd5e1;
+    --crm-bg: #f8fafc;
+    --crm-text: #0f172a;
+    --crm-text-body: #1e293b;
+    --crm-muted: #64748b;
+    --crm-white: #ffffff;
 }
 
-/* ---------------------------------------------------------
-   PIPELINE HEADER
-   --------------------------------------------------------- */
+/* =========================================================
+   HEADER & NAVBAR - SKY BLUE THEME (DESIGN 4)
+   ========================================================= */
 
-.crm-lead-page > .d-flex {
-    background: #ffffff;
-    border: 1px solid #e2e2e2;
-    border-radius: 8px;
-    padding: 20px 24px;
+header#top {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+
+header#top .navbar {
+    background: #ffffff !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Brand Logo Text */
+header#top .navbar-brand {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+}
+
+/* Nav Menu Items */
+header#top #top_menu .nav-link {
+    font-size: 14.5px !important;
+    font-weight: 500 !important;
+    color: #334155 !important;
+    padding: 8px 14px !important;
+    transition: color 0.15s ease !important;
+}
+
+header#top #top_menu .nav-link:hover,
+header#top #top_menu .nav-link.active {
+    color: #1e5ba3 !important;
+}
+
+/* Keep Home, Contact Us, and the portal user menu visible on portal */
+#top_menu > li:not(.o_no_autohide_item):not(:has(> a[href="/"])):not(:has(> a[href="/contactus"])) {
+    display: none !important;
+}
+
+/* Phone link in navbar */
+header#top a[href^="tel:"] {
+    color: #475569 !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+header#top a[href^="tel:"] i {
+    color: #1e5ba3 !important;
+    font-size: 13px !important;
+    margin-right: 5px !important;
+}
+
+header#top a[href^="tel:"]:hover {
+    color: #1e5ba3 !important;
+}
+
+/* User Profile Dropdown in navbar */
+header#top .dropdown.o_no_autohide_item .dropdown-toggle {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #0f172a !important;
+}
+
+/* Search Icon Button */
+header#top a[data-bs-target="#o_search_modal"] {
+    background: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #475569 !important;
+    width: 34px !important;
+    height: 34px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.15s ease !important;
+}
+
+header#top a[data-bs-target="#o_search_modal"]:hover {
+    background: #e2e8f0 !important;
+    color: #1e5ba3 !important;
+}
+
+/* Contact Us Button (Matching Design 4 Primary Blue) */
+header#top .btn_cta,
+header#top .btn-primary.btn_cta,
+header#top a[href="/contactus"].btn_cta {
+    background-color: #1e5ba3 !important;
+    border-color: #1e5ba3 !important;
+    color: #ffffff !important;
+    border-radius: 50px !important;
+    padding: 8px 22px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 6px rgba(30, 91, 163, 0.25) !important;
+    transition: all 0.2s ease !important;
+    text-decoration: none !important;
+}
+
+header#top .btn_cta:hover,
+header#top .btn-primary.btn_cta:hover,
+header#top a[href="/contactus"].btn_cta:hover {
+    background-color: #164680 !important;
+    border-color: #164680 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(30, 91, 163, 0.35) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* =========================================================
+   PORTAL BREADCRUMB (HOME / LEADS - BACK TO HOME)
+   ========================================================= */
+
+.crm-portal-breadcrumb {
+    margin-bottom: 24px !important;
+    background: #e3eefb !important;
+    padding: 12px 20px !important;
+    border-radius: 8px !important;
+    border: 1px solid #d2e4f7 !important;
+}
+
+.crm-portal-breadcrumb .breadcrumb {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    font-size: 14.5px !important;
+}
+
+.crm-portal-breadcrumb .breadcrumb-item {
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+.crm-portal-breadcrumb .crm-breadcrumb-home-link {
+    color: #1e5ba3 !important;
+    font-size: 14.5px !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    transition: all 0.15s ease !important;
+}
+
+.crm-portal-breadcrumb .crm-breadcrumb-home-link:hover {
+    color: #154680 !important;
+    transform: scale(1.08) !important;
+}
+
+.crm-portal-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+    color: #94a3b8 !important;
+    content: "/" !important;
+    padding: 0 10px !important;
+    font-weight: 400 !important;
+}
+
+.crm-portal-breadcrumb .breadcrumb-item.active {
+    color: #1e5ba3 !important;
+    font-weight: 600 !important;
+    font-size: 14.5px !important;
+}
+
+/* =========================================================
+   PORTAL HOME - MODERN REDESIGN (PICTURE 2 STYLE)
+   ========================================================= */
+
+/* Portal Wrap & Page Background */
+.o_portal_wrap {
+    background-color: #f5f8fd !important;
+}
+
+.o_portal_wrap .container,
+.o_portal_user_banner_fullwidth .container {
+    max-width: 1140px !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    box-sizing: border-box !important;
+}
+
+@media (max-width: 1199px) {
+    .o_portal_wrap .container,
+    .o_portal_user_banner_fullwidth .container {
+        max-width: 960px !important;
+    }
+}
+@media (max-width: 991px) {
+    .o_portal_wrap .container,
+    .o_portal_user_banner_fullwidth .container {
+        max-width: 720px !important;
+    }
+}
+@media (max-width: 767px) {
+    .o_portal_wrap .container,
+    .o_portal_user_banner_fullwidth .container {
+        max-width: 540px !important;
+    }
+}
+@media (max-width: 575px) {
+    .o_portal_wrap .container,
+    .o_portal_user_banner_fullwidth .container {
+        max-width: 100% !important;
+    }
+}
+
+/* Full-Width Sky Blue User Profile Banner (Design 4 - Top) */
+.o_portal_user_banner_fullwidth {
+    background-color: #edf4fb !important;
+    border-bottom: 1px solid #dce7f3 !important;
+    width: 100% !important;
+    margin: 0 0 28px 0 !important;
+    padding: 0 !important;
+}
+
+/* User Profile Banner (Card variant fallback) */
+.o_portal_user_banner {
+    background-color: #edf4fb !important;
+    border-radius: 16px !important;
+    border: none !important;
+    padding: 24px 32px !important;
+    box-shadow: none !important;
+}
+
+/* Avatar Circle with Initials */
+.o_portal_avatar_circle {
+    width: 64px !important;
+    height: 64px !important;
+    min-width: 64px !important;
+    border-radius: 50% !important;
+    background-color: #124f9c !important;
+    color: #ffffff !important;
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* User Name in Serif Typography */
+.o_portal_user_name {
+    font-family: Georgia, 'Playfair Display', "Times New Roman", serif !important;
+    font-size: 26px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    line-height: 1.2 !important;
+    margin-bottom: 2px !important;
+}
+
+/* User Company */
+.o_portal_user_company {
+    font-size: 13.5px !important;
+    color: #64748b !important;
+    margin-top: 0 !important;
+    margin-bottom: 8px !important;
+}
+
+/* User Meta Details (Address, Phone, Email) */
+.o_portal_user_meta {
+    font-size: 13px !important;
+    color: #475569 !important;
+    gap: 24px !important;
+    row-gap: 8px !important;
+}
+
+.o_portal_user_meta svg {
+    color: #1e5ba3 !important;
+    flex-shrink: 0 !important;
+    margin-right: 4px !important;
+}
+
+.o_portal_user_meta i {
+    color: #1e5ba3 !important;
+    font-size: 13px !important;
+    margin-right: 4px !important;
+}
+
+/* Edit Information Pill Button */
+.o_portal_btn_edit {
+    border: 1.5px solid #2872be !important;
+    color: #1e5ba3 !important;
+    background: transparent !important;
+    border-radius: 9999px !important;
+    padding: 8px 24px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    transition: all 0.2s ease !important;
+}
+
+.o_portal_btn_edit:hover {
+    background: #1e5ba3 !important;
+    color: #ffffff !important;
+    border-color: #1e5ba3 !important;
+}
+
+/* Section Heading: "My account" */
+.o_portal_section_heading {
+    font-family: Georgia, 'Playfair Display', "Times New Roman", serif !important;
+    font-size: 28px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    margin-top: 36px !important;
     margin-bottom: 24px !important;
 }
 
-.crm-lead-page > .d-flex h2 {
-    color: #212529;
-    font-size: 28px;
-    font-weight: 600 !important;
+/* Portal Home Grid Container - 3 Columns Layout */
+.o_portal_my_home .o_portal_docs {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 24px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Categories pass directly into parent grid */
+.o_portal_my_home .o_portal_category {
+    display: contents !important;
+}
+
+/* Modern Card Column */
+.o_portal_my_home .o_portal_index_card,
+.o_modern_portal_card_col {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Modern Card Box */
+.o_portal_card_modern,
+.o_portal_my_home .o_portal_index_card > a {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-top: 3.5px solid #1e5ba3 !important;
+    border-radius: 14px !important;
+    padding: 24px 22px 26px 22px !important;
+    height: 100% !important;
+    min-height: 154px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
+    cursor: pointer !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    text-decoration: none !important;
+}
+
+.o_portal_card_modern:hover,
+.o_portal_my_home .o_portal_index_card > a:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(30, 91, 163, 0.08) !important;
+    border-color: #cbd5e1 !important;
+    border-top-color: #1e5ba3 !important;
+}
+
+/* Card Icon Box (Light Blue Squircle) */
+.o_portal_card_icon_box {
+    width: 42px !important;
+    height: 42px !important;
+    background: #e0edfa !important;
+    border-radius: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-bottom: 14px !important;
+}
+
+.o_portal_card_icon_box svg {
+    stroke: #1e5ba3 !important;
+}
+
+.o_portal_card_icon_box i {
+    color: #1e5ba3 !important;
+}
+
+/* Card Title */
+.o_portal_card_title {
+    font-size: 17px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
     margin-bottom: 4px !important;
+    line-height: 1.3 !important;
 }
 
-.crm-lead-page > .d-flex .text-muted {
-    font-size: 14px;
-    color: #6c757d !important;
+/* Card Description */
+.o_portal_card_desc {
+    font-size: 13px !important;
+    color: #64748b !important;
+    line-height: 1.45 !important;
+    font-weight: 400 !important;
 }
 
-/* ---------------------------------------------------------
-   TOTAL LEADS
-   --------------------------------------------------------- */
-
-.crm-lead-page > .d-flex .badge {
-    background: #714B67 !important;
-    color: #ffffff !important;
-    min-width: 38px;
-    text-align: center;
-    font-size: 13px;
-    font-weight: 600;
+/* Bottom Contact Card */
+.o_portal_contact_card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 14px !important;
+    padding: 20px 28px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
 }
 
-/* ---------------------------------------------------------
-   PIPELINE CONTAINER
-   --------------------------------------------------------- */
+.o_portal_contact_label {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    color: #64748b !important;
+    text-transform: uppercase !important;
+    margin-bottom: 2px !important;
+}
 
-/* =========================================================
-   CRM PORTAL - MODERN DASHBOARD & PIPELINE
-   ========================================================= */
+.o_portal_contact_name {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+}
+
+.o_portal_contact_meta {
+    font-size: 13px !important;
+    color: #475569 !important;
+    gap: 24px !important;
+}
+
+.o_portal_contact_meta i {
+    color: #1e5ba3 !important;
+    font-size: 13px !important;
+    margin-right: 4px !important;
+}
+
+/* Hide Spinner on Portal Home */
+.o_portal_my_home .o_portal_doc_spinner {
+    display: none !important;
+}
+
+/* Hide unwanted cards & categories */
+.o_portal_my_home .o_portal_index_card:has(a[href*="/my/invoices"]),
+.o_portal_my_home .o_portal_index_card:has(a[href*="/my/orders"]),
+.o_portal_my_home .o_portal_index_card:has(a[href*="/my/quotes"]),
+.o_portal_my_home .o_portal_index_card:has(a[href*="/my/addresses"]),
+.o_portal_my_home .o_portal_index_card:has(a[href*="/my/security"]),
+.o_portal_my_home .o_portal_index_card:has(a[href*="/my/projects"]),
+.o_portal_my_home .o_portal_index_card:has(a[href*="/my/project"]),
+.o_portal_my_home .o_portal_index_card:has(a[href*="/my/tasks"]),
+.o_portal_my_home .o_portal_index_card:has(a[href*="/my/task"]),
+.o_portal_my_home .o_modern_portal_card_col:has(a[href*="/my/projects"]),
+.o_portal_my_home .o_modern_portal_card_col:has(a[href*="/my/project"]),
+.o_portal_my_home .o_modern_portal_card_col:has(a[href*="/my/tasks"]),
+.o_portal_my_home .o_modern_portal_card_col:has(a[href*="/my/task"]),
+.o_portal_my_home a[href*="/my/invoices"],
+.o_portal_my_home a[href*="/my/orders"],
+.o_portal_my_home a[href*="/my/quotes"],
+.o_portal_my_home a[href*="/my/addresses"],
+.o_portal_my_home a[href*="/my/security"],
+.o_portal_my_home a[href*="/my/projects"],
+.o_portal_my_home a[href*="/my/project"],
+.o_portal_my_home a[href*="/my/tasks"],
+.o_portal_my_home a[href*="/my/task"],
+.o_portal_my_home #portal_common_category,
+.o_portal_my_home #portal_vendor_category,
+.o_portal_my_home .o_my_contact,
+.o_portal_my_home [name="portal_contact"],
+.o_portal_my_home .o_portal_contact_card,
+.o_portal_wrap .o_my_contact,
+.o_portal_wrap [name="portal_contact"],
+.o_portal_wrap .o_portal_contact_card {
+    display: none !important;
+}
+
+/* Responsive Grid */
+@media (max-width: 991px) {
+    .o_portal_my_home .o_portal_docs {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .o_portal_my_home .o_portal_docs {
+        grid-template-columns: 1fr !important;
+    }
+    .o_portal_user_banner,
+    .o_portal_user_banner_fullwidth {
+        padding: 20px !important;
+    }
+}
+
+.crm-lead-page-wrapper {
+    background-color: var(--crm-bg);
+    min-height: calc(100vh - 80px);
+    width: 100%;
+}
+
+body:has(.crm-lead-page),
+#wrap:has(.crm-lead-page) {
+    background-color: var(--crm-bg) !important;
+}
 
 .crm-lead-page {
-    background-color: #f8fafc;
-    min-height: 100vh;
+    background: transparent !important;
+    color: var(--crm-text-body);
+    max-width: 1320px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding: 24px 12px !important;
+    min-height: calc(100vh - 80px);
 }
 
 /* ---------------------------------------------------------
@@ -78,51 +548,47 @@
 }
 
 .crm-kpi-card {
-    background: #ffffff;
-    border: 1px solid #eaedf3;
-    border-radius: 12px;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-top: 3.5px solid #1e5ba3 !important;
+    border-radius: 12px !important;
+    padding: 16px 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
 }
 
 .crm-kpi-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 14px rgba(30, 91, 163, 0.08) !important;
 }
 
 .crm-kpi-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 10px !important;
+    background-color: #e0edfa !important;
+    color: #1e5ba3 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 20px !important;
+    flex-shrink: 0 !important;
 }
 
-.crm-kpi-icon-purple {
-    background-color: #f3e8ff;
-    color: #7c3aed;
+.crm-kpi-icon svg {
+    color: #1e5ba3 !important;
+    stroke: #1e5ba3 !important;
 }
 
-.crm-kpi-icon-blue {
-    background-color: #e0f2fe;
-    color: #0284c7;
-}
-
-.crm-kpi-icon-green {
-    background-color: #ecfdf5;
-    color: #10b981;
-}
-
+.crm-kpi-icon-purple,
+.crm-kpi-icon-blue,
+.crm-kpi-icon-green,
 .crm-kpi-icon-orange {
-    background-color: #ffedd5;
-    color: #ea580c;
+    background-color: #e0edfa !important;
+    color: #1e5ba3 !important;
 }
 
 .crm-kpi-content {
@@ -222,9 +688,9 @@
 }
 
 .crm-search-box input:focus {
-    border-color: #7c5cfc;
+    border-color: #1e5ba3;
     background-color: #ffffff;
-    box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.12);
+    box-shadow: 0 0 0 3px rgba(30, 91, 163, 0.12);
 }
 
 .crm-clear-btn {
@@ -239,7 +705,7 @@
 }
 
 .crm-filter-dropdown .crm-filter-btn {
-    background: transparent !important;
+    background: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
     border-radius: 8px !important;
     padding: 6px 12px !important;
@@ -260,9 +726,14 @@
 }
 
 .crm-filter-dropdown .crm-filter-btn.active {
-    background-color: #f3f0ff !important;
-    border-color: #7c5cfc !important;
-    color: #7c5cfc !important;
+    background-color: #e0edfa !important;
+    border: 1.5px solid #1e5ba3 !important;
+    color: #1e5ba3 !important;
+    font-weight: 600 !important;
+}
+
+.crm-filter-dropdown .crm-filter-btn.active i {
+    color: #1e5ba3 !important;
 }
 
 .crm-filter-dropdown .dropdown-menu {
@@ -281,8 +752,8 @@
 
 .crm-filter-dropdown .dropdown-item:hover,
 .crm-filter-dropdown .dropdown-item.active {
-    background-color: #f3f0ff;
-    color: #7c5cfc;
+    background-color: #e0edfa;
+    color: #1e5ba3;
 }
 
 .crm-toolbar-right {
@@ -293,16 +764,17 @@
 }
 
 .crm-btn-primary {
-    background-color: #7c5cfc !important;
+    background-color: #1e5ba3 !important;
     color: #ffffff !important;
-    border: none !important;
+    border: 1px solid #1e5ba3 !important;
     border-radius: 8px !important;
     padding: 7px 18px !important;
     font-size: 13.5px !important;
-    font-weight: 500 !important;
+    font-weight: 600 !important;
     display: inline-flex;
     align-items: center !important;
     cursor: pointer;
+    box-shadow: 0 1px 2px rgba(30, 91, 163, 0.15);
     transition: all 0.2s ease !important;
 }
 
@@ -313,14 +785,15 @@
 }
 
 .crm-btn-primary:hover {
-    background-color: #6a49f5 !important;
+    background-color: #154680 !important;
+    border-color: #154680 !important;
     color: #ffffff !important;
-    box-shadow: 0 4px 12px rgba(124, 92, 252, 0.25);
+    box-shadow: 0 4px 12px rgba(30, 91, 163, 0.25);
 }
 
 .crm-btn-secondary {
     background-color: #ffffff !important;
-    color: #7c5cfc !important;
+    color: #1e5ba3 !important;
     border: 1px solid #e2e8f0 !important;
     border-radius: 8px !important;
     padding: 7px 16px !important;
@@ -335,13 +808,13 @@
 .crm-btn-secondary:hover {
     background-color: #f8fafc !important;
     border-color: #cbd5e1 !important;
-    color: #6a49f5 !important;
+    color: #154680 !important;
 }
 
 .crm-btn-convert {
-    background-color: #f3f0ff !important;
-    color: #7c5cfc !important;
-    border: 1px solid #d8b4fe !important;
+    background-color: #e0edfa !important;
+    color: #1e5ba3 !important;
+    border: 1px solid #bfdbfe !important;
     border-radius: 6px !important;
     font-size: 12px !important;
     font-weight: 500 !important;
@@ -354,10 +827,10 @@
 }
 
 .crm-btn-convert:hover {
-    background-color: #ede9fe !important;
-    color: #6d28d9 !important;
-    border-color: #c4b5fd !important;
-    box-shadow: 0 2px 6px rgba(124, 92, 252, 0.15) !important;
+    background-color: #d0e4fa !important;
+    color: #154680 !important;
+    border-color: #93c5fd !important;
+    box-shadow: 0 2px 6px rgba(30, 91, 163, 0.15) !important;
 }
 
 .crm-view-switchers {
@@ -388,9 +861,10 @@
 }
 
 .crm-view-btn.active {
-    background-color: #ffffff;
-    color: #7c5cfc;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    background-color: #e0edfa !important;
+    color: #1e5ba3 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    font-weight: 600;
 }
 
 /* ---------------------------------------------------------
@@ -398,11 +872,12 @@
    --------------------------------------------------------- */
 
 .crm-portal-pipeline {
-    display: flex;
-    gap: 16px;
-    overflow-x: auto;
-    padding-bottom: 30px;
-    align-items: flex-start;
+    display: flex !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    padding-bottom: 30px !important;
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;
 }
@@ -427,14 +902,22 @@
 }
 
 .crm-portal-stage {
-    min-width: 295px !important;
-    width: 295px !important;
+    flex: 1 0 250px !important;
+    width: auto !important;
+    min-width: 270px !important;
     flex-shrink: 0;
     background: #f8fafc;
     border: 1px solid #eaedf3;
     border-radius: 14px;
     padding: 14px 12px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s ease;
+}
+
+.crm-portal-stage:hover {
+    border-color: #cbd5e1 !important;
 }
 
 .crm-stage-header {
@@ -520,33 +1003,48 @@
    --------------------------------------------------------- */
 
 .crm-drop-zone {
+    flex: 1;
     min-height: 120px;
     border-radius: 8px;
     padding: 2px;
+    display: flex;
+    flex-direction: column;
     transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.crm-drop-zone.crm-drag-over {
-    background-color: rgba(124, 92, 252, 0.05);
-    border: 2px dashed #7c5cfc;
+.crm-drop-zone.crm-drag-over,
+.crm-drop-zone.drag-over {
+    background-color: rgba(30, 91, 163, 0.05) !important;
+    border: 2px dashed #1e5ba3 !important;
+    border-radius: 8px !important;
 }
 
 .crm-lead-card {
-    background: #ffffff;
-    border: 1px solid #eaedf3;
-    border-radius: 12px;
-    padding: 14px 16px;
-    margin-bottom: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    background: #ffffff !important;
+    border: 1px solid #eaedf3 !important;
+    border-radius: 12px !important;
+    padding: 14px 16px !important;
+    margin-bottom: 12px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
     cursor: grab;
     user-select: none;
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .crm-lead-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
-    border-color: #cbd5e1;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(30, 91, 163, 0.08) !important;
+    border-color: #cbd5e1 !important;
+}
+
+.crm-lead-card .badge,
+.crm-badge-lead {
+    background-color: #e0edfa !important;
+    color: #1e5ba3 !important;
+    border: 1px solid #bfdbfe !important;
+    border-radius: 4px !important;
+    font-size: 10.5px !important;
+    font-weight: 600 !important;
 }
 
 .crm-lead-card:active,
@@ -576,7 +1074,7 @@
 }
 
 .crm-card-title:hover {
-    color: #7c5cfc;
+    color: #1e5ba3;
 }
 
 .crm-card-dots-btn {
@@ -669,8 +1167,8 @@
 }
 
 .crm-tag-other {
-    background-color: #f3e8ff;
-    color: #7c3aed;
+    background-color: #e0edfa;
+    color: #1e5ba3;
 }
 
 .crm-tag-default {
@@ -736,8 +1234,8 @@
     height: 26px;
     border-radius: 50%;
     overflow: hidden;
-    background-color: #ede9fe;
-    color: #7c3aed;
+    background-color: #1e5ba3;
+    color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -760,8 +1258,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #ede9fe;
-    color: #7c3aed;
+    background-color: #1e5ba3;
+    color: #ffffff;
     border-radius: 50%;
 }
 
@@ -786,11 +1284,11 @@
 
 .crm-quick-create-card {
     background: #ffffff;
-    border: 1px solid #7c5cfc;
+    border: 1px solid #1e5ba3;
     border-radius: 10px;
     padding: 12px;
     margin-bottom: 12px;
-    box-shadow: 0 4px 14px rgba(124, 92, 252, 0.12);
+    box-shadow: 0 4px 14px rgba(30, 91, 163, 0.12);
 }
 
 .crm-quick-field {
@@ -896,6 +1394,16 @@
     }
 }
 
+@media (max-width: 900px) {
+    .crm-lead-page {
+        padding: 12px !important;
+    }
+    .crm-portal-stage {
+        flex-basis: 270px;
+        min-width: 270px !important;
+    }
+}
+
 @media (max-width: 768px) {
     .crm-kpi-grid {
         grid-template-columns: 1fr;
@@ -918,819 +1426,351 @@
 }
 
 /* =========================================================
-   GENERATE LEADS MODAL
+   PICTURES 2, 3, 4 THEME OVERRIDES (SKY BLUE / DEEP BLUE)
    ========================================================= */
 
-.crm-generate-modal {
-    position: fixed !important;
-
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-
-    z-index: 9999 !important;
-
-    display: none;
-
-    align-items: center;
-    justify-content: center;
-
-    width: 100vw;
-    height: 100vh;
+/* Modal Container & Dialog (Pictures 3 & 4) */
+#crm_create_lead_modal {
+    background: rgba(15, 23, 42, 0.45) !important;
+    backdrop-filter: blur(4px) !important;
 }
 
-/* Dark background */
+#crm_create_lead_modal .crm-modal-create-card {
+    border-radius: 16px !important;
+    padding: 24px 28px !important;
+    box-shadow: 0 20px 45px -5px rgba(15, 23, 42, 0.18), 0 8px 16px -6px rgba(15, 23, 42, 0.08) !important;
+}
+
+#crm_create_lead_modal .rounded-2 {
+    background: #e0edfa !important;
+    color: #1e5ba3 !important;
+    border-radius: 8px !important;
+}
+
+#crm_create_lead_modal h6,
+#crm_create_modal_title {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+}
+
+#crm_close_create_card {
+    color: #94a3b8 !important;
+    font-size: 22px !important;
+    transition: color 0.15s ease !important;
+}
+#crm_close_create_card:hover {
+    color: #0f172a !important;
+}
+
+/* Modal Form Inputs (Pictures 3 & 4) */
+#crm_create_lead_modal input.form-control,
+#crm_create_lead_modal select.form-select,
+#crm_create_lead_modal textarea.form-control {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    color: #0f172a !important;
+    background-color: #ffffff !important;
+    transition: all 0.15s ease !important;
+}
+
+#crm_create_lead_modal input.form-control:focus,
+#crm_create_lead_modal select.form-select:focus,
+#crm_create_lead_modal textarea.form-control:focus {
+    border-color: #1e5ba3 !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(30, 91, 163, 0.12) !important;
+}
+
+/* Expected Revenue & Probability Bar (Picture 3) */
+#crm_modal_fields_opportunity .rounded-2,
+#crm_modal_fields_lead .rounded-2 {
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+}
+
+/* Modal Tags Container & Tag Pills (Pictures 3 & 4) */
+#crm_create_lead_modal .crm-tag-badge {
+    background: #edf5fe !important;
+    color: #1e5ba3 !important;
+    border: 1px solid #bfdbfe !important;
+    border-radius: 9999px !important;
+    font-size: 11.5px !important;
+    font-weight: 500 !important;
+    padding: 3px 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    transition: all 0.15s ease !important;
+}
+
+#crm_create_lead_modal .crm-tag-badge i {
+    font-size: 9px !important;
+    color: #1e5ba3 !important;
+    opacity: 0.8 !important;
+}
+
+#crm_create_lead_modal .crm-tag-cb:checked + .crm-tag-badge,
+#crm_create_lead_modal .crm-tag-badge.active-tag {
+    background: #1e5ba3 !important;
+    color: #ffffff !important;
+    border-color: #1e5ba3 !important;
+}
+
+#crm_create_lead_modal .crm-tag-cb:checked + .crm-tag-badge i,
+#crm_create_lead_modal .crm-tag-badge.active-tag i {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+/* Modal Buttons: Add & Cancel (Pictures 3 & 4) */
+#crm_create_lead_modal button[type="submit"],
+.crm-btn-add {
+    background: #1e5ba3 !important;
+    border-color: #1e5ba3 !important;
+    color: #ffffff !important;
+    border-radius: 9999px !important;
+    padding: 7px 26px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    border: none !important;
+    box-shadow: 0 1px 2px rgba(30, 91, 163, 0.2) !important;
+    transition: all 0.15s ease !important;
+}
+
+#crm_create_lead_modal button[type="submit"]:hover,
+.crm-btn-add:hover {
+    background: #154680 !important;
+    border-color: #154680 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(30, 91, 163, 0.25) !important;
+}
+
+#crm_cancel_create_card,
+.crm-btn-cancel-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 9999px !important;
+    color: #64748b !important;
+    padding: 7px 22px !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    transition: all 0.15s ease !important;
+}
+
+#crm_cancel_create_card:hover,
+.crm-btn-cancel-card:hover {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+}
+
+/* Generate Leads Modal (#crm_generate_leads_modal) */
+.crm-generate-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1060;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
 .crm-generate-overlay {
     position: absolute;
-
     top: 0;
-    right: 0;
-    bottom: 0;
     left: 0;
-
-    background: rgba(0, 0, 0, 0.45);
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
 }
-
-/* Modal box */
 
 .crm-generate-dialog {
     position: relative;
-
-    z-index: 2;
-
-    width: 760px;
-    max-width: calc(100vw - 40px);
-
-    max-height: calc(100vh - 50px);
-
-    overflow-y: auto;
-
-    background: #ffffff;
-
-    border-radius: 7px;
-
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 20px 45px -5px rgba(15, 23, 42, 0.18) !important;
+    width: 90%;
+    max-width: 580px;
+    z-index: 1;
+    overflow: hidden;
 }
 
-/* ---------------------------------------------------------
-   MODAL HEADER
-   --------------------------------------------------------- */
-
 .crm-generate-header {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 18px 24px;
     display: flex;
-
     align-items: center;
     justify-content: space-between;
-
-    padding: 16px 20px;
-
-    border-bottom: 1px solid #e5e5e5;
 }
 
 .crm-generate-header h4 {
     margin: 0;
-
-    color: #212529;
-
     font-size: 17px;
-    font-weight: 600;
+    font-weight: 700;
+    color: #0f172a !important;
 }
 
-/* Close button */
-
 .crm-generate-close {
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    width: 30px;
-    height: 30px;
-
-    padding: 0;
-
-    border: 0;
-
-    background: transparent;
-
-    color: #6c757d;
-
-    font-size: 24px;
-    line-height: 1;
-
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #94a3b8;
     cursor: pointer;
+    line-height: 1;
+    transition: color 0.15s ease;
 }
 
 .crm-generate-close:hover {
-    color: #212529;
+    color: #0f172a;
 }
-
-/* =========================================================
-   GENERATE FORM BODY
-   ========================================================= */
 
 .crm-generate-body {
-    padding: 22px 20px;
+    padding: 20px 24px;
 }
-
-.crm-generate-body h3 {
-    margin: 0 0 18px 0;
-
-    color: #212529;
-
-    font-size: 18px;
-    font-weight: 600;
-}
-
-/* ---------------------------------------------------------
-   NUMBER OF LEADS
-   --------------------------------------------------------- */
 
 .crm-generate-number-row {
+    margin-bottom: 16px;
+}
+
+.crm-generate-tags {
+    margin-top: 12px;
+}
+
+.crm-filter-size {
     display: flex;
-
     align-items: center;
-
-    gap: 10px;
-
-    margin-bottom: 22px;
+    gap: 8px;
+    margin-top: 8px;
 }
 
-.crm-generate-number-row input {
+.crm-filter-size input {
     width: 60px;
-
-    height: 36px;
-
-    padding: 5px 8px;
-
-    border: 1px solid #ced4da;
-
-    border-radius: 4px;
-
+    padding: 6px 8px;
+    font-size: 13px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
     outline: none;
-
-    font-size: 14px;
 }
-
-.crm-generate-number-row input:focus {
-    border-color: #714B67;
-
-    box-shadow: 0 0 0 2px rgba(113, 75, 103, 0.10);
-}
-
-.crm-generate-number-row span {
-    color: #495057;
-
-    font-size: 14px;
-}
-
-/* =========================================================
-   GENERATE FORM GRID
-   ========================================================= */
 
 .crm-generate-grid {
     display: grid;
-
-    grid-template-columns: 1fr 1fr;
-
-    column-gap: 30px;
-
-    row-gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
 }
-
-.crm-generate-grid > div {
-    min-width: 0;
-}
-
-.crm-generate-grid label {
-    display: block;
-
-    margin-bottom: 6px;
-
-    color: #343a40;
-
-    font-size: 13px;
-
-    font-weight: 500;
-}
-
-/* ---------------------------------------------------------
-   SELECT + INPUT
-   --------------------------------------------------------- */
 
 .crm-generate-select,
 .crm-generate-input {
-    display: block;
-
     width: 100%;
-
-    height: 36px;
-
-    margin-bottom: 15px;
-
-    padding: 6px 9px;
-
-    border: 1px solid #ced4da;
-
-    border-radius: 4px;
-
-    outline: none;
-
-    background: #ffffff;
-
-    color: #212529;
-
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 8px 12px;
     font-size: 13px;
-
-    box-sizing: border-box;
+    color: #0f172a !important;
+    background: #ffffff !important;
+    outline: none;
+    transition: all 0.15s ease;
 }
 
 .crm-generate-select:focus,
 .crm-generate-input:focus {
-    border-color: #714B67;
-
-    box-shadow: 0 0 0 2px rgba(113, 75, 103, 0.10);
+    border-color: #1e5ba3 !important;
+    box-shadow: 0 0 0 3px rgba(30, 91, 163, 0.12);
 }
-
-/* ---------------------------------------------------------
-   FILTER ON SIZE
-   --------------------------------------------------------- */
-
-.crm-filter-size {
-    display: flex !important;
-
-    align-items: center;
-
-    gap: 7px;
-
-    margin-top: 2px;
-
-    font-weight: 400 !important;
-}
-
-.crm-filter-size input {
-    margin: 0;
-}
-
-/* =========================================================
-   GENERATE TAGS
-   ========================================================= */
-
-.crm-generate-tags {
-    display: flex;
-
-    flex-wrap: wrap;
-
-    gap: 7px;
-
-    margin-top: 5px;
-}
-
-.crm-generate-tags label {
-    display: inline-flex !important;
-
-    align-items: center;
-
-    gap: 5px;
-
-    padding: 5px 9px;
-
-    margin: 0 !important;
-
-    border: 1px solid #dee2e6;
-
-    border-radius: 14px;
-
-    background: #ffffff;
-
-    font-size: 12px !important;
-
-    font-weight: 400 !important;
-}
-
-/* =========================================================
-   GENERATE FOOTER
-   ========================================================= */
 
 .crm-generate-footer {
-    display: flex;
-
-    align-items: center;
-
-    gap: 8px;
-
-    padding: 13px 20px;
-
-    border-top: 1px solid #e5e5e5;
-}
-
-.crm-generate-submit,
-.crm-generate-cancel {
-    min-height: 34px;
-
-    padding: 7px 14px;
-
-    border-radius: 4px;
-
-    cursor: pointer;
-
-    font-size: 13px;
-}
-
-.crm-generate-submit {
-    border: 1px solid #714B67;
-
-    background: #714B67;
-
-    color: #ffffff;
-}
-
-.crm-generate-submit:hover {
-    background: #5f3e56;
-}
-
-.crm-generate-cancel {
-    border: 1px solid #ced4da;
-
-    background: #ffffff;
-
-    color: #495057;
-}
-
-.crm-generate-cancel:hover {
-    background: #f5f5f5;
-}
-
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
-
-@media (max-width: 900px) {
-
-    .crm-pipeline-topbar {
-        flex-wrap: wrap;
-    }
-
-    .crm-pipeline-title {
-        order: 3;
-        flex-basis: 100%;
-    }
-
-    .crm-pipeline-total {
-        margin-left: auto;
-    }
-
-    .crm-generate-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 767px) {
-
-    .crm-pipeline-topbar {
-        padding: 12px;
-    }
-
-    .crm-pipeline-actions {
-        width: 100%;
-    }
-
-    .crm-new-button,
-    .crm-generate-button {
-        flex: 1;
-    }
-
-    .crm-pipeline-title h2 {
-        font-size: 20px;
-    }
-
-    .crm-pipeline-total {
-        width: 100%;
-        margin-left: 0;
-    }
-
-    .crm-generate-dialog {
-        width: calc(100vw - 20px);
-        max-height: calc(100vh - 20px);
-    }
-
-    .crm-generate-body {
-        padding: 18px 15px;
-    }
-}
-/* Keep Home, Contact Us, and the portal user menu visible */
-#top_menu > li:not(.o_no_autohide_item):not(:has(> a[href="/"])):not(:has(> a[href="/contactus"])) {
-    display: none !important;
-}
-
-/* =========================================================
-   CRM PORTAL - CLEAN AND MINIMAL THEME
-   Light blue accents, white cards, subtle borders
-   ========================================================= */
-
-:root {
-    --crm-primary: #dbeafe;
-    --crm-primary-hover: #bfdbfe;
-    --crm-primary-text: #1e40af;
-    --crm-border: #e2e8f0;
-    --crm-background: #f8fafc;
-    --crm-text: #1e293b;
-    --crm-muted: #64748b;
-    --crm-white: #ffffff;
-}
-
-/* =========================================================
-   MAIN PIPELINE PAGE
-   ========================================================= */
-
-.crm-lead-page-wrapper {
-    background-color: #f8fafc;
-    min-height: calc(100vh - 80px);
-    width: 100%;
-}
-
-body:has(.crm-lead-page),
-#wrap:has(.crm-lead-page) {
-    background-color: #f8fafc !important;
-}
-
-.crm-lead-page {
-    background: transparent !important;
-    color: var(--crm-text);
-    max-width: 1320px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    padding: 24px 12px !important;
-}
-
-/* =========================================================
-   PIPELINE HEADER
-   ========================================================= */
-
-.crm-pipeline-topbar {
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 16px;
-
-    background: var(--crm-white);
-    border: 1px solid var(--crm-border);
-    border-radius: 10px;
-
-    padding: 18px 22px;
-    margin-bottom: 20px;
-}
-
-/* Pipeline title */
-
-.crm-pipeline-title h2 {
-    color: var(--crm-text) !important;
-    font-size: 24px;
-    font-weight: 600 !important;
-    margin: 0 0 4px !important;
-}
-
-.crm-pipeline-title .text-muted {
-    color: var(--crm-muted) !important;
-    font-size: 13px;
-}
-
-/* Total leads */
-
-.crm-pipeline-total {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    color: var(--crm-muted);
-    font-size: 13px;
-}
-
-.crm-pipeline-total .badge {
-    background: var(--crm-primary) !important;
-    color: var(--crm-primary-text) !important;
-
-    border: 1px solid #bfdbfe;
-    border-radius: 6px !important;
-
-    font-size: 13px;
-    font-weight: 600;
-    padding: 7px 12px !important;
-}
-
-/* =========================================================
-   PIPELINE ACTION BUTTONS
-   ========================================================= */
-
-.crm-pipeline-actions {
-    display: flex;
-    align-items: center;
+    justify-content: flex-end;
     gap: 10px;
 }
 
-/* New button - light blue */
-
-.crm-new-button {
-    background: var(--crm-primary) !important;
-    color: var(--crm-primary-text) !important;
-
-    border: 1px solid #bfdbfe !important;
-    border-radius: 6px !important;
-
-    padding: 9px 18px !important;
-
-    font-size: 13px;
-    font-weight: 600;
-    box-shadow: none !important;
-}
-
-.crm-new-button:hover {
-    background: var(--crm-primary-hover) !important;
-    color: var(--crm-primary-text) !important;
-}
-
-/* Generate Leads button - white with a light border */
-
-.crm-generate-button {
-    background: var(--crm-white) !important;
-    color: var(--crm-primary-text) !important;
-
-    border: 1px solid #bfdbfe !important;
-    border-radius: 6px !important;
-
-    padding: 9px 16px !important;
-
-    font-size: 13px;
-    font-weight: 500;
-    box-shadow: none !important;
-}
-
-.crm-generate-button:hover {
-    background: #eff6ff !important;
-    color: var(--crm-primary-text) !important;
-}
-
-/* =========================================================
-   PIPELINE COLUMNS
-   ========================================================= */
-
-.crm-portal-pipeline {
-    display: flex !important;
-    align-items: stretch !important;
-    gap: 16px !important;
-
-    width: 100%;
-    overflow-x: auto !important;
-    overflow-y: hidden;
-
-    padding: 0 0 20px !important;
-
-    scrollbar-width: thin;
-    scrollbar-color: #cbd5e1 transparent;
-}
-
-.crm-portal-pipeline::-webkit-scrollbar {
-    height: 6px;
-}
-
-.crm-portal-pipeline::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 10px;
-}
-
-/* Each stage */
-
-.crm-portal-stage {
-    flex: 1 0 250px;
-
-    width: auto !important;
-    min-width: 250px !important;
-
-    background: #ffffff !important;
-
-    border: 1px solid var(--crm-border) !important;
-    border-radius: 8px !important;
-
-    padding: 12px !important;
-    box-shadow: none !important;
-
-    transition: border-color 0.2s ease;
-}
-
-.crm-portal-stage:hover {
-    border-color: #cbd5e1 !important;
-}
-
-/* =========================================================
-   STAGE HEADER
-   ========================================================= */
-
-.crm-stage-header {
-    margin-bottom: 12px;
-}
-
-.crm-stage-title-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-}
-
-.crm-stage-title {
-    color: var(--crm-text) !important;
-    font-size: 14px;
-    font-weight: 600 !important;
-}
-
-/* Stage count */
-
-.crm-stage-count {
-    background: #f1f5f9;
-    color: #475569;
-
-    border: 1px solid var(--crm-border);
-    border-radius: 5px;
-
-    padding: 3px 7px;
-    font-size: 11px;
-}
-
-/* Add lead icon */
-
-.crm-stage-add {
-    color: #64748b !important;
-    background: #ffffff;
-
-    border: 1px solid var(--crm-border);
-    border-radius: 5px;
-
-    width: 28px;
-    height: 28px;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    cursor: pointer;
-}
-
-.crm-stage-add:hover {
-    background: #eff6ff;
-    color: var(--crm-primary-text) !important;
-}
-
-/* Replace the old purple stage indicator */
-
-.crm-portal-stage > div[style*="background:#714B67"],
-.crm-portal-stage > div[style*="background: #714B67"] {
-    background: #bfdbfe !important;
-    border-radius: 4px !important;
-}
-
-/* =========================================================
-   LEAD CARDS
-   ========================================================= */
-
-.crm-lead-card {
-    background: #ffffff !important;
-
-    border: 1px solid var(--crm-border) !important;
-    border-radius: 7px !important;
-
-    box-shadow: none !important;
-
-    margin-bottom: 10px !important;
-    padding: 12px !important;
-
-    transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease;
-}
-
-.crm-lead-card:hover {
-    border-color: #cbd5e1 !important;
-    box-shadow: 0 2px 5px rgba(15, 23, 42, 0.04) !important;
-}
-
-/* Lead title */
-
-.crm-lead-card h5,
-.crm-lead-card .crm-lead-card-title {
-    color: var(--crm-text) !important;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-/* Lead information */
-
-.crm-lead-card .text-muted,
-.crm-lead-card .small {
-    color: var(--crm-muted) !important;
-}
-
-/* =========================================================
-   TAGS
-   ========================================================= */
-
-.crm-lead-card .badge {
-    border-radius: 5px !important;
-    font-size: 11px;
-    font-weight: 500;
-}
-
-/* =========================================================
-   DRAG AND DROP
-   ========================================================= */
-
-.crm-drop-zone.crm-drag-over,
-.crm-drop-zone.drag-over {
-    background: #eff6ff !important;
-    border: 1px dashed #93c5fd !important;
-    border-radius: 6px;
-}
-
-/* =========================================================
-   GENERATE LEADS MODAL
-   ========================================================= */
-
-.crm-generate-dialog {
-    background: #ffffff !important;
-    border: 1px solid var(--crm-border) !important;
-    border-radius: 10px !important;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.10) !important;
-}
-
-.crm-generate-header {
-    background: #ffffff !important;
-    border-bottom: 1px solid var(--crm-border) !important;
-}
-
-.crm-generate-header h4 {
-    color: var(--crm-text) !important;
-}
-
-.crm-generate-close {
-    color: var(--crm-muted) !important;
-    background: #f8fafc !important;
-    border-radius: 5px;
-}
-
-.crm-generate-select,
-.crm-generate-input {
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 5px !important;
-    background: #ffffff !important;
-    color: var(--crm-text) !important;
-}
-
 .crm-generate-submit {
-    background: var(--crm-primary) !important;
-    border: 1px solid #bfdbfe !important;
-    color: var(--crm-primary-text) !important;
-    border-radius: 6px !important;
+    background: #1e5ba3 !important;
+    border: 1px solid #1e5ba3 !important;
+    color: #ffffff !important;
+    border-radius: 9999px !important;
+    padding: 7px 24px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    transition: all 0.15s ease;
 }
 
 .crm-generate-submit:hover {
-    background: var(--crm-primary-hover) !important;
+    background: #154680 !important;
+    border-color: #154680 !important;
 }
 
 .crm-generate-cancel {
     background: #ffffff !important;
-    border: 1px solid var(--crm-border) !important;
-    color: #475569 !important;
-    border-radius: 6px !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #64748b !important;
+    border-radius: 9999px !important;
+    padding: 7px 20px !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    cursor: pointer;
+    transition: all 0.15s ease;
 }
 
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
+.crm-generate-cancel:hover {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+}
 
-@media (max-width: 767px) {
-    .crm-lead-page {
-        padding: 12px !important;
-    }
+/* Won Modal (.crm-won-modal) */
+.crm-won-modal {
+    background: rgba(15, 23, 42, 0.5) !important;
+    backdrop-filter: blur(4px);
+}
 
-    .crm-pipeline-topbar {
-        align-items: flex-start;
-        padding: 14px;
-    }
+.crm-won-modal-content {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 30px;
+    text-align: center;
+    max-width: 440px;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
+}
 
-    .crm-pipeline-title {
-        order: -1;
-        width: 100%;
-    }
+.crm-won-icon {
+    width: 60px;
+    height: 60px;
+    background: #e0edfa;
+    color: #1e5ba3;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    margin-bottom: 16px;
+}
 
-    .crm-pipeline-actions {
-        flex-wrap: wrap;
-    }
+.crm-won-confirm {
+    background: #1e5ba3 !important;
+    border-color: #1e5ba3 !important;
+    color: #ffffff !important;
+    border-radius: 9999px !important;
+    padding: 8px 26px !important;
+    font-weight: 600;
+}
 
-    .crm-portal-stage {
-        flex-basis: 270px;
-        min-width: 270px !important;
-    }
+.crm-won-cancel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    border-radius: 9999px;
+    padding: 8px 22px;
 }
 
 /* =========================================================
@@ -2382,14 +2422,14 @@ body:has(.crm-lead-page),
 /* Active Tag State */
 .crm-tag-cb:checked + .crm-tag-badge,
 .crm-tag-badge.active-tag {
-    background: #EDE9FE !important;
-    color: #6366F1 !important;
-    border-color: #C7D2FE !important;
+    background: #1e5ba3 !important;
+    color: #ffffff !important;
+    border-color: #1e5ba3 !important;
 }
 .crm-tag-cb:checked + .crm-tag-badge i,
 .crm-tag-badge.active-tag i {
     opacity: 1 !important;
-    color: #6366F1 !important;
+    color: #ffffff !important;
 }
 .crm-btn-won {
     background-color: #10B981 !important;
@@ -2427,9 +2467,9 @@ body:has(.crm-lead-page),
     border-color: #94a3b8 !important;
 }
 .crm-btn-save-pill {
-    background: #7c3aed !important;
+    background: #1e5ba3 !important;
     color: #ffffff !important;
-    border: 1px solid #7c3aed !important;
+    border: 1px solid #1e5ba3 !important;
     border-radius: 6px !important;
     padding: 6px 20px !important;
     font-size: 13px !important;
@@ -2441,14 +2481,14 @@ body:has(.crm-lead-page),
     line-height: 1 !important;
     box-sizing: border-box !important;
     cursor: pointer !important;
-    box-shadow: 0 1px 3px rgba(124, 58, 237, 0.25) !important;
+    box-shadow: 0 1px 3px rgba(30, 91, 163, 0.25) !important;
     transition: all 0.2s ease !important;
 }
 .crm-btn-save-pill:hover {
-    background: #6d28d9 !important;
-    border-color: #6d28d9 !important;
+    background: #154680 !important;
+    border-color: #154680 !important;
     color: #ffffff !important;
-    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.35) !important;
+    box-shadow: 0 2px 6px rgba(30, 91, 163, 0.35) !important;
 }
 
 /* Metric Inputs & Probability */
@@ -2504,8 +2544,8 @@ body:has(.crm-lead-page),
 }
 .crm-metric-editable-input:focus {
     background: #ffffff !important;
-    border-color: #7c3aed !important;
-    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15) !important;
+    border-color: #1e5ba3 !important;
+    box-shadow: 0 0 0 2px rgba(30, 91, 163, 0.15) !important;
 }
 .crm-metric-editable-input::-webkit-outer-spin-button,
 .crm-metric-editable-input::-webkit-inner-spin-button {
@@ -2532,4 +2572,123 @@ body:has(.crm-lead-page),
 }
 .crm-star-opt:hover {
     transform: scale(1.2);
+}
+
+/* =========================================================
+   FOOTER - SKY BLUE THEME (DESIGN 4)
+   ========================================================= */
+
+footer#bottom,
+footer#bottom.o_footer {
+    background-color: #e3eefb !important;
+    border-top: 1px solid #cadff3 !important;
+    color: #475569 !important;
+}
+
+footer#bottom #footer {
+    background: transparent !important;
+    border: none !important;
+}
+
+/* Footer Section Headings */
+footer#bottom h5,
+footer#bottom .s_text_block h5 {
+    color: #0f172a !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    margin-bottom: 16px !important;
+    letter-spacing: -0.2px !important;
+}
+
+/* Useful Links Column */
+footer#bottom ul.list-unstyled li {
+    margin-bottom: 8px !important;
+}
+
+footer#bottom ul.list-unstyled li a {
+    color: #475569 !important;
+    font-size: 13.5px !important;
+    text-decoration: none !important;
+    transition: all 0.15s ease !important;
+}
+
+footer#bottom ul.list-unstyled li a:hover {
+    color: #1e5ba3 !important;
+    padding-left: 3px !important;
+}
+
+/* About Us Column */
+footer#bottom .col-lg-5 p {
+    color: #475569 !important;
+    font-size: 13.5px !important;
+    line-height: 1.65 !important;
+}
+
+/* Connect with Us Icons */
+footer#bottom .col-lg-4 i.fa-comment,
+footer#bottom .col-lg-4 i.fa-envelope,
+footer#bottom .col-lg-4 i.fa-phone {
+    color: #1e5ba3 !important;
+    font-size: 13px !important;
+}
+
+footer#bottom .col-lg-4 a {
+    color: #475569 !important;
+    font-size: 13.5px !important;
+    text-decoration: none !important;
+    transition: color 0.15s ease !important;
+}
+
+footer#bottom .col-lg-4 a:hover {
+    color: #1e5ba3 !important;
+}
+
+/* Social Media Icons */
+footer#bottom .s_social_media {
+    margin-top: 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+footer#bottom .s_social_media a {
+    text-decoration: none !important;
+    display: inline-block !important;
+}
+
+footer#bottom .s_social_media i {
+    width: 34px !important;
+    height: 34px !important;
+    background: #ffffff !important;
+    border: 1px solid #c8dcf2 !important;
+    color: #1e5ba3 !important;
+    font-size: 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+footer#bottom .s_social_media a:hover i {
+    background: #1e5ba3 !important;
+    color: #ffffff !important;
+    border-color: #1e5ba3 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(30, 91, 163, 0.25) !important;
+}
+
+/* Copyright Row */
+footer#bottom .o_footer_copyright {
+    background-color: #d6e5f5 !important;
+    border-top: 1px solid #cadff3 !important;
+    color: #64748b !important;
+    font-size: 12.5px !important;
+}
+
+footer#bottom .o_footer_copyright .o_footer_copyright_name,
+footer#bottom .o_footer_copyright span {
+    color: #64748b !important;
+    font-size: 12.5px !important;
 }

@@ -11,17 +11,9 @@ _logger = logging.getLogger(__name__)
 class CRMWebsite(Website):
 
     def _login_redirect(self, uid, redirect=None):
-        user = request.env['res.users'].browse(uid)
-
-        # Admin OR Portal User -> CRM Portal
-        if (
-                request.params.get('login_success')
-                and (
-                user.has_group('base.group_system')
-                or user.has_group('base.group_portal')
-        )
-        ):
-            redirect = '/my/leads'
+        # Redirect all users to Portal Home after login
+        if not redirect or request.params.get('login_success'):
+            redirect = '/my/home'
 
         return super()._login_redirect(uid, redirect=redirect)
 

@@ -226,7 +226,7 @@
 .crm-mockup-header-card {
   background: #fff;
   border: 1px solid #e2e8f0;
-  border-left: 5px solid #7c3aed;
+  border-left: 5px solid #1e5ba3;
   border-radius: 10px;
   padding: 12px 20px;
   display: flex;
@@ -243,7 +243,7 @@
   gap: 12px;
 }
 .crm-mockup-header-icon {
-  color: #7c3aed;
+  color: #1e5ba3;
   font-size: 22px;
   display: flex;
   align-items: center;
@@ -306,20 +306,20 @@
   white-space: nowrap;
 }
 .crm-btn-convert-pill {
-  background: #ede9fe;
-  color: #7c3aed;
-  border: 1px solid #ddd6fe;
+  background: #e0edfa;
+  color: #1e5ba3;
+  border: 1px solid #bfdbfe;
 }
 .crm-btn-convert-pill:hover {
-  background: #e0e7ff;
-  color: #6d28d9;
+  background: #d0e3f7;
+  color: #154680;
 }
 .crm-btn-quotation-pill {
-  background: #7c3aed;
+  background: #1e5ba3;
   color: #fff;
   border: none;
 }
-.crm-btn-quotation-pill:hover { background: #6d28d9; }
+.crm-btn-quotation-pill:hover { background: #154680; }
 .crm-btn-won-pill {
   background: #10b981;
   color: #fff;
@@ -343,17 +343,17 @@
   border-color: #94a3b8;
 }
 .crm-btn-save-pill {
-  background: #7c3aed;
+  background: #1e5ba3;
   color: #ffffff;
-  border: 1px solid #7c3aed;
+  border: 1px solid #1e5ba3;
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(124, 58, 237, 0.25);
+  box-shadow: 0 1px 3px rgba(30, 91, 163, 0.25);
 }
 .crm-btn-save-pill:hover {
-  background: #6d28d9;
-  border-color: #6d28d9;
+  background: #154680;
+  border-color: #154680;
   color: #ffffff;
-  box-shadow: 0 2px 6px rgba(124, 58, 237, 0.35);
+  box-shadow: 0 2px 6px rgba(30, 91, 163, 0.35);
 }
 .crm-stage-chip {
   background: #f1f5f9;
@@ -435,7 +435,7 @@
   color: #0f172a;
   line-height: 1.1;
 }
-.crm-val-purple { color: #7c3aed; }
+.crm-val-purple { color: #1e5ba3; }
 .crm-val-green { color: #10b981; }
 
 .crm-metric-editable-input {
@@ -464,8 +464,8 @@
 }
 .crm-metric-editable-input:focus {
   background: #ffffff;
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+  border-color: #1e5ba3;
+  box-shadow: 0 0 0 2px rgba(30, 91, 163, 0.15);
 }
 /* Hide number spinners on metric inputs */
 .crm-metric-editable-input::-webkit-outer-spin-button,
@@ -515,9 +515,9 @@
   gap: 8px;
 }
 .crm-header-purple {
-  background: #f5f3ff;
-  color: #6d28d9;
-  border-bottom: 1px solid #ede9fe;
+  background: #e0edfa;
+  color: #1e5ba3;
+  border-bottom: 1px solid #bfdbfe;
 }
 .crm-header-blue {
   background: #f0f9ff;
@@ -598,8 +598,8 @@
 .crm-mockup-control-wrap .form-control:focus,
 .crm-mockup-control-wrap .form-select:focus,
 .crm-mockup-control-wrap textarea:focus {
-  border-color: #7c3aed !important;
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.12) !important;
+  border-color: #1e5ba3 !important;
+  box-shadow: 0 0 0 2px rgba(30, 91, 163, 0.12) !important;
   outline: none !important;
 }
 
@@ -637,8 +637,8 @@
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .crm-user-input-group:focus-within {
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.12);
+  border-color: #1e5ba3;
+  box-shadow: 0 0 0 2px rgba(30, 91, 163, 0.12);
 }
 .crm-user-avatar-badge {
   padding-left: 10px;
@@ -703,7 +703,7 @@
   transition: all 0.2s;
 }
 .crm-tab-nav-btn.active {
-  color: #7c3aed;
+  color: #1e5ba3;
   font-weight: 600;
 }
 .crm-tab-nav-btn.active::after {
@@ -713,7 +713,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: #7c3aed;
+  background: #1e5ba3;
   border-radius: 2px;
 }
 .crm-tab-nav-btn:hover { color: #1e293b; }
@@ -777,22 +777,24 @@
 }
 .crm-form-footer-actions { border-color: #f1f5f9 !important; }
 .crm-btn-add {
-  background: #7c5cfc;
-  border-radius: 6px;
-  font-size: 13px;
-  padding: 6px 22px;
+  background: #1e5ba3;
+  border-radius: 9999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 7px 26px;
   border: none;
 }
 .crm-btn-add:hover {
-  background: #6845f5;
+  background: #154680;
   color: #fff;
 }
 .crm-btn-cancel-card {
-  border-radius: 6px;
+  border-radius: 9999px;
   color: #64748b;
-  font-size: 13px;
-  padding: 6px 18px;
-  border-color: #e2e8f0 !important;
+  font-size: 13.5px;
+  padding: 7px 22px;
+  border: 1px solid #e2e8f0 !important;
+  background: #ffffff;
 }
 .crm-btn-cancel-card:hover {
   background: #f8fafc;

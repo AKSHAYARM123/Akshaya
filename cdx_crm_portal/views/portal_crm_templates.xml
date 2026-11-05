@@ -47,6 +47,177 @@
 
 
     <!-- ========================================================= -->
+    <!-- 1B. MODERN PORTAL HOME LAYOUT (DESIGN 4 - SKY BLUE)       -->
+    <!-- ========================================================= -->
+
+    <template
+            id="portal_layout_modern_home"
+            inherit_id="portal.portal_layout"
+            name="Modern Portal Home Layout"
+            priority="99">
+        <xpath expr="//div[@id='wrap']" position="replace">
+            <div id="wrap" class="o_portal_wrap">
+                <t t-if="my_details">
+                    <!-- 1. Full-Width Top Profile Banner (Design 4 - Sky blue) -->
+                    <div class="o_portal_user_banner_fullwidth w-100 mb-4">
+                        <div class="container py-4">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 w-100">
+                                <div class="d-flex align-items-center gap-3 gap-md-4">
+                                    <t t-set="display_user" t-value="user_id if user_id else request.env.user"/>
+                                    <div class="o_portal_avatar_circle d-flex align-items-center justify-content-center text-white fw-bold">
+                                        <t t-out="''.join([w[0].upper() for w in (display_user.name or '').split()[:2]]) if display_user.name else 'U'"/>
+                                    </div>
+                                    <div class="o_portal_user_info d-flex flex-column justify-content-center">
+                                        <h2 class="mb-0 fw-bold o_portal_user_name" t-out="display_user.name"/>
+                                        <div class="o_portal_user_company text-muted small" t-out="display_user.company_name or display_user.company_id.name"/>
+                                        <div class="d-flex flex-wrap align-items-center o_portal_user_meta text-muted small">
+                                            <t t-set="partner" t-value="display_user.partner_id"/>
+                                            <t t-set="addr_street" t-value="', '.join([s for s in [partner.street, partner.street2] if s]) if partner else ''"/>
+                                            <t t-set="addr_loc" t-value="' '.join([s for s in [partner.city, partner.state_id.code if partner.state_id else '', partner.zip] if s]) if partner else ''"/>
+                                            <t t-set="addr_country" t-value="partner.country_id.name if partner and partner.country_id else ''"/>
+                                            <t t-set="formatted_addr" t-value="', '.join([s for s in [addr_street, addr_loc, addr_country] if s])"/>
+                                            <t t-if="not formatted_addr and partner and partner.contact_address">
+                                                <t t-set="raw_lines" t-value="[s.strip() for s in partner.contact_address.split('\n') if s.strip()]"/>
+                                                <t t-set="clean_lines" t-value="raw_lines[1:] if (raw_lines and display_user.company_name and raw_lines[0].lower() == display_user.company_name.lower()) else raw_lines"/>
+                                                <t t-set="formatted_addr" t-value="', '.join(clean_lines)"/>
+                                            </t>
+                                            <span t-if="formatted_addr" class="d-inline-flex align-items-center gap-1 text-nowrap">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e5ba3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0">
+                                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                                    <circle cx="12" cy="10" r="3"/>
+                                                </svg>
+                                                <t t-out="formatted_addr"/>
+                                            </span>
+                                            <span t-if="partner and partner.phone" class="d-inline-flex align-items-center gap-1 text-nowrap">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e5ba3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0">
+                                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                                                </svg>
+                                                <t t-out="partner.phone"/>
+                                            </span>
+                                            <span t-if="partner and partner.email" class="d-inline-flex align-items-center gap-1 text-nowrap">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e5ba3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0">
+                                                    <rect x="2" y="4" width="20" height="16" rx="2"/>
+                                                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                                                </svg>
+                                                <t t-out="partner.email"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center ms-auto">
+                                    <a role="button" href="/my/account" class="btn o_portal_btn_edit">
+                                        Edit information
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Main Portal Container -->
+                    <div class="container pb-5">
+                        <!-- Section Heading -->
+                        <h2 class="o_portal_section_heading mb-4">My account</h2>
+
+                        <!-- Main Portal Documents (3-Column Grid) -->
+                        <div class="o_portal_content w-100 mb-4">
+                            <t t-out="0"/>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- Fallback for standard portal pages (/my/leads, /my/orders, etc.) -->
+                <t t-if="not my_details">
+                    <div class="container pt-3 pb-5">
+                        <t t-out="0"/>
+                    </div>
+                </t>
+            </div>
+        </xpath>
+    </template>
+
+    <template
+            id="portal_my_home_hide_unwanted_entries"
+            inherit_id="portal.portal_docs_entry"
+            name="Modern Portal Docs Entry"
+            priority="99">
+        <xpath expr="//div[1]" position="attributes">
+            <attribute name="t-if">not (url and ('/my/invoices' in url or '/my/orders' in url or '/my/quotes' in url or '/my/addresses' in url or '/my/security' in url or '/my/projects' in url or '/my/project' in url or '/my/tasks' in url or '/my/task' in url)) and not (title and title.strip() in ['Projects', 'Tasks', 'Project', 'Task'])</attribute>
+            <attribute name="class" add="o_modern_portal_card_col" separator=" "/>
+        </xpath>
+        <xpath expr="//div[1]/a" position="replace">
+            <a t-att-href="url" class="o_portal_card_modern d-flex flex-column text-decoration-none">
+                <!-- Icon box at top -->
+                <div class="o_portal_card_icon_box mb-3 d-flex align-items-center justify-content-center">
+                    <t t-if="url and '/my/leads' in url">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e5ba3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </t>
+                    <t t-if="url and ('/my/timeoff' in url or '/my/time_off' in url or '/my/leave' in url)">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e5ba3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                    </t>
+                    <t t-if="url and '/my/projects' in url">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e5ba3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                        </svg>
+                    </t>
+                    <t t-if="url and '/my/tasks' in url">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e5ba3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 11 12 14 22 4"/>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                        </svg>
+                    </t>
+                    <t t-if="url and '/my/timesheets' in url">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e5ba3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    </t>
+                    <t t-if="icon and not (url and ('/my/leads' in url or '/my/timeoff' in url or '/my/time_off' in url or '/my/leave' in url or '/my/projects' in url or '/my/tasks' in url or '/my/timesheets' in url))">
+                        <div class="o_portal_icon">
+                            <img t-attf-src="#{icon}" style="max-width: 22px; max-height: 22px;"/>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- Text content -->
+                <div class="o_portal_card_content">
+                    <div class="o_portal_card_title mb-1">
+                        <t t-out="count"/>
+                        <span t-if="placeholder_count and not force_show" t-att-class="'fw-bold' if show_count else 'd-none'" t-att-data-placeholder_count="placeholder_count"/>
+                        <span t-out="title"/>
+                    </div>
+                    <div class="o_portal_card_desc">
+                        <t t-out="text"/>
+                    </div>
+                </div>
+            </a>
+        </xpath>
+    </template>
+
+    <template
+            id="portal_my_home_hide_common_and_vendor_categories"
+            inherit_id="portal.portal_my_home"
+            name="Hide Common and Vendor Categories from Portal Home"
+            priority="99">
+        <xpath expr="//div[@id='portal_common_category']" position="attributes">
+            <attribute name="class" add="d-none" separator=" "/>
+            <attribute name="style">display: none !important;</attribute>
+        </xpath>
+        <xpath expr="//div[@id='portal_vendor_category']" position="attributes">
+            <attribute name="class" add="d-none" separator=" "/>
+            <attribute name="style">display: none !important;</attribute>
+        </xpath>
+    </template>
+
+
+    <!-- ========================================================= -->
     <!-- 2. CRM PORTAL PIPELINE                                   -->
     <!-- ========================================================= -->
 
@@ -70,6 +241,20 @@
                         name="csrf_token"
                         t-att-value="request.csrf_token()"/>
 
+                <!-- Back to Home Breadcrumb (matching portal style) -->
+                <nav aria-label="breadcrumb" class="crm-portal-breadcrumb mb-3">
+                    <ol class="breadcrumb mb-0 align-items-center">
+                        <li class="breadcrumb-item">
+                            <a href="/my/home" title="Home" aria-label="Home" class="crm-breadcrumb-home-link">
+                                <i class="fa fa-home"/>
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            Leads
+                        </li>
+                    </ol>
+                </nav>
+
                 <!-- Notification Alerts -->
                 <div t-if="request.params.get('won')" class="alert alert-success alert-dismissible fade show mb-3 py-2 shadow-sm border-0 d-flex align-items-center" role="alert" style="background: #ecfdf5; color: #065f46; border-left: 4px solid #10b981 !important; border-radius: 8px;">
                     <i class="fa fa-trophy text-warning me-2 fs-5"/>
@@ -78,7 +263,7 @@
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
-                <div t-if="request.params.get('converted')" class="alert alert-success alert-dismissible fade show mb-3 py-2 shadow-sm border-0 d-flex align-items-center" role="alert" style="background: #eef2ff; color: #3730a3; border-left: 4px solid #6366f1 !important; border-radius: 8px;">
+                <div t-if="request.params.get('converted')" class="alert alert-success alert-dismissible fade show mb-3 py-2 shadow-sm border-0 d-flex align-items-center" role="alert" style="background: #e0edfa; color: #1e5ba3; border-left: 4px solid #1e5ba3 !important; border-radius: 8px;">
                     <i class="fa fa-check-circle text-primary me-2 fs-5"/>
                     <div class="flex-grow-1">
                         <strong>Lead Converted!</strong> The lead was successfully converted to an opportunity.
@@ -106,7 +291,7 @@
                 <div class="crm-kpi-grid" id="crm_kpi_opportunities">
                     <!-- Total Opportunities -->
                     <div class="crm-kpi-card">
-                        <div class="crm-kpi-icon" style="background-color: #f3e8ff; color: #7c3aed; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <div class="crm-kpi-icon" style="background-color: #e0edfa; color: #1e5ba3; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
                                 <circle cx="9" cy="7" r="4"/>
@@ -132,7 +317,7 @@
 
                     <!-- Pipeline Value -->
                     <div class="crm-kpi-card">
-                        <div class="crm-kpi-icon" style="background-color: #e0f2fe; color: #0284c7; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <div class="crm-kpi-icon" style="background-color: #e0edfa; color: #1e5ba3; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="20" x2="18" y2="10"/>
                                 <line x1="12" y1="20" x2="12" y2="4"/>
@@ -155,7 +340,7 @@
 
                     <!-- Expected Revenue (Won) -->
                     <div class="crm-kpi-card">
-                        <div class="crm-kpi-icon" style="background-color: #dcfce7; color: #16a34a; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <div class="crm-kpi-icon" style="background-color: #e0edfa; color: #1e5ba3; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
                                 <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
@@ -180,7 +365,7 @@
 
                     <!-- Win Rate -->
                     <div class="crm-kpi-card">
-                        <div class="crm-kpi-icon" style="background-color: #ffedd5; color: #ea580c; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <div class="crm-kpi-icon" style="background-color: #e0edfa; color: #1e5ba3; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="19" y1="5" x2="5" y2="19"/>
                                 <circle cx="6.5" cy="6.5" r="2.5" fill="currentColor"/>
@@ -207,7 +392,7 @@
                 <div class="crm-kpi-grid" id="crm_kpi_leads" style="display: none;">
                     <!-- Total leads -->
                     <div class="crm-kpi-card">
-                        <div class="crm-kpi-icon" style="background-color: #dbeafe; color: #2563eb; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <div class="crm-kpi-icon" style="background-color: #e0edfa; color: #1e5ba3; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
                                 <circle cx="9" cy="7" r="4"/>
@@ -227,7 +412,7 @@
 
                     <!-- New this month -->
                     <div class="crm-kpi-card">
-                        <div class="crm-kpi-icon" style="background-color: #fef3c7; color: #d97706; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <div class="crm-kpi-icon" style="background-color: #e0edfa; color: #1e5ba3; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/>
                             </svg>
@@ -244,7 +429,7 @@
 
                     <!-- Converted -->
                     <div class="crm-kpi-card">
-                        <div class="crm-kpi-icon" style="background-color: #dcfce7; color: #16a34a; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <div class="crm-kpi-icon" style="background-color: #e0edfa; color: #1e5ba3; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M4 17h16M16 13l4 4-4 4M20 7H4M8 3L4 7l4 4"/>
                             </svg>
@@ -261,8 +446,8 @@
 
                     <!-- Conversion rate -->
                     <div class="crm-kpi-card">
-                        <div class="crm-kpi-icon" style="background-color: #dbeafe; color: #2563eb; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <span style="font-size: 20px; font-weight: 700; line-height: 1;">%</span>
+                        <div class="crm-kpi-icon" style="background-color: #e0edfa; color: #1e5ba3; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <span style="font-size: 20px; font-weight: 700; line-height: 1; color: #1e5ba3;">%</span>
                         </div>
                         <div class="crm-kpi-content">
                             <div class="crm-kpi-label" style="font-size: 13px; color: #64748b; font-weight: 500; margin-bottom: 2px;">Conversion rate</div>
@@ -471,7 +656,7 @@
                     <t t-foreach="stages" t-as="stage">
 
                         <t t-set="stage_color"
-                           t-value="'#7c5cfc' if (stage.name in ['New', 'Nouveau'] or stage_index == 0) else ('#3b82f6' if (stage.name in ['Qualified', 'Qualifié'] or stage_index == 1) else ('#10b981' if (stage.name in ['Proposition'] or stage_index == 2) else ('#f59e0b' if (stage.name in ['Won', 'Gagné'] or stage.is_won or stage_index == 3) else '#6366f1')))"/>
+                           t-value="'#1e5ba3' if (stage.name in ['New', 'Nouveau'] or stage_index == 0) else ('#0284c7' if (stage.name in ['Qualified', 'Qualifié'] or stage_index == 1) else ('#10b981' if (stage.name in ['Proposition'] or stage_index == 2) else ('#f59e0b' if (stage.name in ['Won', 'Gagné'] or stage.is_won or stage_index == 3) else '#1e5ba3')))"/>
 
                         <!-- ================================================= -->
                         <!-- STAGE COLUMN                                      -->
@@ -489,7 +674,7 @@
                                             <t t-esc="stage.name"/>
                                         </span>
                                         <span class="crm-stage-count-pill" t-att-data-stage-id="stage.id">
-                                            <t t-esc="len(leads_by_stage.get(stage.id, []))"/>
+                                            <t t-esc="len(leads_by_stage.get(stage.id)) if leads_by_stage.get(stage.id) else 0"/>
                                         </span>
                                     </div>
                                     <button type="button" class="crm-stage-add-btn" t-att-data-stage-id="stage.id"
@@ -502,7 +687,7 @@
                                 <div class="crm-stage-revenue-row">
                                     <span class="crm-stage-amount" t-att-data-stage-id="stage.id">
                                         $
-                                        <t t-esc="'{:,.2f}'.format(sum(leads_by_stage.get(stage.id, []).mapped('expected_revenue')))"/>
+                                        <t t-esc="'{:,.2f}'.format(sum(leads_by_stage.get(stage.id).mapped('expected_revenue')) if leads_by_stage.get(stage.id) else 0.0)"/>
                                     </span>
                                 </div>
 
@@ -593,7 +778,7 @@
                                             <div class="crm-card-header-row">
                                                 <div class="d-flex align-items-center gap-1 overflow-hidden me-1">
                                                     <t t-if="lead.type == 'lead'">
-                                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 10px; padding: 2px 5px; flex-shrink: 0;">Lead</span>
+                                                        <span class="badge" style="font-size: 10.5px; font-weight: 600; padding: 2px 6px; flex-shrink: 0; background-color: #e0edfa !important; color: #1e5ba3 !important; border: 1px solid #bfdbfe !important; border-radius: 4px;">Lead</span>
                                                     </t>
                                                     <a t-att-href="'/my/leads/%s' % lead.id" class="crm-card-title text-truncate"
                                                        t-att-title="lead.name">
@@ -617,8 +802,8 @@
                                                                         t-att-data-partner-id="lead.partner_id.id if lead.partner_id else ''"
                                                                         t-att-data-company-name="lead.partner_name or (lead.partner_id.parent_id.name if lead.partner_id and lead.partner_id.parent_id else (lead.partner_id.name if lead.partner_id and lead.partner_id.is_company else ''))"
                                                                         t-att-data-company-id="lead.partner_id.parent_id.id if lead.partner_id and lead.partner_id.parent_id else (lead.partner_id.id if lead.partner_id and lead.partner_id.is_company else '')"
-                                                                        style="color: #7c5cfc;">
-                                                                    <i class="fa fa-arrow-circle-right me-2" style="color: #7c5cfc;"/>Convert to Opportunity
+                                                                        style="color: #1e5ba3;">
+                                                                    <i class="fa fa-arrow-circle-right me-2" style="color: #1e5ba3;"/>Convert to Opportunity
                                                                 </button>
                                                             </li>
                                                             <li>
@@ -796,7 +981,7 @@
                                             <!-- TOP ROW: TITLE & 3-DOTS -->
                                             <div class="crm-card-header-row">
                                                 <div class="d-flex align-items-center gap-1 overflow-hidden me-1">
-                                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 10px; padding: 2px 5px; flex-shrink: 0;">Lead</span>
+                                                    <span class="badge" style="font-size: 10.5px; font-weight: 600; padding: 2px 6px; flex-shrink: 0; background-color: #e0edfa !important; color: #1e5ba3 !important; border: 1px solid #bfdbfe !important; border-radius: 4px;">Lead</span>
                                                     <a t-att-href="'/my/leads/%s' % lead.id" class="crm-card-title text-truncate"
                                                        t-att-title="lead.name">
                                                         <t t-esc="lead.name"/>
@@ -818,8 +1003,8 @@
                                                                     t-att-data-partner-id="lead.partner_id.id if lead.partner_id else ''"
                                                                     t-att-data-company-name="lead.partner_name or (lead.partner_id.parent_id.name if lead.partner_id and lead.partner_id.parent_id else (lead.partner_id.name if lead.partner_id and lead.partner_id.is_company else ''))"
                                                                     t-att-data-company-id="lead.partner_id.parent_id.id if lead.partner_id and lead.partner_id.parent_id else (lead.partner_id.id if lead.partner_id and lead.partner_id.is_company else '')"
-                                                                    style="color: #7c5cfc;">
-                                                                <i class="fa fa-arrow-circle-right me-2" style="color: #7c5cfc;"/>Convert to Opportunity
+                                                                    style="color: #1e5ba3;">
+                                                                <i class="fa fa-arrow-circle-right me-2" style="color: #1e5ba3;"/>Convert to Opportunity
                                                             </button>
                                                         </li>
                                                         <li>
@@ -1212,8 +1397,8 @@
                         <!-- Header matching Picture 2 -->
                         <div class="d-flex justify-content-between align-items-center pb-2">
                             <div class="d-flex align-items-center gap-2">
-                                <div class="rounded-2 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background: #ede9fe; color: #7c5cfc;">
-                                    <i class="fa fa-users" style="font-size: 13px;"/>
+                                <div class="rounded-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: #e0edfa; color: #1e5ba3; border-radius: 8px;">
+                                    <i class="fa fa-users" style="font-size: 14px;"/>
                                 </div>
                                 <h6 class="mb-0 fw-bold text-dark" style="font-size: 15px;" id="crm_create_modal_title">New Lead</h6>
                             </div>
@@ -1221,8 +1406,8 @@
                                 &amp;times;
                             </button>
                         </div>
-                        <!-- Purple divider line under header -->
-                        <div style="height: 2px; background: #7c5cfc; margin-top: 4px; margin-bottom: 14px; opacity: 0.9;"></div>
+                        <!-- Blue divider line under header -->
+                        <div style="height: 2px; background: #1e5ba3; margin-top: 6px; margin-bottom: 16px; opacity: 0.95; border-radius: 2px;"></div>
 
                         <form action="/my/leads/quick-create" method="post" id="crm_leads_create_form">
                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
@@ -1345,9 +1530,9 @@
                                                 <t t-foreach="tags" t-as="tag">
                                                     <label class="m-0 crm-tag-chip" style="cursor: pointer;">
                                                         <input type="checkbox" name="tag_ids" t-att-value="tag.id" class="d-none crm-tag-cb" onchange="this.nextElementSibling.classList.toggle('active-tag', this.checked)"/>
-                                                        <span class="badge border d-inline-flex align-items-center gap-1 py-1 px-2 crm-tag-badge" style="font-size: 11px; font-weight: 500; background: #f8fafc; color: #64748b; border-color: #e2e8f0; border-radius: 4px; transition: all 0.15s;">
+                                                        <span class="badge border d-inline-flex align-items-center gap-1 py-1 px-2 crm-tag-badge" style="font-size: 11.5px; font-weight: 500; background: #edf5fe; color: #1e5ba3; border-color: #bfdbfe; border-radius: 9999px; transition: all 0.15s; padding: 3px 10px;">
                                                             <t t-esc="tag.name"/>
-                                                            <i class="fa fa-times" style="font-size: 9px; opacity: 0.6;"/>
+                                                            <i class="fa fa-times" style="font-size: 9px; opacity: 0.8; color: #1e5ba3; margin-left: 2px;"/>
                                                         </span>
                                                     </label>
                                                 </t>
@@ -1525,9 +1710,9 @@
                                                 <t t-foreach="tags" t-as="tag">
                                                     <label class="m-0 crm-tag-chip" style="cursor: pointer;">
                                                         <input type="checkbox" name="tag_ids" t-att-value="tag.id" class="d-none crm-tag-cb" onchange="this.nextElementSibling.classList.toggle('active-tag', this.checked)"/>
-                                                        <span class="badge border d-inline-flex align-items-center gap-1 py-1 px-2 crm-tag-badge" style="font-size: 11px; font-weight: 500; background: #f8fafc; color: #64748b; border-color: #e2e8f0; border-radius: 4px; transition: all 0.15s;">
+                                                        <span class="badge border d-inline-flex align-items-center gap-1 py-1 px-2 crm-tag-badge" style="font-size: 11.5px; font-weight: 500; background: #edf5fe; color: #1e5ba3; border-color: #bfdbfe; border-radius: 9999px; transition: all 0.15s; padding: 3px 10px;">
                                                             <t t-esc="tag.name"/>
-                                                            <i class="fa fa-times" style="font-size: 9px; opacity: 0.6;"/>
+                                                            <i class="fa fa-times" style="font-size: 9px; opacity: 0.8; color: #1e5ba3; margin-left: 2px;"/>
                                                         </span>
                                                     </label>
                                                 </t>
@@ -1540,8 +1725,8 @@
 
                             <!-- Footer Actions matching Picture 2: Right-aligned Add and Cancel -->
                             <div class="d-flex justify-content-end align-items-center gap-2 pt-3 mt-3 border-top" style="border-color: #f1f5f9 !important;">
-                                <button type="submit" class="btn btn-sm text-white fw-semibold shadow-sm" style="background: #7c5cfc; border-radius: 6px; font-size: 13px; padding: 6px 22px; border: none;">Add</button>
-                                <button type="button" class="btn btn-sm bg-white border" id="crm_cancel_create_card" style="border-radius: 6px; color: #64748b; font-size: 13px; padding: 6px 18px; border-color: #e2e8f0 !important;">Cancel</button>
+                                <button type="submit" class="btn text-white fw-semibold shadow-sm" style="background: #1e5ba3; border-radius: 9999px; font-size: 13.5px; padding: 7px 26px; border: none; font-weight: 600;">Add</button>
+                                <button type="button" class="btn bg-white border" id="crm_cancel_create_card" style="border-radius: 9999px; color: #64748b; font-size: 13.5px; padding: 7px 22px; border-color: #e2e8f0 !important;">Cancel</button>
                             </div>
                         </form>
                     </div>
@@ -1688,7 +1873,7 @@
                 <div class="d-flex justify-content-between align-items-center pb-1">
                     <div class="d-flex align-items-center gap-2">
                         <div class="d-flex align-items-center justify-content-center"
-                             style="width: 36px; height: 36px; border-radius: 8px; background: #ede9fe; color: #6366f1; flex-shrink: 0;">
+                             style="width: 36px; height: 36px; border-radius: 8px; background: #e0edfa; color: #1e5ba3; flex-shrink: 0;">
                             <i class="fa fa-users" style="font-size: 15px;"/>
                         </div>
                         <h4 class="mb-0 fw-bold" style="font-size: 19px; color: #0f172a; letter-spacing: -0.2px;">
@@ -1700,8 +1885,8 @@
                     </button>
                 </div>
 
-                <!-- Purple divider line under header -->
-                <div style="height: 1.5px; background: #e0e7ff; margin-top: 10px; margin-bottom: 22px;"></div>
+                <!-- Sky Blue divider line under header -->
+                <div style="height: 2px; background: #1e5ba3; margin-top: 10px; margin-bottom: 22px; border-radius: 2px;"></div>
 
                 <form action="/my/crm-leads/convert" method="post" id="crm_convert_opportunity_form">
                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
@@ -2384,7 +2569,7 @@
                                                                            t-att-checked="'checked' if tag in lead.tag_ids else None"
                                                                            onchange="updateTags(this, 'lead_tags_summary_text')"
                                                                            class="form-check-input mt-0 crm-tag-input-item"/>
-                                                                    <span class="badge rounded-pill" t-attf-style="background-color: #{tag.color and '#ede9fe' or '#f1f5f9'}; color: #{tag.color and '#6d28d9' or '#475569'};">
+                                                                    <span class="badge rounded-pill" t-attf-style="background-color: #{tag.color and '#edf5fe' or '#f1f5f9'}; color: #{tag.color and '#1e5ba3' or '#475569'};">
                                                                         <t t-esc="tag.name"/>
                                                                     </span>
                                                                 </label>
@@ -2769,7 +2954,7 @@
                                                                    t-att-checked="'checked' if tag in lead.tag_ids else None"
                                                                    onchange="updateTags(this, 'opp_tags_summary_text')"
                                                                    class="form-check-input mt-0 crm-tag-input-item"/>
-                                                            <span class="badge rounded-pill" t-attf-style="background-color: #{tag.color and '#ede9fe' or '#f1f5f9'}; color: #{tag.color and '#6d28d9' or '#475569'};">
+                                                            <span class="badge rounded-pill" t-attf-style="background-color: #{tag.color and '#edf5fe' or '#f1f5f9'}; color: #{tag.color and '#1e5ba3' or '#475569'};">
                                                                 <t t-esc="tag.name"/>
                                                             </span>
                                                         </label>
@@ -3755,8 +3940,8 @@
                         <!-- Header matching Picture 2 -->
                         <div class="d-flex justify-content-between align-items-center pb-2">
                             <div class="d-flex align-items-center gap-2">
-                                <div class="rounded-2 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background: #ede9fe; color: #7c5cfc;">
-                                    <i class="fa fa-users" style="font-size: 13px;"/>
+                                <div class="rounded-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: #e0edfa; color: #1e5ba3; border-radius: 8px;">
+                                    <i class="fa fa-users" style="font-size: 14px;"/>
                                 </div>
                                 <h6 class="mb-0 fw-bold text-dark" style="font-size: 15px;">New Lead</h6>
                             </div>
@@ -3764,8 +3949,8 @@
                                 &amp;times;
                             </button>
                         </div>
-                        <!-- Purple divider line under header -->
-                        <div style="height: 2px; background: #7c5cfc; margin-top: 4px; margin-bottom: 14px; opacity: 0.9;"></div>
+                        <!-- Blue divider line under header -->
+                        <div style="height: 2px; background: #1e5ba3; margin-top: 6px; margin-bottom: 16px; opacity: 0.95; border-radius: 2px;"></div>
 
                         <form action="/my/crm-leads/quick-create" method="post" id="crm_leads_create_form">
                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
@@ -3945,8 +4130,8 @@
 
                             <!-- Footer Actions matching Picture 2: Right-aligned Add and Cancel -->
                             <div class="d-flex justify-content-end align-items-center gap-2 pt-3 mt-3 border-top crm-form-footer-actions">
-                                <button type="submit" class="btn btn-sm text-white fw-semibold shadow-sm crm-btn-add">Add</button>
-                                <button type="button" class="btn btn-sm bg-white border crm-btn-cancel-card" id="crm_cancel_create_card">Cancel</button>
+                                <button type="submit" class="btn text-white fw-semibold shadow-sm crm-btn-add" style="background: #1e5ba3; border-radius: 9999px; font-size: 13.5px; padding: 7px 26px; border: none; font-weight: 600;">Add</button>
+                                <button type="button" class="btn bg-white border crm-btn-cancel-card" id="crm_cancel_create_card" style="border-radius: 9999px; color: #64748b; font-size: 13.5px; padding: 7px 22px; border-color: #e2e8f0 !important;">Cancel</button>
                             </div>
                         </form>
                     </div>

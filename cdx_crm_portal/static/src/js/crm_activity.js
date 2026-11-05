@@ -151,6 +151,12 @@
         if (initDataCache) return initDataCache;
         var res = await rpcCall('/portal/activity/init_data');
         if (res && res.success) {
+            if (res.types && Array.isArray(res.types)) {
+                res.types = res.types.filter(function (t) {
+                    var n = (t.name || '').toLowerCase();
+                    return !n.includes('time off') && !n.includes('allocation') && !n.includes('leave');
+                });
+            }
             initDataCache = res;
             return res;
         }
@@ -345,9 +351,14 @@
             return;
         }
 
-        var types = initData.types || [];
+        var rawTypes = initData.types || [];
+        var types = rawTypes.filter(function (t) {
+            var n = (t.name || '').toLowerCase();
+            return !n.includes('time off') && !n.includes('allocation') && !n.includes('leave');
+        });
         var users = initData.users || [];
         var currentUser = initData.current_user || {};
+        var isAdmin = !!(initData.is_admin || (currentUser && currentUser.is_admin));
 
         var isEditing = !!(activityData && activityData.id);
 
@@ -358,12 +369,22 @@
         var initialUserId = isEditing ? (activityData.user_id || currentUser.id) : (currentUser.id || (users.length > 0 ? users[0].id : null));
         var initialNote = isEditing ? (activityData.note || '') : '';
 
-        // Assigned user: always show logged-in user as requested ("arano login chyth ayalde name mathrm kanichal mthy")
-        var assignedUser = users.find(function (u) { return u.id === initialUserId; }) || currentUser;
-        var loggedInUser = (currentUser && currentUser.id) ? currentUser : (assignedUser || {});
-        var displayUserId = loggedInUser.id || initialUserId || null;
-        var displayName = loggedInUser.name || 'User';
-        var displayInitials = loggedInUser.initials || 'U';
+        // Assigned user:
+        // Admin gets a dropdown to choose any user (defaults to current user on schedule, or activity user on edit)
+        // Regular portal user only sees their own user as static text (no dropdown)
+        var displayUserId, displayName, displayInitials;
+        if (isAdmin) {
+            var targetUserId = initialUserId || currentUser.id;
+            var assignedUser = users.find(function (u) { return u.id === targetUserId; }) || currentUser;
+            displayUserId = (assignedUser && assignedUser.id) || targetUserId || null;
+            displayName = (assignedUser && assignedUser.name) || 'User';
+            displayInitials = (assignedUser && assignedUser.initials) || 'U';
+        } else {
+            var assignedUser = (currentUser && currentUser.id) ? currentUser : (users.find(function (u) { return u.id === initialUserId; }) || {});
+            displayUserId = (currentUser && currentUser.id) || assignedUser.id || initialUserId || null;
+            displayName = (currentUser && currentUser.name) || assignedUser.name || 'User';
+            displayInitials = (currentUser && currentUser.initials) || assignedUser.initials || 'U';
+        }
 
         // Build Modal Backdrop & Container
         var backdrop = document.createElement('div');
@@ -414,8 +435,21 @@
         html += '    <div class="crm-act-field-control">';
         html += '      <div class="crm-act-user-wrapper">';
         html += '        <span id="crm_act_user_avatar" class="crm-act-user-avatar-pill">' + escapeHtml(displayInitials) + '</span>';
-        html += '        <span id="crm_act_user_name" class="crm-act-user-name-text">' + escapeHtml(displayName) + '</span>';
-        html += '        <input type="hidden" id="crm_act_user_id" value="' + escapeHtml(displayUserId) + '">';
+        if (isAdmin) {
+            html += '        <select id="crm_act_user_id" class="crm-act-user-select" title="Assigned to">';
+            var userInList = users.some(function (u) { return u.id === displayUserId; });
+            if (!userInList && displayUserId) {
+                html += '          <option value="' + escapeHtml(displayUserId) + '" selected="selected">' + escapeHtml(displayName) + '</option>';
+            }
+            users.forEach(function (u) {
+                var isSelected = (u.id === displayUserId);
+                html += '          <option value="' + u.id + '"' + (isSelected ? ' selected="selected"' : '') + '>' + escapeHtml(u.name) + '</option>';
+            });
+            html += '        </select>';
+        } else {
+            html += '        <span id="crm_act_user_name" class="crm-act-user-name-text">' + escapeHtml(displayName) + '</span>';
+            html += '        <input type="hidden" id="crm_act_user_id" value="' + escapeHtml(displayUserId) + '">';
+        }
         html += '      </div>';
         html += '    </div>';
         html += '  </div>';
@@ -452,6 +486,17 @@
         var pills = dialog.querySelectorAll('.crm-act-type-pill');
 
         var currentSelectedTypeId = selectedTypeId;
+
+        // When admin changes user select dropdown, update initials avatar pill
+        if (isAdmin && userIdInput && userIdInput.tagName === 'SELECT') {
+            userIdInput.addEventListener('change', function () {
+                var selectedId = parseInt(this.value, 10);
+                var found = users.find(function (u) { return u.id === selectedId; });
+                if (found && userAvatar) {
+                    userAvatar.textContent = found.initials || 'U';
+                }
+            });
+        }
 
         // Contenteditable note setup: render existing HTML or plain text cleanly
         function updateNoteEmptyState() {
