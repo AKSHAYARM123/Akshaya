@@ -1,16 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ================================================================= -->
-    <!-- 1. LEGACY NAVBAR VIEW: Clean up navbar injection                  -->
-    <!-- ================================================================= -->
-    <template id="portal_header_messages" inherit_id="website.template_header_default" name="Portal Header Messages Systray">
-        <xpath expr="//t[@t-call='website.placeholder_header_text_element']" position="before">
-            <!-- Chatter icon relocated to CRM toolbar before New Opportunity button -->
-        </xpath>
-    </template>
-
-    <!-- ================================================================= -->
-    <!-- 2. MESSAGES ICON & DISCUSS DROPDOWN IN CRM DASHBOARD TOOLBAR      -->
+    <!-- 1. MESSAGES ICON & DISCUSS DROPDOWN IN CRM DASHBOARD TOOLBAR      -->
     <!-- ================================================================= -->
     <template id="crm_portal_toolbar_messages" name="CRM Portal Toolbar Messages">
         <div t-if="request.env.user and not request.env.user._is_public()" class="dropup o_crm_portal_messages_item position-relative me-1">
