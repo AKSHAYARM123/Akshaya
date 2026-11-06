@@ -115,81 +115,92 @@
         const container = document.getElementById('crm_portal_conversations_list');
         if (!container) return;
 
-        const result = await rpcCall('/portal/chat/channels', { tab: tab, search_term: searchTerm });
-        if (!result || !result.channels) {
-            container.innerHTML = `
-                <div class="crm-empty-state">
-                    <i class="fa fa-exclamation-circle text-danger"></i>
-                    <div>Unable to load conversations</div>
-                </div>`;
-            return;
-        }
+        try {
+            const result = await rpcCall('/portal/chat/channels', { tab: tab, search_term: searchTerm });
+            if (!result || !result.channels) {
+                container.innerHTML = `
+                    <div class="crm-empty-state">
+                        <i class="fa fa-comments-o"></i>
+                        <div class="fw-semibold">No conversations yet</div>
+                        <div class="small text-muted mt-1">Click "New Message" above to start a chat!</div>
+                    </div>`;
+                return;
+            }
 
-        const channels = result.channels;
-        if (channels.length === 0) {
+            const channels = result.channels;
+            if (channels.length === 0) {
+                container.innerHTML = `
+                    <div class="crm-empty-state">
+                        <i class="fa fa-comments-o"></i>
+                        <div class="fw-semibold">No conversations yet</div>
+                        <div class="small text-muted mt-1">Click "New Message" above to start a chat!</div>
+                    </div>`;
+                return;
+            }
+
+            let html = '';
+            channels.forEach(ch => {
+                const isUnread = ch.unread_count > 0;
+                const unreadClass = isUnread ? 'unread' : '';
+                const unreadPill = isUnread ? `<span class="crm-conv-unread-pill">${ch.unread_count}</span>` : '';
+
+                // Avatar markup
+                let avatarMarkup = '';
+                if (ch.channel_type === 'chat' && ch.avatar_url) {
+                    avatarMarkup = `
+                        <div class="crm-conv-avatar-wrap position-relative me-3">
+                            <img class="crm-conv-avatar" src="${escapeHtml(ch.avatar_url)}" alt="avatar"/>
+                        </div>`;
+                } else {
+                    avatarMarkup = `
+                        <div class="crm-conv-avatar-wrap position-relative me-3">
+                            <div class="crm-channel-hash-avatar">#</div>
+                        </div>`;
+                }
+
+                html += `
+                    <div class="crm-conv-item ${unreadClass}" data-channel-id="${ch.id}" data-channel-name="${escapeHtml(ch.name)}" data-channel-type="${escapeHtml(ch.channel_type)}" data-avatar="${escapeHtml(ch.avatar_url || '')}">
+                        ${avatarMarkup}
+                        <div class="crm-conv-info">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="crm-conv-title text-truncate">${escapeHtml(ch.name)}</span>
+                                <span class="crm-conv-time">${escapeHtml(ch.last_date || '')}</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between mt-1">
+                                <span class="crm-conv-preview text-truncate">${escapeHtml(ch.last_message || '')}</span>
+                                ${unreadPill}
+                            </div>
+                        </div>
+                    </div>`;
+            });
+
+            container.innerHTML = html;
+
+            // Bind click on conversation items
+            container.querySelectorAll('.crm-conv-item').forEach(el => {
+                el.addEventListener('click', function () {
+                    const channelId = parseInt(this.getAttribute('data-channel-id'), 10);
+                    const channelName = this.getAttribute('data-channel-name');
+                    const channelType = this.getAttribute('data-channel-type');
+                    const avatarUrl = this.getAttribute('data-avatar');
+
+                    openChannel(channelId, {
+                        id: channelId,
+                        name: channelName,
+                        channel_type: channelType,
+                        avatar_url: avatarUrl
+                    });
+                });
+            });
+        } catch (err) {
+            console.error('[CRM Portal Chat] Error in loadConversations:', err);
             container.innerHTML = `
                 <div class="crm-empty-state">
                     <i class="fa fa-comments-o"></i>
                     <div class="fw-semibold">No conversations yet</div>
                     <div class="small text-muted mt-1">Click "New Message" above to start a chat!</div>
                 </div>`;
-            return;
         }
-
-        let html = '';
-        channels.forEach(ch => {
-            const isUnread = ch.unread_count > 0;
-            const unreadClass = isUnread ? 'unread' : '';
-            const unreadPill = isUnread ? `<span class="crm-conv-unread-pill">${ch.unread_count}</span>` : '';
-
-            // Avatar markup
-            let avatarMarkup = '';
-            if (ch.channel_type === 'chat' && ch.avatar_url) {
-                avatarMarkup = `
-                    <div class="crm-conv-avatar-wrap position-relative me-3">
-                        <img class="crm-conv-avatar" src="${escapeHtml(ch.avatar_url)}" alt="avatar"/>
-                    </div>`;
-            } else {
-                avatarMarkup = `
-                    <div class="crm-conv-avatar-wrap position-relative me-3">
-                        <div class="crm-channel-hash-avatar">#</div>
-                    </div>`;
-            }
-
-            html += `
-                <div class="crm-conv-item ${unreadClass}" data-channel-id="${ch.id}" data-channel-name="${escapeHtml(ch.name)}" data-channel-type="${escapeHtml(ch.channel_type)}" data-avatar="${escapeHtml(ch.avatar_url || '')}">
-                    ${avatarMarkup}
-                    <div class="crm-conv-info">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <span class="crm-conv-title text-truncate">${escapeHtml(ch.name)}</span>
-                            <span class="crm-conv-time">${escapeHtml(ch.last_date || '')}</span>
-                        </div>
-                        <div class="d-flex align-items-center justify-content-between mt-1">
-                            <span class="crm-conv-preview text-truncate">${escapeHtml(ch.last_message || '')}</span>
-                            ${unreadPill}
-                        </div>
-                    </div>
-                </div>`;
-        });
-
-        container.innerHTML = html;
-
-        // Bind click on conversation items
-        container.querySelectorAll('.crm-conv-item').forEach(el => {
-            el.addEventListener('click', function () {
-                const channelId = parseInt(this.getAttribute('data-channel-id'), 10);
-                const channelName = this.getAttribute('data-channel-name');
-                const channelType = this.getAttribute('data-channel-type');
-                const avatarUrl = this.getAttribute('data-avatar');
-
-                openChannel(channelId, {
-                    id: channelId,
-                    name: channelName,
-                    channel_type: channelType,
-                    avatar_url: avatarUrl
-                });
-            });
-        });
     }
 
     // 3. Load Authorized Users for "New Message"
@@ -565,18 +576,30 @@
         // Initial unread count fetch
         updateUnreadCount();
 
-        // Dropdown toggle click listener
+        // Pre-fetch conversations list immediately on load so it's ready without delay
+        loadConversations();
+
+        // Bootstrap 5 dropdown show/shown event listeners on dropdown wrapper
+        const dropdownItem = toggle.closest('.o_crm_portal_messages_item') || toggle;
+        dropdownItem.addEventListener('show.bs.dropdown', function () {
+            if (ChatState.activeChannelId) {
+                showPane('thread');
+                fetchChannelMessages(ChatState.activeChannelId);
+            } else {
+                showPane('conversations');
+            }
+        });
+
+        // Dropdown toggle click listener (ensures execution regardless of Bootstrap timing)
         toggle.addEventListener('click', function () {
-            // If opening dropdown, reload conversations or current pane
-            const isOpen = this.getAttribute('aria-expanded') === 'true' || this.classList.contains('show');
-            if (!isOpen) {
+            setTimeout(function () {
                 if (ChatState.activeChannelId) {
                     showPane('thread');
                     fetchChannelMessages(ChatState.activeChannelId);
                 } else {
                     showPane('conversations');
                 }
-            }
+            }, 30);
         });
 
         // Tabs click (All / Chats / Channels)

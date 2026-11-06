@@ -1,0 +1,1146 @@
+/* ========================================================================= */
+/* CRM PORTAL: MEETING CALENDAR & EVENT SCHEDULING (MATCHING PICTURES 1, 2, 3) */
+/* ========================================================================= */
+
+/* Activity Modal: Meeting Banner (Matching Picture 1) */
+.crm-act-meeting-banner {
+    padding: 36px 16px 28px 16px;
+    text-align: center;
+    background: #ffffff;
+    border-radius: 8px;
+}
+
+.crm-act-meeting-banner svg {
+    color: #64748b;
+    margin: 0 auto 14px auto;
+    display: block;
+    opacity: 0.85;
+}
+
+.crm-act-meeting-banner-text {
+    font-size: 14.5px;
+    font-weight: 500;
+    color: #64748b;
+}
+
+.crm-act-btn-schedule {
+    background-color: #1e5ba3 !important;
+    background: #1e5ba3 !important;
+    color: #ffffff !important;
+    border: 1px solid #1e5ba3 !important;
+    border-radius: 6px !important;
+    padding: 6px 18px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    outline: none !important;
+}
+
+.crm-act-btn-schedule:hover {
+    background-color: #15467e !important;
+    background: #15467e !important;
+    border-color: #15467e !important;
+}
+
+/* Calendar Modal Backdrop & Container (Matching Picture 2) */
+.crm-cal-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 10500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    animation: crmCalFadeIn 0.18s ease-out;
+}
+
+@keyframes crmCalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.crm-cal-modal-dialog {
+    background: #ffffff;
+    width: 100%;
+    max-width: 1140px;
+    height: 90vh;
+    max-height: 820px;
+    border-radius: 16px;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    position: relative;
+}
+
+/* Top Navigation / Breadcrumb Header */
+.crm-cal-header {
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.crm-cal-breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.crm-cal-breadcrumbs a {
+    color: #64748b;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.crm-cal-breadcrumbs a:hover {
+    color: #1e5ba3;
+}
+
+.crm-cal-breadcrumbs-current {
+    font-weight: 700;
+    color: #1e5ba3;
+}
+
+.crm-cal-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    line-height: 1;
+}
+
+.crm-cal-close-btn:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+/* Calendar Controls Bar */
+.crm-cal-controls-bar {
+    background: #ffffff;
+    border-bottom: 1px solid #f1f5f9;
+    padding: 10px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.crm-cal-controls-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.crm-cal-new-btn {
+    background-color: #1e5ba3 !important;
+    color: #ffffff !important;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 1px 3px rgba(30, 91, 163, 0.15);
+}
+
+.crm-cal-new-btn:hover {
+    background-color: #15467e !important;
+}
+
+.crm-cal-nav-group {
+    display: inline-flex;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f8fafc;
+}
+
+.crm-cal-nav-btn {
+    background: transparent;
+    border: none;
+    padding: 6px 10px;
+    font-size: 11px;
+    color: #475569;
+    cursor: pointer;
+}
+
+.crm-cal-nav-btn:hover {
+    background: #ffffff;
+    color: #0f172a;
+}
+
+.crm-cal-today-btn {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+}
+
+.crm-cal-today-btn:hover {
+    background: #f8fafc;
+}
+
+.crm-cal-date-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-left: 4px;
+}
+
+.crm-cal-view-switchers {
+    display: flex;
+    align-items: center;
+    background: #f1f5f9;
+    padding: 3px;
+    border-radius: 8px;
+}
+
+.crm-cal-view-btn {
+    background: transparent;
+    border: none;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.crm-cal-view-btn.active {
+    background: #ffffff;
+    color: #1e5ba3;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Main Workspace: Calendar Grid + Right Sidebar */
+.crm-cal-workspace {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+    background: #ffffff;
+}
+
+/* Timeline Column */
+.crm-cal-timeline-col {
+    flex: 1;
+    overflow-y: auto;
+    border-right: 1px solid #e2e8f0;
+    position: relative;
+}
+
+.crm-cal-day-header {
+    position: sticky;
+    top: 0;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 5;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.crm-cal-day-badge {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #ef4444;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.crm-cal-grid-body {
+    position: relative;
+}
+
+.crm-cal-slot-row {
+    display: flex;
+    height: 52px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+}
+
+.crm-cal-slot-row:hover {
+    background-color: rgba(224, 237, 250, 0.35);
+}
+
+.crm-cal-time-col {
+    width: 65px;
+    padding: 4px 8px 0 0;
+    text-align: right;
+    font-size: 11px;
+    font-family: monospace;
+    color: #94a3b8;
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.crm-cal-content-col {
+    flex: 1;
+    border-left: 1px solid #f1f5f9;
+    position: relative;
+    padding: 2px 8px;
+}
+
+/* Current Time Indicator Line */
+.crm-cal-now-line {
+    position: absolute;
+    left: 65px;
+    right: 0;
+    border-top: 2px solid #ef4444;
+    z-index: 4;
+    pointer-events: none;
+}
+
+.crm-cal-now-dot {
+    position: absolute;
+    left: -5px;
+    top: -5px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+}
+
+/* Event Card on Timeline Grid */
+.crm-cal-event-pill {
+    position: absolute;
+    left: 4px;
+    right: 12px;
+    top: 2px;
+    height: 46px;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+    padding: 4px 10px;
+    color: #92400e;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.12s, box-shadow 0.12s;
+    z-index: 3;
+}
+
+.crm-cal-event-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+.crm-cal-event-title {
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.crm-cal-event-time {
+    font-size: 11px;
+    color: #b45309;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 1px;
+}
+
+/* Right Sidebar: Mini Calendar & Attendees (Matching Picture 2) */
+.crm-cal-sidebar {
+    width: 270px;
+    background: #f8fafc;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex-shrink: 0;
+    overflow-y: auto;
+}
+
+@media (max-width: 850px) {
+    .crm-cal-sidebar {
+        display: none;
+    }
+}
+
+.crm-cal-mini-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.crm-cal-mini-table {
+    width: 100%;
+    text-align: center;
+    font-size: 11px;
+    border-collapse: collapse;
+}
+
+.crm-cal-mini-table th {
+    padding: 4px 0;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.crm-cal-mini-table td {
+    padding: 4px 0;
+    color: #334155;
+    cursor: pointer;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    margin: 1px auto;
+}
+
+.crm-cal-mini-table td:hover {
+    background: #e2e8f0;
+}
+
+.crm-cal-mini-table td.today-cell {
+    background: #ef4444;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.crm-cal-mini-table td.selected-cell {
+    background: #1e5ba3;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.crm-cal-mini-table td.other-month {
+    color: #cbd5e1;
+    opacity: 0.6;
+}
+
+/* Attendees Checklist */
+.crm-cal-attendees-section {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 16px;
+}
+
+.crm-cal-attendees-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.crm-cal-attendee-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 12px;
+    color: #334155;
+    cursor: pointer;
+}
+
+.crm-cal-attendee-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    background: #dbeafe;
+    color: #1e5ba3;
+    flex-shrink: 0;
+}
+
+.crm-cal-attendee-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* ========================================================================= */
+/* "NEW EVENT" POPOVER / MODAL (MATCHING PICTURE 3)                          */
+/* ========================================================================= */
+
+.crm-event-popover-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.35);
+    backdrop-filter: blur(1px);
+    z-index: 10600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.crm-event-popover-dialog {
+    background: #ffffff;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 14px;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    animation: crmEventScale 0.15s ease-out;
+}
+
+@keyframes crmEventScale {
+    from { transform: scale(0.96); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.crm-event-popover-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.crm-event-popover-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.crm-event-popover-title::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #1e5ba3;
+    display: inline-block;
+}
+
+.crm-event-popover-body {
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    font-size: 12.5px;
+}
+
+.crm-event-field-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.crm-event-field-icon {
+    width: 18px;
+    color: #94a3b8;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.crm-event-name-input {
+    flex: 1;
+    border: none;
+    border-bottom: 1.5px solid #e2e8f0;
+    padding: 4px 0 6px 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.crm-event-name-input:focus {
+    border-bottom-color: #1e5ba3;
+}
+
+.crm-event-time-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.crm-event-time-pill {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: #334155;
+    font-weight: 500;
+}
+
+.crm-event-attendees-box {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 6px 8px;
+}
+
+.crm-event-attendee-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #e0edfa;
+    color: #1e5ba3;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 9999px;
+    padding: 2px 8px;
+}
+
+.crm-event-attendee-tag-remove {
+    background: transparent;
+    border: none;
+    color: #1e5ba3;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0;
+    margin-left: 2px;
+}
+
+.crm-event-video-btn {
+    background: #e0edfa;
+    color: #1e5ba3;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.crm-event-video-btn:hover {
+    background: #cfe2f7;
+}
+
+.crm-event-notes-input {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+    outline: none;
+    resize: none;
+    font-family: inherit;
+    color: #1e293b;
+}
+
+.crm-event-notes-input:focus {
+    border-color: #1e5ba3;
+    background: #ffffff;
+}
+
+.crm-event-popover-footer {
+    padding: 12px 20px;
+    background: #f8fafc;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.crm-event-btn-save {
+    background-color: #1e5ba3 !important;
+    color: #ffffff !important;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 16px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.crm-event-btn-save:hover {
+    background-color: #15467e !important;
+}
+
+.crm-event-btn-discard {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 12px;
+}
+
+.crm-event-btn-discard:hover {
+    color: #0f172a;
+}
+
+/* ========================================================================= */
+/* WEEK & MONTH VIEWS                                                        */
+/* ========================================================================= */
+
+/* Week View */
+.crm-cal-week-header {
+    position: sticky;
+    top: 0;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    z-index: 5;
+}
+
+.crm-cal-week-header-time {
+    width: 65px;
+    flex-shrink: 0;
+}
+
+.crm-cal-week-header-days {
+    flex: 1;
+    display: flex;
+}
+
+.crm-cal-week-day-th {
+    flex: 1;
+    padding: 8px 4px;
+    text-align: center;
+    border-left: 1px solid #e2e8f0;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #64748b;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.crm-cal-week-day-th.today-col {
+    background: #eff6ff;
+    color: #1e5ba3;
+}
+
+.crm-cal-week-day-th.today-col .crm-cal-day-badge {
+    background: #1e5ba3;
+}
+
+.crm-cal-week-slot-row {
+    display: flex;
+    min-height: 48px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.crm-cal-week-day-cell {
+    flex: 1;
+    border-left: 1px solid #f1f5f9;
+    position: relative;
+    padding: 2px;
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+}
+
+.crm-cal-week-day-cell:hover {
+    background-color: rgba(224, 237, 250, 0.4);
+}
+
+.crm-cal-week-event-pill {
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    border-radius: 6px;
+    padding: 3px 6px;
+    color: #92400e;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.crm-cal-week-event-pill:hover {
+    filter: brightness(0.95);
+}
+
+/* Month View */
+.crm-cal-month-container {
+    padding: 12px;
+    overflow-y: auto;
+    height: 100%;
+}
+
+.crm-cal-month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.crm-cal-month-th {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 8px 4px;
+    text-align: center;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #475569;
+}
+
+.crm-cal-month-cell {
+    min-height: 95px;
+    max-height: 120px;
+    border-right: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
+    padding: 6px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    transition: background-color 0.12s ease;
+    overflow-y: auto;
+}
+
+.crm-cal-month-cell:nth-child(7n) {
+    border-right: none;
+}
+
+.crm-cal-month-cell:hover {
+    background-color: #f8fafc;
+}
+
+.crm-cal-month-cell.other-month {
+    background-color: #fafbfc;
+    opacity: 0.55;
+}
+
+.crm-cal-month-cell-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 4px;
+}
+
+.crm-cal-month-day-num {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #475569;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.crm-cal-month-cell.is-today .crm-cal-month-day-num {
+    background: #ef4444;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.crm-cal-month-event-pill {
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #92400e;
+    margin-bottom: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.crm-cal-month-event-pill:hover {
+    filter: brightness(0.95);
+}
+
+/* ========================================================================= */
+/* MEETING DETAILS POPOVER / WIZARD (MATCHING PICTURE 2)                     */
+/* ========================================================================= */
+
+.crm-meet-popover-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10550;
+    background: transparent;
+    pointer-events: auto;
+}
+
+.crm-meet-popover-card {
+    position: absolute;
+    width: 350px;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.18), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    z-index: 10560;
+    overflow: visible;
+    animation: crmMeetPopFade 0.12s ease-out;
+}
+
+@keyframes crmMeetPopFade {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tooltip Arrow */
+.crm-meet-popover-arrow {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: #ffffff;
+    transform: rotate(45deg);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    z-index: -1;
+}
+
+.crm-meet-popover-card.arrow-bottom .crm-meet-popover-arrow {
+    bottom: -7px;
+    border-top: none;
+    border-left: none;
+}
+
+.crm-meet-popover-card.arrow-top .crm-meet-popover-arrow {
+    top: -7px;
+    background: #fef3c7;
+    border-bottom: none;
+    border-right: none;
+}
+
+/* Header */
+.crm-meet-popover-header {
+    background: #fef3c7;
+    border-bottom: 1px solid #fde68a;
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.crm-meet-popover-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #78350f;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 8px;
+}
+
+.crm-meet-popover-close {
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 1;
+    color: #78350f;
+    cursor: pointer;
+    padding: 0 4px;
+    opacity: 0.75;
+    transition: opacity 0.1s;
+}
+
+.crm-meet-popover-close:hover {
+    opacity: 1;
+    color: #451a03;
+}
+
+/* Body */
+.crm-meet-popover-body {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    background: #ffffff;
+}
+
+.crm-meet-popover-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 12.5px;
+    color: #334155;
+    line-height: 1.4;
+}
+
+.crm-meet-popover-icon {
+    width: 16px;
+    color: #64748b;
+    font-size: 12.5px;
+    text-align: center;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.crm-meet-popover-avatar {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #e2e8f0;
+    font-size: 9px;
+    font-weight: 700;
+    color: #1e5ba3;
+}
+
+.crm-meet-popover-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.crm-meet-popover-lead-link {
+    color: #1e5ba3;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.crm-meet-popover-lead-link:hover {
+    text-decoration: underline;
+    color: #15467e;
+}
+
+.crm-meet-popover-organizer-box {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.crm-meet-popover-organizer-title {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 12.5px;
+}
+
+.crm-meet-popover-organizer-name {
+    color: #334155;
+    font-size: 12px;
+}
+
+.crm-meet-popover-organizer-email {
+    color: #1e5ba3;
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.crm-meet-popover-organizer-email:hover {
+    text-decoration: underline;
+}
+
+.crm-meet-popover-organizer-phone {
+    color: #64748b;
+    font-size: 12px;
+}
+
+/* Footer */
+.crm-meet-popover-footer {
+    padding: 10px 16px;
+    border-top: 1px solid #f1f5f9;
+    background: #ffffff;
+    border-bottom-left-radius: 7px;
+    border-bottom-right-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+}
+
+.crm-meet-popover-btn-edit {
+    background: #1e5ba3;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 15px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.12s ease;
+}
+
+.crm-meet-popover-btn-edit:hover {
+    background: #15467e;
+}
+
+.crm-meet-popover-btn-delete {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.12s ease;
+}
+
+.crm-meet-popover-btn-delete:hover {
+    color: #ef4444;
+    border-color: #fca5a5;
+    background: #fef2f2;
+}
+
+

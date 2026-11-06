@@ -370,6 +370,14 @@ class CRMPortal(CustomerPortal):
         partners = Partner.search([('active', '=', True)], order='name', limit=200)
         company_partners = Partner.search([('is_company', '=', True), ('active', '=', True)], order='name', limit=200)
 
+        # Activity Types for Activity Matrix View (matching Picture 1)
+        activity_types = request.env['mail.activity.type'].sudo().search([
+            ('active', '=', True),
+            '|', ('res_model', '=', False), ('res_model', '=', 'crm.lead'),
+        ], order='sequence asc, id asc').filtered(
+            lambda t: not any(kw in (t.name or '').lower() for kw in ['time off', 'allocation', 'leave'])
+        )
+
         return request.render(
             'cdx_crm_portal.portal_my_leads',
             {
@@ -384,6 +392,7 @@ class CRMPortal(CustomerPortal):
                 'calc_won_count': calc_won_count,
                 'stages': stages,
                 'leads_by_stage': leads_by_stage,
+                'activity_types': activity_types,
 
                 'teams': teams,
                 'tags': tags,

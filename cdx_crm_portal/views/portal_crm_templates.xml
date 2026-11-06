@@ -477,11 +477,101 @@
                         </div>
 
                         <!-- Filter 1: My Pipeline -->
-                        <div class="dropdown crm-filter-dropdown">
-                            <button class="btn crm-filter-btn dropdown-toggle active" type="button" id="dropdown_pipeline"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
+                        <script type="text/javascript">
+                            if (!window.crmSwitchToOpportunityView) {
+                                window.crmSwitchToOpportunityView = function(e) {
+                                    if (e &amp;&amp; e.preventDefault) e.preventDefault();
+                                    if (window._crmPipelineSwitchMode) {
+                                        window._crmPipelineSwitchMode('opportunity');
+                                        return;
+                                    }
+                                    var pBtn = document.getElementById('btn_mode_pipeline');
+                                    var pDrop = document.getElementById('dropdown_pipeline');
+                                    var lBtn = document.getElementById('btn_mode_leads');
+                                    var lDrop = document.getElementById('dropdown_leads');
+                                    if (pBtn) pBtn.classList.add('active');
+                                    if (pDrop) pDrop.classList.add('active');
+                                    if (lBtn) lBtn.classList.remove('active');
+                                    if (lDrop) lDrop.classList.remove('active');
+                                    var kOpp = document.getElementById('crm_kpi_opportunities');
+                                    var kLead = document.getElementById('crm_kpi_leads');
+                                    if (kOpp) kOpp.style.display = 'grid';
+                                    if (kLead) kLead.style.display = 'none';
+                                    var bOpp = document.getElementById('btn_new_opportunity');
+                                    var bLead = document.getElementById('btn_new_lead');
+                                    if (bOpp) { bOpp.classList.remove('d-none', 'crm-btn-hidden'); bOpp.style.setProperty('display', 'inline-flex', 'important'); }
+                                    if (bLead) { bLead.classList.add('d-none', 'crm-btn-hidden'); bLead.style.setProperty('display', 'none', 'important'); }
+                                    var stg = document.getElementById('dropdown_stages_wrapper');
+                                    if (stg) stg.style.display = '';
+                                    var vList = document.getElementById('crm_view_list');
+                                    var isList = vList &amp;&amp; vList.classList.contains('active');
+                                    var actC = document.getElementById('crm_activity_view_container');
+                                    if (actC) actC.style.display = 'none';
+                                    var k1 = document.getElementById('crm_kanban_view');
+                                    var k2 = document.getElementById('crm_leads_kanban_view');
+                                    var l1 = document.getElementById('crm_list_view_container');
+                                    var l2 = document.getElementById('crm_leads_list_view_container');
+                                    if (isList) {
+                                        if (k1) k1.style.display = 'none'; if (k2) k2.style.display = 'none';
+                                        if (l1) l1.style.display = 'block'; if (l2) l2.style.display = 'none';
+                                    } else {
+                                        if (k1) k1.style.display = 'flex'; if (k2) k2.style.display = 'none';
+                                        if (l1) l1.style.display = 'none'; if (l2) l2.style.display = 'none';
+                                    }
+                                };
+                            }
+                            if (!window.crmSwitchToLeadsView) {
+                                window.crmSwitchToLeadsView = function(e) {
+                                    if (e &amp;&amp; e.preventDefault) e.preventDefault();
+                                    if (window._crmPipelineSwitchMode) {
+                                        window._crmPipelineSwitchMode('lead');
+                                        return;
+                                    }
+                                    var pBtn = document.getElementById('btn_mode_pipeline');
+                                    var pDrop = document.getElementById('dropdown_pipeline');
+                                    var lBtn = document.getElementById('btn_mode_leads');
+                                    var lDrop = document.getElementById('dropdown_leads');
+                                    if (pBtn) pBtn.classList.remove('active');
+                                    if (pDrop) pDrop.classList.remove('active');
+                                    if (lBtn) lBtn.classList.add('active');
+                                    if (lDrop) lDrop.classList.add('active');
+                                    var kOpp = document.getElementById('crm_kpi_opportunities');
+                                    var kLead = document.getElementById('crm_kpi_leads');
+                                    if (kOpp) kOpp.style.display = 'none';
+                                    if (kLead) kLead.style.display = 'grid';
+                                    var bOpp = document.getElementById('btn_new_opportunity');
+                                    var bLead = document.getElementById('btn_new_lead');
+                                    if (bOpp) { bOpp.classList.add('d-none', 'crm-btn-hidden'); bOpp.style.setProperty('display', 'none', 'important'); }
+                                    if (bLead) { bLead.classList.remove('d-none', 'crm-btn-hidden'); bLead.style.setProperty('display', 'inline-flex', 'important'); }
+                                    var stg = document.getElementById('dropdown_stages_wrapper');
+                                    if (stg) stg.style.display = 'none';
+                                    var vList = document.getElementById('crm_view_list');
+                                    var isList = vList &amp;&amp; vList.classList.contains('active');
+                                    var actC = document.getElementById('crm_activity_view_container');
+                                    if (actC) actC.style.display = 'none';
+                                    var k1 = document.getElementById('crm_kanban_view');
+                                    var k2 = document.getElementById('crm_leads_kanban_view');
+                                    var l1 = document.getElementById('crm_list_view_container');
+                                    var l2 = document.getElementById('crm_leads_list_view_container');
+                                    if (isList) {
+                                        if (k1) k1.style.display = 'none'; if (k2) k2.style.display = 'none';
+                                        if (l1) l1.style.display = 'none'; if (l2) l2.style.display = 'block';
+                                    } else {
+                                        if (k1) k1.style.display = 'none'; if (k2) k2.style.display = 'block';
+                                        if (l1) l1.style.display = 'none'; if (l2) l2.style.display = 'none';
+                                    }
+                                };
+                            }
+                        </script>
+                        <div class="btn-group crm-filter-dropdown">
+                            <button class="btn crm-filter-btn active" type="button" id="btn_mode_pipeline"
+                                    onclick="if(window.crmSwitchToOpportunityView) { window.crmSwitchToOpportunityView(event); }">
                                 <i class="fa fa-sliders me-1 text-muted"/>
                                 <span id="label_pipeline_filter">My Pipeline</span>
+                            </button>
+                            <button class="btn crm-filter-btn dropdown-toggle dropdown-toggle-split active" type="button" id="dropdown_pipeline"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="visually-hidden">Toggle Dropdown</span>
                             </button>
                             <ul class="dropdown-menu shadow-sm" aria-labelledby="dropdown_pipeline">
                                 <li>
@@ -539,11 +629,15 @@
                         </div>
 
                         <!-- Filter 3: My Leads -->
-                        <div class="dropdown crm-filter-dropdown">
-                            <button class="btn crm-filter-btn dropdown-toggle" type="button" id="dropdown_leads"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="btn-group crm-filter-dropdown">
+                            <button class="btn crm-filter-btn" type="button" id="btn_mode_leads"
+                                    onclick="if(window.crmSwitchToLeadsView) { window.crmSwitchToLeadsView(event); }">
                                 <i class="fa fa-users me-1 text-muted"/>
                                 <span id="label_user_filter">My Leads</span>
+                            </button>
+                            <button class="btn crm-filter-btn dropdown-toggle dropdown-toggle-split" type="button" id="dropdown_leads"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="visually-hidden">Toggle Dropdown</span>
                             </button>
                             <ul class="dropdown-menu shadow-sm" aria-labelledby="dropdown_leads">
                                 <li>
@@ -624,15 +718,9 @@
                             <button type="button" class="crm-view-btn" id="crm_view_list" title="List View">
                                 <i class="fa fa-bars"/>
                             </button>
-                            <!--                            <button type="button" class="crm-view-btn" id="crm_view_calendar" title="Calendar View">-->
-                            <!--                                <i class="fa fa-calendar-o"/>-->
-                            <!--                            </button>-->
-                            <!--                            <button type="button" class="crm-view-btn" id="crm_view_chart" title="Chart View">-->
-                            <!--                                <i class="fa fa-bar-chart"/>-->
-                            <!--                            </button>-->
-                            <!--                            <button type="button" class="crm-view-btn" id="crm_view_activity" title="Activity View">-->
-                            <!--                                <i class="fa fa-clock-o"/>-->
-                            <!--                            </button>-->
+                            <button type="button" class="crm-view-btn" id="crm_view_activity" title="Activity View">
+                                <i class="fa fa-clock-o"/>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1389,6 +1477,220 @@
 
 
                 <!-- ========================================================= -->
+                <!-- 3. CRM ACTIVITY VIEW (MATCHING PICTURE 1)                 -->
+                <!-- ========================================================= -->
+
+                <div id="crm_activity_view_container" class="crm-activity-view-wrapper" style="display:none;" t-att-data-current-user-id="request.env.user.id" t-att-data-is-admin="'true' if is_admin_or_salesperson else 'false'">
+                    <div class="crm-modern-activity-card">
+                        <div class="table-responsive mb-0 crm-activity-table-responsive">
+                            <table class="table align-middle mb-0 crm-activity-matrix-table" id="crm_activity_table">
+                                <thead>
+                                    <tr>
+                                        <!-- Column 1: Lead/Opportunity Records Header -->
+                                        <th class="crm-act-col-lead" style="min-width: 290px; width: 310px;">
+                                            <span class="crm-act-col-title">Opportunity</span>
+                                        </th>
+
+                                        <!-- Dynamic Activity Type Headers -->
+                                        <t t-foreach="activity_types or []" t-as="act_type">
+                                            <th class="crm-act-col-type" t-att-data-type-id="act_type.id" style="min-width: 175px; width: 195px;">
+                                                <div class="crm-act-header-content">
+                                                    <span class="crm-act-header-name">
+                                                        <t t-esc="act_type.name"/>
+                                                    </span>
+                                                    <!-- Segmented Progress Bar & Count Fraction (Matching Picture 1) -->
+                                                    <div class="crm-act-header-bar-row">
+                                                        <div class="crm-act-progress-bar" t-att-data-type-id="act_type.id">
+                                                            <div class="crm-act-prog-seg crm-prog-planned" style="width: 0%;" title="Planned"></div>
+                                                            <div class="crm-act-prog-seg crm-prog-today" style="width: 0%;" title="Today"></div>
+                                                            <div class="crm-act-prog-seg crm-prog-overdue" style="width: 0%;" title="Overdue"></div>
+                                                        </div>
+                                                        <span class="crm-act-count-fraction" t-att-data-type-id="act_type.id">
+                                                            0 /0
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </th>
+                                        </t>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-set="curr_user_id" t-value="request.env.user.id"/>
+                                    <!-- Each user (including admin) only sees their own opportunities and activities -->
+                                    <t t-set="activity_leads" t-value="[l for l in (leads if leads else crm_leads) if (l.user_id.id == curr_user_id or (not l.user_id and l.create_uid.id == curr_user_id)) and any(a.user_id.id == curr_user_id for a in l.activity_ids)]"/>
+                                    <t t-if="not activity_leads">
+                                        <tr id="crm_act_no_records_row">
+                                            <td t-att-colspan="1 + len(activity_types or [])" class="text-center py-5 text-muted">
+                                                <div class="d-flex flex-column align-items-center justify-content-center py-4">
+                                                    <i class="fa fa-clock-o text-muted mb-2" style="font-size: 32px; opacity: 0.5;"/>
+                                                    <div class="fw-semibold text-dark mb-1">No activities scheduled</div>
+                                                    <div class="small text-muted mb-3">You don't have any activities scheduled on your opportunities yet.</div>
+                                                    <button type="button" class="btn btn-sm btn-primary" onclick="var btn = document.getElementById('crm_act_bottom_schedule_btn'); if(btn) btn.click();">
+                                                        <i class="fa fa-plus me-1"/> Schedule Activity
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <t t-foreach="activity_leads or []" t-as="lead">
+                                        <tr class="crm-activity-lead-row"
+                                            t-att-data-lead-id="lead.id"
+                                            t-att-data-lead-type="lead.type or 'opportunity'"
+                                            t-att-data-stage-id="lead.stage_id.id if lead.stage_id else ''"
+                                            t-att-data-user-id="lead.user_id.id if lead.user_id else ''"
+                                            t-att-data-priority="lead.priority or 0"
+                                            t-att-data-create-date="lead.create_date.strftime('%Y-%m-%d') if lead.create_date else ''"
+                                            t-att-data-search-text="'%s %s %s' % (lead.name or '', lead.partner_id.name if lead.partner_id else '', lead.user_id.name if lead.user_id else '')">
+                                            
+                                            <!-- Column 1: Record Info (User Picture or First Letter) -->
+                                            <td class="crm-act-cell-lead">
+                                                <div class="crm-act-lead-info-wrapper">
+                                                    <!-- User Picture or First Letter of User -->
+                                                    <t t-set="lead_user" t-value="lead.user_id"/>
+                                                    <t t-set="user_disp_name" t-value="lead_user.name if lead_user else (lead.contact_name or (lead.partner_id.name if lead.partner_id else lead.name) or 'User')"/>
+                                                    <t t-set="user_first_letter" t-value="user_disp_name[:1].upper() if user_disp_name else 'U'"/>
+                                                    <t t-set="has_user_photo" t-value="bool(lead_user and lead_user.image_128)"/>
+
+                                                    <div class="crm-act-lead-avatar-box" t-att-title="user_disp_name">
+                                                        <t t-if="has_user_photo">
+                                                            <img t-attf-src="/web/image/res.users/#{lead_user.id}/avatar_128"
+                                                                 class="crm-act-avatar-img rounded-circle"
+                                                                 t-att-alt="user_disp_name"
+                                                                 onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"/>
+                                                            <div class="crm-act-avatar-circle" style="display: none;">
+                                                                <t t-esc="user_first_letter"/>
+                                                            </div>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <div class="crm-act-avatar-circle">
+                                                                <t t-esc="user_first_letter"/>
+                                                            </div>
+                                                        </t>
+                                                    </div>
+
+                                                    <!-- Lead Details -->
+                                                    <div class="crm-act-lead-details">
+                                                        <div class="crm-act-lead-title-row">
+                                                            <a t-attf-href="/my/leads/#{lead.id}" class="crm-act-lead-name" t-att-title="lead.name">
+                                                                <t t-esc="lead.name"/>
+                                                            </a>
+                                                        </div>
+                                                        <div class="crm-act-lead-sub">
+                                                            <t t-if="lead.partner_id">
+                                                                <span class="crm-act-partner-name" t-att-title="lead.partner_id.name">
+                                                                    <t t-esc="lead.partner_id.name"/>
+                                                                </span>
+                                                            </t>
+                                                            <t t-elif="lead.contact_name">
+                                                                <span class="crm-act-partner-name" t-att-title="lead.contact_name">
+                                                                    <t t-esc="lead.contact_name"/>
+                                                                </span>
+                                                            </t>
+                                                            <t t-else="">
+                                                                <span class="text-muted small">—</span>
+                                                            </t>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Revenue & Stage Pill (Right side of Lead cell, matching Picture 1) -->
+                                                    <div class="crm-act-lead-meta ms-auto text-end">
+                                                        <div class="crm-act-revenue">
+                                                            $<t t-esc="'{:,.2f}'.format(lead.expected_revenue or 0.0)"/>
+                                                        </div>
+                                                        <t t-if="lead.stage_id">
+                                                            <t t-set="stg_name" t-value="lead.stage_id.name or ''"/>
+                                                            <t t-set="stg_low" t-value="stg_name.lower()"/>
+                                                            <t t-set="stg_cls" t-value="'badge-stage-won' if ('won' in stg_low or lead.stage_id.is_won) else ('badge-stage-proposition' if 'prop' in stg_low else ('badge-stage-qualified' if 'qual' in stg_low else 'badge-stage-new'))"/>
+                                                            <span t-attf-class="crm-act-stage-badge #{stg_cls}">
+                                                                <t t-esc="stg_name"/>
+                                                            </span>
+                                                        </t>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <!-- Activity Type Matrix Cells -->
+                                            <t t-foreach="activity_types or []" t-as="act_type">
+                                                <!-- Each user (including admin) only sees their own activities -->
+                                                <t t-set="matching_acts" t-value="[a for a in lead.activity_ids if a.activity_type_id.id == act_type.id and a.user_id.id == curr_user_id]"/>
+                                                <td class="crm-act-matrix-cell"
+                                                    t-att-data-lead-id="lead.id"
+                                                    t-att-data-type-id="act_type.id">
+                                                    
+                                                    <t t-if="matching_acts">
+                                                        <t t-foreach="matching_acts" t-as="act">
+                                                            <t t-set="act_st" t-value="act.state or 'planned'"/>
+                                                            <t t-set="act_color_cls" t-value="'crm-act-card-overdue' if act_st == 'overdue' else ('crm-act-card-today' if act_st == 'today' else 'crm-act-card-planned')"/>
+                                                            <t t-set="act_user_name" t-value="act.user_id.name if act.user_id else 'User'"/>
+                                                            <t t-set="act_user_letter" t-value="act_user_name[:1].upper() if act_user_name else 'U'"/>
+                                                            <t t-set="act_has_photo" t-value="bool(act.user_id and act.user_id.image_128)"/>
+                                                            
+                                                            <div t-attf-class="crm-act-card #{act_color_cls}"
+                                                                 t-att-data-activity-id="act.id"
+                                                                 t-att-data-lead-id="lead.id"
+                                                                 t-att-data-type-id="act_type.id"
+                                                                 t-att-data-state="act_st"
+                                                                 t-att-title="'%s: %s (%s) - Click to view/edit' % (act_type.name, act.summary or act_type.name, act_st)">
+                                                                <div class="crm-act-card-body">
+                                                                    <div class="crm-act-card-summary" t-att-title="act.summary or act_type.name">
+                                                                        <t t-esc="act.summary or act_type.name"/>
+                                                                    </div>
+                                                                    <div class="crm-act-card-footer">
+                                                                        <span class="crm-act-card-date">
+                                                                            <t t-esc="act.date_deadline.strftime('%m/%d/%Y') if act.date_deadline else ''"/>
+                                                                        </span>
+                                                                        <div class="crm-act-card-user" t-att-title="act_user_name">
+                                                                            <t t-if="act_has_photo">
+                                                                                <img t-attf-src="/web/image/res.users/#{act.user_id.id}/avatar_128"
+                                                                                     class="crm-act-card-user-img rounded-circle"
+                                                                                     t-att-alt="act_user_name"
+                                                                                     onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"/>
+                                                                                <span class="crm-act-card-user-circle" style="display: none;">
+                                                                                    <t t-esc="act_user_letter"/>
+                                                                                </span>
+                                                                            </t>
+                                                                            <t t-else="">
+                                                                                <span class="crm-act-card-user-circle">
+                                                                                    <t t-esc="act_user_letter"/>
+                                                                                </span>
+                                                                            </t>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </t>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <!-- Empty cell (Picture 1): hover to show schedule trigger -->
+                                                        <div class="crm-act-cell-empty"
+                                                             t-att-data-lead-id="lead.id"
+                                                             t-att-data-type-id="act_type.id"
+                                                             t-att-title="'Schedule %s for %s' % (act_type.name, lead.name)">
+                                                            <span class="crm-act-cell-add-icon">+</span>
+                                                        </div>
+                                                    </t>
+                                                </td>
+                                            </t>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Bottom Footer: + Schedule activity (Matching Picture 1) -->
+                        <div class="crm-activity-footer d-flex align-items-center justify-content-between p-3 border-top">
+                            <button type="button" class="btn btn-link text-decoration-none crm-act-bottom-schedule-btn p-0 fw-semibold" id="crm_act_bottom_schedule_btn">
+                                <i class="fa fa-plus me-1 text-primary"/> Schedule activity
+                            </button>
+                            <div class="text-muted small" id="crm_activity_row_count_display">
+                                Showing <span id="crm_act_visible_count"><t t-esc="len(activity_leads) if activity_leads else 0"/></span> records
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- ========================================================= -->
                 <!-- POPUP MODAL FOR NEW LEAD                                  -->
                 <!-- ========================================================= -->
 
@@ -1850,8 +2152,10 @@
                 <t t-call="cdx_crm_portal.modal_convert_opportunity"/>
 
 
-                <script type="text/javascript" src="/cdx_crm_portal/static/src/js/crm_pipeline.js"/>
+                <link rel="stylesheet" href="/cdx_crm_portal/static/src/css/crm_calendar.css?v=19.0.3.5"/>
+                <script type="text/javascript" src="/cdx_crm_portal/static/src/js/crm_pipeline.js?v=19.0.3.5"/>
                 <script type="text/javascript" src="/cdx_crm_portal/static/src/js/crm_convert_modal.js"/>
+                <script type="text/javascript" src="/cdx_crm_portal/static/src/js/crm_calendar.js?v=19.0.3.5"/>
 
                 </div>
             </div>
@@ -2891,13 +3195,17 @@
 
                                 <!-- Right Column (Stage, Salesperson, Tags) -->
                                 <div class="col-lg-6">
-                                    <!-- Stage (Matching Picture 2: clean select with chevron, non-selectable) -->
+                                    <!-- Stage (Matching Picture 2: selectable stage dropdown) -->
                                     <div class="crm-mockup-form-row">
                                         <label class="crm-mockup-form-label">Stage</label>
                                         <div class="crm-mockup-control-wrap">
-                                            <input type="hidden" name="stage_id" t-att-value="lead.stage_id.id if lead.stage_id else ''"/>
-                                            <select class="form-select" disabled="disabled" style="background-color: #ffffff; cursor: default; color: #1e293b;">
-                                                <option selected="selected"><t t-esc="lead.stage_id.name if lead.stage_id else 'New'"/></option>
+                                            <select name="stage_id" id="opp_stage_select" class="form-select" style="background-color: #ffffff; cursor: pointer; color: #1e293b;">
+                                                <t t-foreach="stages" t-as="stg">
+                                                    <option t-att-value="stg.id"
+                                                            t-att-selected="stg.id == (lead.stage_id.id if lead.stage_id else False) and 'selected' or None">
+                                                        <t t-esc="stg.name"/>
+                                                    </option>
+                                                </t>
                                             </select>
                                         </div>
                                     </div>
@@ -3255,7 +3563,7 @@
 
                         <div class="crm-lost-header-left">
                             <div class="crm-lost-icon-badge">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e5ba3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                     <circle cx="12" cy="12" r="10"></circle>
                                     <line x1="15" y1="9" x2="9" y2="15"></line>
                                     <line x1="9" y1="9" x2="15" y2="15"></line>
@@ -3427,8 +3735,13 @@
 
                                         <tr>
                                             <td colspan="5" class="text-center py-5">
-                                                <i class="fa fa-inbox fa-2x text-muted mb-3"/>
-                                                <p class="text-muted mb-0">No lost leads found.</p>
+                                                <div class="crm-lost-empty-icon-wrap" style="width: 56px; height: 56px; border-radius: 50%; background: #e0edfa; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                                                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1e5ba3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
+                                                        <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
+                                                    </svg>
+                                                </div>
+                                                <p class="text-muted mb-0" style="font-size: 13.5px; color: #64748b;">No lost leads found.</p>
                                             </td>
                                         </tr>
 
@@ -3522,7 +3835,7 @@
 
                         <div class="crm-lost-header-left">
                             <div class="crm-lost-icon-badge">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e5ba3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                     <circle cx="12" cy="12" r="10"></circle>
                                     <line x1="15" y1="9" x2="9" y2="15"></line>
                                     <line x1="9" y1="9" x2="15" y2="15"></line>
@@ -3707,8 +4020,13 @@
 
                                         <tr>
                                             <td colspan="6" class="text-center py-5">
-                                                <i class="fa fa-inbox fa-2x text-muted mb-3"/>
-                                                <p class="text-muted mb-0">No lost opportunities found.</p>
+                                                <div class="crm-lost-empty-icon-wrap" style="width: 56px; height: 56px; border-radius: 50%; background: #e0edfa; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                                                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1e5ba3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
+                                                        <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
+                                                    </svg>
+                                                </div>
+                                                <p class="text-muted mb-0" style="font-size: 13.5px; color: #64748b;">No lost opportunities found.</p>
                                             </td>
                                         </tr>
 

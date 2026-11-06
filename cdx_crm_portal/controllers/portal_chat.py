@@ -60,7 +60,7 @@ class PortalChatController(http.Controller):
         """Serialize a discuss.channel into discuss-style dropdown item data."""
         # Member record for current user
         member = channel.channel_member_ids.filtered(lambda m: m.partner_id.id == current_partner.id)[:1]
-        unread_count = member.message_unread_counter if member else 0
+        unread_count = getattr(member, 'message_unread_counter', 0) if member else 0
 
         # Latest message in this channel
         last_msg = request.env['mail.message'].sudo().search([
@@ -80,10 +80,10 @@ class PortalChatController(http.Controller):
 
         # Display name & avatar
         if channel.channel_type == 'chat' and other_partner:
-            display_name = other_partner.name or _("Unknown User")
-            avatar_url = f"/web/image/res.partner/{other_partner.id}/avatar_128"
-            other_partner_id = other_partner.id
-            is_internal = not any(u.share for u in other_partner.user_ids) if other_partner.user_ids else False
+            display_name = other_partner.name if (other_partner and other_partner.name) else _("Unknown User")
+            avatar_url = f"/web/image/res.partner/{other_partner.id}/avatar_128" if other_partner else None
+            other_partner_id = other_partner.id if other_partner else None
+            is_internal = not any(u.share for u in other_partner.user_ids) if (other_partner and other_partner.user_ids) else False
         else:
             display_name = channel.name or _("General")
             avatar_url = None
@@ -96,9 +96,11 @@ class PortalChatController(http.Controller):
         if last_msg:
             raw_body = self._clean_message_body(last_msg.body)
             if not raw_body and last_msg.attachment_ids:
-                raw_body = f"[{_('Attachment')} {last_msg.attachment_ids[0].name}]"
-            is_me = (last_msg.author_id.id == current_partner.id)
-            author_prefix = _("You: ") if is_me else (f"{last_msg.author_id.name}: " if channel.channel_type != 'chat' else "")
+                att_name = last_msg.attachment_ids[0].name or 'file'
+                raw_body = f"[{_('Attachment')} {att_name}]"
+            is_me = bool(last_msg.author_id and last_msg.author_id.id == current_partner.id)
+            author_name = last_msg.author_id.name if last_msg.author_id else _("Unknown")
+            author_prefix = _("You: ") if is_me else (f"{author_name}: " if channel.channel_type != 'chat' else "")
             preview_text = f"{author_prefix}{raw_body}"
             last_date = self._format_date(last_msg.date)
             last_date_raw = last_msg.date.isoformat() if last_msg.date else None
@@ -129,12 +131,20 @@ class PortalChatController(http.Controller):
         if not current_partner:
             return {'unread_count': 0}
 
-        members = request.env['discuss.channel.member'].sudo().search([
-            ('partner_id', '=', current_partner.id)
-        ])
-        members._compute_message_unread()
-        total_unread = sum(m.message_unread_counter for m in members)
-        return {'unread_count': total_unread}
+        try:
+            members = request.env['discuss.channel.member'].sudo().search([
+                ('partner_id', '=', current_partner.id)
+            ])
+            if hasattr(members, '_compute_message_unread'):
+                try:
+                    members._compute_message_unread()
+                except Exception:
+                    pass
+            total_unread = sum(getattr(m, 'message_unread_counter', 0) for m in members)
+            return {'unread_count': total_unread}
+        except Exception as e:
+            _logger.warning("Error fetching unread count: %s", e)
+            return {'unread_count': 0}
 
     @http.route('/portal/chat/channels', type='jsonrpc', auth='public', methods=['POST'])
     def get_channels(self, tab='all', search_term=None):
@@ -146,38 +156,47 @@ class PortalChatController(http.Controller):
         if not current_partner:
             return {'error': 'Unauthorized', 'channels': []}
 
-        # Find all channels where current_partner is a member
-        members = request.env['discuss.channel.member'].sudo().search([
-            ('partner_id', '=', current_partner.id)
-        ])
-        channel_ids = members.mapped('channel_id.id')
-        if not channel_ids:
+        try:
+            # Find all channels where current_partner is a member
+            members = request.env['discuss.channel.member'].sudo().search([
+                ('partner_id', '=', current_partner.id)
+            ])
+            channel_ids = members.mapped('channel_id.id')
+            if not channel_ids:
+                return {'channels': []}
+
+            domain = [('id', 'in', channel_ids)]
+            if tab == 'chat':
+                domain.append(('channel_type', '=', 'chat'))
+            elif tab == 'channel':
+                domain.append(('channel_type', 'in', ('channel', 'group')))
+
+            channels = request.env['discuss.channel'].sudo().search(domain)
+
+            data = []
+            for c in channels:
+                try:
+                    data.append(self._channel_to_dict(c, current_partner))
+                except Exception as ex:
+                    _logger.warning("Error serializing channel %s: %s", c.id, ex)
+
+            # Sort: unread first, then latest message date, then name
+            def sort_key(item):
+                has_unread = 1 if item.get('unread_count', 0) > 0 else 0
+                date_val = item.get('last_date_raw') or ""
+                return (has_unread, date_val)
+
+            data.sort(key=sort_key, reverse=True)
+
+            # Filter by search_term if present
+            if search_term and search_term.strip():
+                st = search_term.strip().lower()
+                data = [c for c in data if st in (c.get('name') or '').lower() or st in (c.get('last_message') or '').lower()]
+
+            return {'channels': data}
+        except Exception as e:
+            _logger.exception("Error in /portal/chat/channels: %s", e)
             return {'channels': []}
-
-        domain = [('id', 'in', channel_ids)]
-        if tab == 'chat':
-            domain.append(('channel_type', '=', 'chat'))
-        elif tab == 'channel':
-            domain.append(('channel_type', 'in', ('channel', 'group')))
-
-        channels = request.env['discuss.channel'].sudo().search(domain)
-
-        data = [self._channel_to_dict(c, current_partner) for c in channels]
-
-        # Sort: unread first, then latest message date, then name
-        def sort_key(item):
-            has_unread = 1 if item['unread_count'] > 0 else 0
-            date_val = item['last_date_raw'] or ""
-            return (has_unread, date_val)
-
-        data.sort(key=sort_key, reverse=True)
-
-        # Filter by search_term if present
-        if search_term and search_term.strip():
-            st = search_term.strip().lower()
-            data = [c for c in data if st in c['name'].lower() or st in c['last_message'].lower()]
-
-        return {'channels': data}
 
     @http.route('/portal/chat/users', type='jsonrpc', auth='public', methods=['POST'])
     def get_authorized_users(self, search_term=None):

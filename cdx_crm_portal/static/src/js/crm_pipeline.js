@@ -372,10 +372,16 @@ function initCrmPipeline() {
     const listContainer = document.getElementById('crm_list_view_container');
     const leadsListContainer = document.getElementById('crm_leads_list_view_container');
     const stagesDropdown = document.getElementById('dropdown_stages_wrapper');
-    const btnPipeline = document.getElementById('dropdown_pipeline');
-    const btnLeads = document.getElementById('dropdown_leads');
+    const btnModePipeline = document.getElementById('btn_mode_pipeline');
+    const btnDropdownPipeline = document.getElementById('dropdown_pipeline');
+    const btnModeLeads = document.getElementById('btn_mode_leads');
+    const btnDropdownLeads = document.getElementById('dropdown_leads');
+    const btnPipeline = btnModePipeline || btnDropdownPipeline;
+    const btnLeads = btnModeLeads || btnDropdownLeads;
     const viewKanban = document.getElementById('crm_view_kanban');
     const viewList = document.getElementById('crm_view_list');
+    const viewActivity = document.getElementById('crm_view_activity');
+    const activityContainer = document.getElementById('crm_activity_view_container');
 
     function updateViewLayout() {
         activeFilters.type = currentMode;
@@ -412,11 +418,17 @@ function initCrmPipeline() {
             }
         }
 
-        if (btnPipeline) {
-            btnPipeline.classList.toggle('active', currentMode === 'opportunity');
+        if (btnModePipeline) {
+            btnModePipeline.classList.toggle('active', currentMode === 'opportunity');
         }
-        if (btnLeads) {
-            btnLeads.classList.toggle('active', currentMode === 'lead');
+        if (btnDropdownPipeline) {
+            btnDropdownPipeline.classList.toggle('active', currentMode === 'opportunity');
+        }
+        if (btnModeLeads) {
+            btnModeLeads.classList.toggle('active', currentMode === 'lead');
+        }
+        if (btnDropdownLeads) {
+            btnDropdownLeads.classList.toggle('active', currentMode === 'lead');
         }
 
         // Toggle KPI row: Opportunities KPIs vs Leads KPIs (Photo 1)
@@ -436,16 +448,27 @@ function initCrmPipeline() {
             stagesDropdown.style.display = (currentMode === 'opportunity') ? '' : 'none';
         }
 
-
-
         if (viewKanban) {
             viewKanban.classList.toggle('active', currentView === 'kanban');
         }
         if (viewList) {
             viewList.classList.toggle('active', currentView === 'list');
         }
+        if (viewActivity) {
+            viewActivity.classList.toggle('active', currentView === 'activity');
+        }
 
-        if (currentView === 'list') {
+        if (currentView === 'activity') {
+            if (kanbanContainer) kanbanContainer.style.display = 'none';
+            if (leadsKanbanContainer) leadsKanbanContainer.style.display = 'none';
+            if (listContainer) listContainer.style.display = 'none';
+            if (leadsListContainer) leadsListContainer.style.display = 'none';
+            if (activityContainer) activityContainer.style.display = 'block';
+            if (window.updateCrmActivityHeaderStats) {
+                setTimeout(window.updateCrmActivityHeaderStats, 10);
+            }
+        } else if (currentView === 'list') {
+            if (activityContainer) activityContainer.style.display = 'none';
             if (kanbanContainer) kanbanContainer.style.display = 'none';
             if (leadsKanbanContainer) leadsKanbanContainer.style.display = 'none';
             if (currentMode === 'opportunity') {
@@ -456,6 +479,7 @@ function initCrmPipeline() {
                 if (leadsListContainer) leadsListContainer.style.display = 'block';
             }
         } else {
+            if (activityContainer) activityContainer.style.display = 'none';
             if (listContainer) listContainer.style.display = 'none';
             if (leadsListContainer) leadsListContainer.style.display = 'none';
             if (currentMode === 'opportunity') {
@@ -864,6 +888,71 @@ function initCrmPipeline() {
             }
         });
         renderLeadsListPagination(matchingLeadRows);
+
+        // 3. Filter Activity View Rows
+        const actRows = document.querySelectorAll('#crm_activity_view_container .crm-activity-lead-row');
+        let visibleActCount = 0;
+        actRows.forEach(function (row) {
+            const rowType = row.getAttribute('data-lead-type') || 'opportunity';
+            const searchText = (row.getAttribute('data-search-text') || '').toLowerCase();
+            const stageId = row.getAttribute('data-stage-id');
+            const priority = row.getAttribute('data-priority');
+            const userId = row.getAttribute('data-user-id');
+            const itemDate = row.getAttribute('data-create-date');
+
+            let matchesType = (currentMode === 'opportunity') ? (rowType !== 'lead') : (rowType === 'lead');
+            let matchesSearch = !query || searchText.indexOf(query) !== -1;
+            let matchesPipeline = (currentMode === 'lead') || (activeFilters.pipeline !== 'starred' || (priority === '1' || priority === '2' || priority === '3'));
+            let matchesStage = (currentMode === 'lead') || (activeFilters.stage === 'all' || stageId === activeFilters.stage);
+            let matchesUser = true;
+            const actContainer = document.getElementById('crm_activity_view_container');
+            const currentUserId = actContainer ? actContainer.getAttribute('data-current-user-id') : null;
+            if (currentUserId && userId && String(userId) !== String(currentUserId)) {
+                matchesUser = false;
+            } else if (activeFilters.user === 'unassigned') {
+                matchesUser = userId === '0' || !userId;
+            } else if (activeFilters.user && activeFilters.user !== 'all') {
+                matchesUser = userId === activeFilters.user;
+            }
+            let matchesDate = true;
+            if (activeFilters.date === 'month') {
+                if (itemDate) {
+                    const now = new Date();
+                    const curYm = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+                    matchesDate = itemDate.startsWith(curYm);
+                }
+            } else if (activeFilters.date === 'quarter') {
+                if (itemDate) {
+                    const now = new Date();
+                    const qStartMonth = Math.floor(now.getMonth() / 3) * 3;
+                    const start = new Date(now.getFullYear(), qStartMonth, 1);
+                    const end = new Date(now.getFullYear(), qStartMonth + 3, 0);
+                    const d = new Date(itemDate);
+                    matchesDate = false;
+                    if (d >= start && end >= d) {
+                        matchesDate = true;
+                    }
+                }
+            }
+
+            let visible = matchesType && matchesSearch && matchesPipeline && matchesStage && matchesUser && matchesDate;
+            row.style.display = visible ? '' : 'none';
+            if (visible) visibleActCount++;
+        });
+
+        const noRecordsRow = document.getElementById('crm_act_no_records_row');
+        if (noRecordsRow) {
+            noRecordsRow.style.display = (visibleActCount === 0) ? '' : 'none';
+        }
+
+        const actVisibleCountEl = document.getElementById('crm_act_visible_count');
+        if (actVisibleCountEl) {
+            actVisibleCountEl.textContent = visibleActCount;
+        }
+
+        if (window.updateCrmActivityHeaderStats) {
+            window.updateCrmActivityHeaderStats();
+        }
     }
 
     if (searchInput) {
@@ -900,12 +989,71 @@ function initCrmPipeline() {
         });
     }
 
-    // Pipeline Button Click
-    if (btnPipeline) {
-        btnPipeline.addEventListener('click', function () {
-            currentMode = 'opportunity';
+    if (viewActivity) {
+        viewActivity.addEventListener('click', function () {
+            currentView = 'activity';
             updateViewLayout();
+            if (window.updateCrmActivityHeaderStats) {
+                window.updateCrmActivityHeaderStats();
+            }
         });
+    }
+
+    // Central Mode Switcher (Opportunity / Pipeline vs Lead)
+    window._crmPipelineSwitchMode = function (mode) {
+        if (mode === 'opportunity') {
+            currentMode = 'opportunity';
+            if (currentView === 'activity') {
+                currentView = 'kanban';
+            }
+            activeFilters.type = 'opportunity';
+            activeFilters.pipeline = 'all';
+            const label = document.getElementById('label_pipeline_filter');
+            if (label) label.textContent = 'My Pipeline';
+            document.querySelectorAll('.crm-filter-pipeline-opt').forEach(function (o) {
+                o.classList.toggle('active', (o.getAttribute('data-filter') || 'all') === 'all');
+            });
+            updateViewLayout();
+        } else if (mode === 'lead') {
+            currentMode = 'lead';
+            if (currentView === 'activity') {
+                currentView = 'kanban';
+            }
+            activeFilters.type = 'lead';
+            activeFilters.user = 'all';
+            const label = document.getElementById('label_user_filter');
+            if (label) label.textContent = 'My Leads';
+            document.querySelectorAll('.crm-filter-leads-opt').forEach(function (o) {
+                o.classList.toggle('active', (o.getAttribute('data-user') || 'all') === 'all');
+            });
+            updateViewLayout();
+        }
+        // Close any open Bootstrap dropdown menu
+        document.querySelectorAll('.crm-filter-dropdown .dropdown-menu.show').forEach(function (m) {
+            m.classList.remove('show');
+        });
+        document.querySelectorAll('.crm-filter-dropdown [data-bs-toggle="dropdown"].show').forEach(function (b) {
+            b.classList.remove('show');
+            b.setAttribute('aria-expanded', 'false');
+        });
+    };
+
+    window.crmSwitchToOpportunityView = function (e) {
+        if (e && e.preventDefault) e.preventDefault();
+        window._crmPipelineSwitchMode('opportunity');
+    };
+
+    window.crmSwitchToLeadsView = function (e) {
+        if (e && e.preventDefault) e.preventDefault();
+        window._crmPipelineSwitchMode('lead');
+    };
+
+    // Pipeline Button Click (Main button switches to Opportunity view without opening dropdown)
+    const handlePipelineClick = function (e) {
+        window.crmSwitchToOpportunityView(e);
+    };
+    if (btnModePipeline) {
+        btnModePipeline.addEventListener('click', handlePipelineClick);
     }
 
     // Pipeline Filter Dropdown Options
@@ -918,6 +1066,9 @@ function initCrmPipeline() {
             if (label) label.textContent = item.textContent.trim();
             activeFilters.pipeline = item.getAttribute('data-filter') || 'all';
             currentMode = 'opportunity';
+            if (currentView === 'activity') {
+                currentView = 'kanban';
+            }
             updateViewLayout();
         });
     });
@@ -940,13 +1091,29 @@ function initCrmPipeline() {
         });
     });
 
-    // Leads Button Click
-    if (btnLeads) {
-        btnLeads.addEventListener('click', function () {
-            currentMode = 'lead';
-            updateViewLayout();
-        });
+    // Leads Button Click (Main button switches to Leads view without opening dropdown)
+    const handleLeadsClick = function (e) {
+        window.crmSwitchToLeadsView(e);
+    };
+    if (btnModeLeads) {
+        btnModeLeads.addEventListener('click', handleLeadsClick);
     }
+
+    // Capture phase listener on document to ensure buttons always switch view immediately
+    document.addEventListener('click', function (e) {
+        const pBtn = e.target.closest ? e.target.closest('#btn_mode_pipeline') : null;
+        if (pBtn) {
+            if (e.preventDefault) e.preventDefault();
+            window.crmSwitchToOpportunityView(e);
+            return;
+        }
+        const lBtn = e.target.closest ? e.target.closest('#btn_mode_leads') : null;
+        if (lBtn) {
+            if (e.preventDefault) e.preventDefault();
+            window.crmSwitchToLeadsView(e);
+            return;
+        }
+    }, true);
 
     // Leads Filter Dropdown Options
     document.querySelectorAll('.crm-filter-leads-opt').forEach(function (item) {
@@ -962,6 +1129,9 @@ function initCrmPipeline() {
             if (label) label.textContent = item.textContent.trim();
             activeFilters.user = item.getAttribute('data-user') || 'all';
             currentMode = 'lead';
+            if (currentView === 'activity') {
+                currentView = 'kanban';
+            }
             updateViewLayout();
         });
     });

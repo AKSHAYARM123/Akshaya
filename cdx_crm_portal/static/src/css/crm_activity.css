@@ -574,22 +574,24 @@
     padding: 14px 24px 20px 24px;
 }
 
-.crm-act-btn-save {
-    background: #2563eb !important; /* Vivid Blue in Picture 2 */
-    border: 1px solid #2563eb !important;
+.crm-act-btn-save,
+.crm-act-btn-schedule {
+    background: #1e5ba3 !important;
+    border: 1px solid #1e5ba3 !important;
     color: #ffffff !important;
     padding: 6px 18px;
     border-radius: 6px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     transition: background 0.15s ease, border-color 0.15s ease;
     outline: none;
 }
 
-.crm-act-btn-save:hover {
-    background: #1d4ed8 !important;
-    border-color: #1d4ed8 !important;
+.crm-act-btn-save:hover,
+.crm-act-btn-schedule:hover {
+    background: #15467e !important;
+    border-color: #15467e !important;
 }
 
 .crm-act-btn-done,
@@ -610,4 +612,422 @@
 .crm-act-btn-discard:hover {
     background: #f9fafb !important;
     border-color: #9ca3af !important;
+}
+
+/* =========================================================================
+   3. CRM Activity View Matrix (Matching Picture 1)
+   ========================================================================= */
+
+.crm-activity-view-wrapper {
+    margin-top: 16px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.crm-modern-activity-card {
+    background: #ffffff;
+    border: 1px solid #dbeafe;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.crm-activity-table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.crm-activity-matrix-table {
+    width: 100%;
+    border-collapse: separate !important;
+    border-spacing: 0;
+    margin-bottom: 0 !important;
+}
+
+.crm-activity-matrix-table thead th {
+    background: #eaf2fa !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    border-right: 1px solid #e2e8f0 !important;
+    padding: 12px 14px !important;
+    vertical-align: middle !important;
+    font-size: 13px !important;
+    color: #1e3a5f !important;
+    font-weight: 700 !important;
+}
+
+.crm-activity-matrix-table thead th:last-child {
+    border-right: none !important;
+}
+
+.crm-act-col-lead {
+    background: #eaf2fa !important;
+    border-right: 1px solid #cbd5e1 !important;
+}
+
+.crm-act-col-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e3a5f;
+}
+
+.crm-act-header-content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.crm-act-header-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #1e3a5f;
+}
+
+.crm-act-header-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 16px;
+}
+
+.crm-act-progress-bar {
+    height: 6px;
+    border-radius: 9999px;
+    background: #e2e8f0;
+    display: flex;
+    overflow: hidden;
+    flex: 1;
+    min-width: 60px;
+}
+
+.crm-act-prog-seg {
+    height: 100%;
+    transition: width 0.25s ease;
+}
+
+.crm-act-prog-seg.crm-prog-planned {
+    background: #22c55e;
+}
+
+.crm-act-prog-seg.crm-prog-today {
+    background: #f59e0b;
+}
+
+.crm-act-prog-seg.crm-prog-overdue {
+    background: #ef4444;
+}
+
+.crm-act-count-fraction {
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    white-space: nowrap;
+}
+
+/* Matrix Rows and Cells */
+.crm-activity-lead-row {
+    transition: background 0.12s ease;
+}
+
+.crm-activity-lead-row:hover {
+    background-color: #f8fafc;
+}
+
+.crm-activity-matrix-table tbody td {
+    border-bottom: 1px solid #f1f5f9 !important;
+    border-right: 1px solid #f1f5f9 !important;
+    padding: 6px 8px !important;
+    vertical-align: middle !important;
+}
+
+.crm-activity-matrix-table tbody td:last-child {
+    border-right: none !important;
+}
+
+.crm-act-cell-lead {
+    background: #ffffff !important;
+    border-right: 1px solid #e2e8f0 !important;
+}
+
+.crm-act-lead-info-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.crm-act-lead-avatar-box {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.crm-act-avatar-img {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1.5px solid #3b82f6;
+    display: block;
+    flex-shrink: 0;
+}
+
+.crm-act-avatar-circle {
+    width: 34px;
+    height: 34px;
+    background: #e0edfa;
+    color: #1e5ba3;
+    font-size: 14.5px;
+    font-weight: 700;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1.5px solid #3b82f6;
+    line-height: 1;
+}
+
+.crm-act-lead-details {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.crm-act-lead-name {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #0f172a;
+    text-decoration: none;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.15s ease;
+}
+
+.crm-act-lead-name:hover {
+    color: #1e5ba3;
+    text-decoration: underline;
+}
+
+.crm-act-lead-sub {
+    font-size: 12px;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.crm-act-lead-meta {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+}
+
+.crm-act-revenue {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.crm-act-stage-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    display: inline-block;
+    line-height: 1.3;
+}
+
+.crm-act-stage-badge.badge-stage-proposition {
+    background: #d1fae5 !important;
+    color: #065f46 !important;
+}
+
+.crm-act-stage-badge.badge-stage-qualified {
+    background: #dbeafe !important;
+    color: #1e40af !important;
+}
+
+.crm-act-stage-badge.badge-stage-new {
+    background: #f1f5f9 !important;
+    color: #475569 !important;
+}
+
+.crm-act-stage-badge.badge-stage-won {
+    background: #dcfce7 !important;
+    color: #15803d !important;
+}
+
+/* Activity Matrix Populated Cards (Matching Picture 1) */
+.crm-act-matrix-cell {
+    min-width: 175px;
+    height: 60px;
+    padding: 4px !important;
+}
+
+.crm-act-card {
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    min-height: 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    user-select: none;
+    border: 1px solid transparent;
+}
+
+.crm-act-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.crm-act-card.crm-act-card-today {
+    background: #fef3c7 !important;
+    border-color: #fde68a !important;
+}
+.crm-act-card.crm-act-card-today .crm-act-card-summary {
+    color: #92400e !important;
+    font-weight: 600 !important;
+}
+.crm-act-card.crm-act-card-today .crm-act-card-date {
+    color: #92400e !important;
+    font-weight: 500 !important;
+    opacity: 1 !important;
+}
+
+.crm-act-card.crm-act-card-planned {
+    background: #dcfce7 !important;
+    border-color: #bbf7d0 !important;
+}
+.crm-act-card.crm-act-card-planned .crm-act-card-summary {
+    color: #166534 !important;
+    font-weight: 600 !important;
+}
+.crm-act-card.crm-act-card-planned .crm-act-card-date {
+    color: #166534 !important;
+    font-weight: 500 !important;
+    opacity: 1 !important;
+}
+
+.crm-act-card.crm-act-card-overdue {
+    background: #fee2e2 !important;
+    border-color: #fecaca !important;
+}
+.crm-act-card.crm-act-card-overdue .crm-act-card-summary {
+    color: #991b1b !important;
+    font-weight: 600 !important;
+}
+.crm-act-card.crm-act-card-overdue .crm-act-card-date {
+    color: #991b1b !important;
+    font-weight: 500 !important;
+    opacity: 1 !important;
+}
+
+.crm-act-card-summary {
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.crm-act-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 3px;
+}
+
+.crm-act-card-date {
+    font-size: 11px;
+    letter-spacing: -0.2px;
+}
+
+.crm-act-card-user {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.crm-act-card-user-img {
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    display: block;
+}
+
+.crm-act-card-user-circle {
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: #e0edfa;
+    color: #1e5ba3;
+    font-size: 9px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    line-height: 1;
+}
+
+/* Empty Matrix Cell (Matching Picture 1 hover state) */
+.crm-act-cell-empty {
+    width: 100%;
+    height: 100%;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    background: transparent;
+}
+
+.crm-act-cell-empty:hover {
+    background: #f0f7ff;
+    border: 1px dashed #93c5fd;
+}
+
+.crm-act-cell-add-icon {
+    font-size: 16px;
+    font-weight: 600;
+    color: #3b82f6;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    line-height: 1;
+}
+
+.crm-act-cell-empty:hover .crm-act-cell-add-icon {
+    opacity: 1;
+}
+
+/* Footer row */
+.crm-act-bottom-schedule-btn {
+    font-size: 13.5px;
+    color: #1e5ba3 !important;
+    font-weight: 600 !important;
+}
+
+.crm-act-bottom-schedule-btn:hover {
+    color: #15467e !important;
+    text-decoration: underline !important;
 }

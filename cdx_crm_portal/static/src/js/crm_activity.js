@@ -128,6 +128,82 @@
                 container.appendChild(btn);
             });
         });
+
+        // Also refresh Activity Matrix Table row if visible
+        refreshActivityMatrixRow(leadId, acts);
+    }
+
+    // Helper: Update an entire row in the Activity Matrix Table (Picture 1)
+    function refreshActivityMatrixRow(leadId, activities) {
+        var row = document.querySelector('#crm_activity_table tr.crm-activity-lead-row[data-lead-id="' + leadId + '"]');
+        if (!row) return;
+
+        var container = document.getElementById('crm_activity_view_container');
+        var isAdmin = container ? (container.getAttribute('data-is-admin') === 'true') : false;
+        var currentUserId = container ? container.getAttribute('data-current-user-id') : null;
+
+        var remainingActs = (activities || []).filter(function (a) {
+            return (!currentUserId || !a.user_id || String(a.user_id) === String(currentUserId));
+        });
+
+        // Hide row if no activities match the user's view scope
+        if (remainingActs.length === 0) {
+            row.style.display = 'none';
+        } else {
+            row.style.display = '';
+        }
+
+        var typeHeaders = document.querySelectorAll('#crm_activity_table th.crm-act-col-type');
+        typeHeaders.forEach(function (th) {
+            var typeId = th.getAttribute('data-type-id');
+            var cell = row.querySelector('.crm-act-matrix-cell[data-type-id="' + typeId + '"]');
+            if (!cell) return;
+
+            var matchingActs = (activities || []).filter(function (a) {
+                if (String(a.activity_type_id) !== String(typeId)) return false;
+                return (!currentUserId || !a.user_id || String(a.user_id) === String(currentUserId));
+            });
+
+            if (matchingActs.length > 0) {
+                var html = '';
+                matchingActs.forEach(function (act) {
+                    var actSt = act.state || 'planned';
+                    var colorCls = (actSt === 'overdue') ? 'crm-act-card-overdue' : ((actSt === 'today') ? 'crm-act-card-today' : 'crm-act-card-planned');
+                    var userName = act.user_name || 'User';
+                    var userFirstLetter = act.user_initials || (userName.charAt(0) || 'U').toUpperCase();
+                    var dateFormatted = act.date_deadline_formatted || act.date_deadline || '';
+                    if (act.date_deadline && act.date_deadline.includes('-')) {
+                        var parts = act.date_deadline.split('-');
+                        if (parts.length === 3) {
+                            dateFormatted = parts[1] + '/' + parts[2] + '/' + parts[0];
+                        }
+                    }
+
+                    html += '<div class="crm-act-card ' + colorCls + '" data-activity-id="' + act.id + '" data-lead-id="' + leadId + '" data-type-id="' + typeId + '" data-state="' + actSt + '" title="' + escapeHtml(act.activity_type_name || 'Activity') + ': ' + escapeHtml(act.summary || '') + ' (' + actSt + ') - Click to view/edit">';
+                    html += '  <div class="crm-act-card-body">';
+                    html += '    <div class="crm-act-card-summary" title="' + escapeHtml(act.summary || '') + '">' + escapeHtml(act.summary || act.activity_type_name || 'Activity') + '</div>';
+                    html += '    <div class="crm-act-card-footer">';
+                    html += '      <span class="crm-act-card-date">' + escapeHtml(dateFormatted) + '</span>';
+                    html += '      <div class="crm-act-card-user" title="' + escapeHtml(userName) + '">';
+                    if (act.user_avatar) {
+                        html += '        <img src="' + escapeHtml(act.user_avatar) + '" class="crm-act-card-user-img rounded-circle" alt="' + escapeHtml(userName) + '" onerror="this.style.display=\'none\'; if(this.nextElementSibling) this.nextElementSibling.style.display=\'flex\';"/>';
+                    }
+                    html += '        <span class="crm-act-card-user-circle" style="' + (act.user_avatar ? 'display:none;' : 'display:flex;') + '">' + escapeHtml(userFirstLetter) + '</span>';
+                    html += '      </div>';
+                    html += '    </div>';
+                    html += '  </div>';
+                    html += '</div>';
+                });
+                cell.innerHTML = html;
+            } else {
+                var typeName = th.querySelector('.crm-act-header-name') ? th.querySelector('.crm-act-header-name').textContent.trim() : 'Activity';
+                cell.innerHTML = '<div class="crm-act-cell-empty" data-lead-id="' + leadId + '" data-type-id="' + typeId + '" title="Schedule ' + escapeHtml(typeName) + '"><span class="crm-act-cell-add-icon">+</span></div>';
+            }
+        });
+
+        if (window.updateCrmActivityHeaderStats) {
+            window.updateCrmActivityHeaderStats();
+        }
     }
 
     // Helper: Close existing popover
@@ -403,68 +479,88 @@
         // 2. Body
         html += '<div class="crm-act-dialog-body">';
 
-        // Activity Type selection pills (Matching Picture 2)
+        // Activity Type selection pills (Matching Picture 1 & 2)
         html += '  <div class="crm-act-type-pills">';
         types.forEach(function (t) {
             var isActive = (t.id === selectedTypeId);
             var activeCls = isActive ? ' active' : '';
             var iconHtml = isActive ? '<i class="fa fa-check"></i>' : ('<i class="fa ' + escapeHtml(t.icon || 'fa-tasks') + '"></i>');
-            html += '    <button type="button" class="crm-act-type-pill' + activeCls + '" data-type-id="' + t.id + '" data-default-summary="' + escapeHtml(t.default_summary || t.name) + '" data-icon="' + escapeHtml(t.icon || 'fa-tasks') + '">';
+            html += '    <button type="button" class="crm-act-type-pill' + activeCls + '" data-type-id="' + t.id + '" data-category="' + escapeHtml(t.category || '') + '" data-default-summary="' + escapeHtml(t.default_summary || t.name) + '" data-icon="' + escapeHtml(t.icon || 'fa-tasks') + '">';
             html += '      ' + iconHtml + ' <span>' + escapeHtml(t.name) + '</span>';
             html += '    </button>';
         });
         html += '  </div>';
 
-        // Fields: Summary, Due Date, Assigned to, Log a note... (Matching Picture 2)
-        html += '  <div class="crm-act-field-row">';
-        html += '    <label class="crm-act-field-label">Summary</label>';
-        html += '    <div class="crm-act-field-control">';
-        html += '      <input type="text" id="crm_act_summary_input" class="crm-act-text-input" value="' + escapeHtml(initialSummary) + '" placeholder="Summary">';
-        html += '    </div>';
+        // Meeting Banner Container (Matching Picture 1 when Meeting pill is active)
+        html += '  <div id="crm_act_meeting_banner" class="crm-act-meeting-banner" style="display: none;">';
+        html += '    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">';
+        html += '      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>';
+        html += '      <line x1="16" y1="2" x2="16" y2="6"></line>';
+        html += '      <line x1="8" y1="2" x2="8" y2="6"></line>';
+        html += '      <line x1="3" y1="10" x2="21" y2="10"></line>';
+        html += '      <line x1="8" y1="14" x2="8.01" y2="14"></line>';
+        html += '      <line x1="12" y1="14" x2="12.01" y2="14"></line>';
+        html += '      <line x1="16" y1="14" x2="16.01" y2="14"></line>';
+        html += '      <line x1="8" y1="18" x2="8.01" y2="18"></line>';
+        html += '      <line x1="12" y1="18" x2="12.01" y2="18"></line>';
+        html += '      <line x1="16" y1="18" x2="16.01" y2="18"></line>';
+        html += '    </svg>';
+        html += '    <div class="crm-act-meeting-banner-text">Schedule a meeting in your calendar</div>';
         html += '  </div>';
 
-        html += '  <div class="crm-act-field-row">';
-        html += '    <label class="crm-act-field-label">Due Date</label>';
-        html += '    <div class="crm-act-field-control">';
-        html += '      <input type="date" id="crm_act_date_input" class="crm-act-text-input" value="' + escapeHtml(initialDate) + '">';
+        // Standard Fields Container (Summary, Due Date, Assigned to, Log a note)
+        html += '  <div id="crm_act_standard_fields">';
+        html += '    <div class="crm-act-field-row">';
+        html += '      <label class="crm-act-field-label">Summary</label>';
+        html += '      <div class="crm-act-field-control">';
+        html += '        <input type="text" id="crm_act_summary_input" class="crm-act-text-input" value="' + escapeHtml(initialSummary) + '" placeholder="Summary">';
+        html += '      </div>';
         html += '    </div>';
-        html += '  </div>';
 
-        html += '  <div class="crm-act-field-row crm-act-field-row-user">';
-        html += '    <label class="crm-act-field-label">Assigned to</label>';
-        html += '    <div class="crm-act-field-control">';
-        html += '      <div class="crm-act-user-wrapper">';
-        html += '        <span id="crm_act_user_avatar" class="crm-act-user-avatar-pill">' + escapeHtml(displayInitials) + '</span>';
+        html += '    <div class="crm-act-field-row">';
+        html += '      <label class="crm-act-field-label">Due Date</label>';
+        html += '      <div class="crm-act-field-control">';
+        html += '        <input type="date" id="crm_act_date_input" class="crm-act-text-input" value="' + escapeHtml(initialDate) + '">';
+        html += '      </div>';
+        html += '    </div>';
+
+        html += '    <div class="crm-act-field-row crm-act-field-row-user">';
+        html += '      <label class="crm-act-field-label">Assigned to</label>';
+        html += '      <div class="crm-act-field-control">';
+        html += '        <div class="crm-act-user-wrapper">';
+        html += '          <span id="crm_act_user_avatar" class="crm-act-user-avatar-pill">' + escapeHtml(displayInitials) + '</span>';
         if (isAdmin) {
-            html += '        <select id="crm_act_user_id" class="crm-act-user-select" title="Assigned to">';
+            html += '          <select id="crm_act_user_id" class="crm-act-user-select" title="Assigned to">';
             var userInList = users.some(function (u) { return u.id === displayUserId; });
             if (!userInList && displayUserId) {
-                html += '          <option value="' + escapeHtml(displayUserId) + '" selected="selected">' + escapeHtml(displayName) + '</option>';
+                html += '            <option value="' + escapeHtml(displayUserId) + '" selected="selected">' + escapeHtml(displayName) + '</option>';
             }
             users.forEach(function (u) {
                 var isSelected = (u.id === displayUserId);
-                html += '          <option value="' + u.id + '"' + (isSelected ? ' selected="selected"' : '') + '>' + escapeHtml(u.name) + '</option>';
+                html += '            <option value="' + u.id + '"' + (isSelected ? ' selected="selected"' : '') + '>' + escapeHtml(u.name) + '</option>';
             });
-            html += '        </select>';
+            html += '          </select>';
         } else {
-            html += '        <span id="crm_act_user_name" class="crm-act-user-name-text">' + escapeHtml(displayName) + '</span>';
-            html += '        <input type="hidden" id="crm_act_user_id" value="' + escapeHtml(displayUserId) + '">';
+            html += '          <span id="crm_act_user_name" class="crm-act-user-name-text">' + escapeHtml(displayName) + '</span>';
+            html += '          <input type="hidden" id="crm_act_user_id" value="' + escapeHtml(displayUserId) + '">';
         }
+        html += '        </div>';
         html += '      </div>';
         html += '    </div>';
-        html += '  </div>';
 
-        // Log a note row (Matching Picture 2: clean input with placeholder and underline)
-        html += '  <div class="crm-act-note-row">';
-        html += '    <div id="crm_act_note_input" class="crm-act-note-input" contenteditable="true" data-placeholder="Log a note..." role="textbox" aria-multiline="true"></div>';
-        html += '  </div>';
+        // Log a note row
+        html += '    <div class="crm-act-note-row">';
+        html += '      <div id="crm_act_note_input" class="crm-act-note-input" contenteditable="true" data-placeholder="Log a note..." role="textbox" aria-multiline="true"></div>';
+        html += '    </div>';
+        html += '  </div>'; // End crm_act_standard_fields
 
         html += '</div>'; // End body
 
-        // 3. Footer Buttons (Matching Picture 2: Blue Save, Mark Done, Discard)
+        // 3. Footer Buttons (Matching Picture 1 & 2: Purple Schedule button for Meeting, Save/Done for others)
         html += '<div class="crm-act-dialog-footer">';
-        html += '  <button type="button" class="crm-act-btn-save">Save</button>';
-        html += '  <button type="button" class="crm-act-btn-done">Mark Done</button>';
+        html += '  <button type="button" class="crm-act-btn-schedule" id="crm_act_schedule_btn" style="display: none;">Schedule</button>';
+        html += '  <button type="button" class="crm-act-btn-save" id="crm_act_save_btn">Save</button>';
+        html += '  <button type="button" class="crm-act-btn-done" id="crm_act_done_btn">Mark Done</button>';
         html += '  <button type="button" class="crm-act-btn-discard">Discard</button>';
         html += '</div>';
 
@@ -549,6 +645,28 @@
             if (e.target === backdrop) handleClose();
         });
 
+        // Toggle Meeting View Mode (Matching Picture 1: Calendar Graphic + Schedule Button)
+        var schedBtn = dialog.querySelector('#crm_act_schedule_btn');
+        var banner = dialog.querySelector('#crm_act_meeting_banner');
+        var stdFields = dialog.querySelector('#crm_act_standard_fields');
+
+        function toggleMeetingMode(isMeeting) {
+            if (banner) banner.style.display = isMeeting ? 'block' : 'none';
+            if (stdFields) stdFields.style.display = isMeeting ? 'none' : 'block';
+            if (schedBtn) schedBtn.style.display = isMeeting ? 'inline-block' : 'none';
+            if (saveBtn) saveBtn.style.display = isMeeting ? 'none' : 'inline-block';
+            if (doneBtn) doneBtn.style.display = isMeeting ? 'none' : 'inline-block';
+        }
+
+        if (schedBtn) {
+            schedBtn.addEventListener('click', function () {
+                closeModal();
+                if (window.openCrmMeetingCalendar) {
+                    window.openCrmMeetingCalendar(leadId);
+                }
+            });
+        }
+
         // Pill Selection Logic (Picture 1: pill checkmark and blue tint)
         pills.forEach(function (pill) {
             pill.addEventListener('click', function () {
@@ -565,6 +683,10 @@
 
                 currentSelectedTypeId = parseInt(pill.getAttribute('data-type-id'), 10);
                 var defSummary = pill.getAttribute('data-default-summary') || '';
+                var cat = pill.getAttribute('data-category') || '';
+                var pName = (spanNow ? spanNow.textContent : '').toLowerCase();
+                var isMeet = (cat === 'meeting' || pName.includes('meet'));
+                toggleMeetingMode(isMeet);
 
                 // If summary matches another default or is blank, update to new default
                 var currentVal = summaryInput.value.trim();
@@ -574,6 +696,16 @@
                 }
             });
         });
+
+        // Initialize mode based on currently active pill
+        var activePill = dialog.querySelector('.crm-act-type-pill.active');
+        if (activePill) {
+            var initCat = activePill.getAttribute('data-category') || '';
+            var initName = activePill.textContent.toLowerCase();
+            if (initCat === 'meeting' || initName.includes('meet')) {
+                toggleMeetingMode(true);
+            }
+        }
 
         // Helper to retrieve assigned user ID (logged-in user)
         function getAssignedUserId() {
@@ -695,7 +827,7 @@
     window.openScheduleActivityModal = openScheduleActivityModal;
     window.refreshLeadCardActivities = refreshLeadCardActivities;
 
-    // Direct edit handler when clicking an activity icon on a lead card
+    // Direct edit handler when clicking an activity icon on a lead card or matrix cell
     window.openEditActivityModal = async function (leadId, activityId, targetBtn) {
         if (!leadId) return;
         var data = await rpcCall('/portal/activity/lead_activities', { lead_id: leadId });
@@ -711,5 +843,132 @@
         }
         openScheduleActivityModal(leadId, actData || null, targetBtn);
     };
+
+    // Calculate & render summary progress bars & fraction count in activity table headers (Picture 1)
+    window.updateCrmActivityHeaderStats = function () {
+        var table = document.getElementById('crm_activity_table');
+        if (!table) return;
+
+        var typeHeaders = table.querySelectorAll('th.crm-act-col-type');
+        var visibleRows = table.querySelectorAll('tr.crm-activity-lead-row:not([style*="display: none"])');
+
+        typeHeaders.forEach(function (th) {
+            var typeId = th.getAttribute('data-type-id');
+            var plannedCount = 0;
+            var todayCount = 0;
+            var overdueCount = 0;
+
+            visibleRows.forEach(function (row) {
+                var cell = row.querySelector('.crm-act-matrix-cell[data-type-id="' + typeId + '"]');
+                if (cell) {
+                    var cards = cell.querySelectorAll('.crm-act-card');
+                    cards.forEach(function (card) {
+                        var st = card.getAttribute('data-state');
+                        if (st === 'overdue' || card.classList.contains('crm-act-card-overdue')) {
+                            overdueCount++;
+                        } else if (st === 'today' || card.classList.contains('crm-act-card-today')) {
+                            todayCount++;
+                        } else {
+                            plannedCount++;
+                        }
+                    });
+                }
+            });
+
+            var totalCount = plannedCount + todayCount + overdueCount;
+
+            var progBar = th.querySelector('.crm-act-progress-bar');
+            if (progBar) {
+                var segPlanned = progBar.querySelector('.crm-prog-planned');
+                var segToday = progBar.querySelector('.crm-prog-today');
+                var segOverdue = progBar.querySelector('.crm-prog-overdue');
+
+                if (totalCount > 0) {
+                    var pctPlanned = (plannedCount / totalCount) * 100;
+                    var pctToday = (todayCount / totalCount) * 100;
+                    var pctOverdue = (overdueCount / totalCount) * 100;
+
+                    if (segPlanned) segPlanned.style.width = pctPlanned + '%';
+                    if (segToday) segToday.style.width = pctToday + '%';
+                    if (segOverdue) segOverdue.style.width = pctOverdue + '%';
+                    progBar.style.display = 'flex';
+                } else {
+                    if (segPlanned) segPlanned.style.width = '0%';
+                    if (segToday) segToday.style.width = '0%';
+                    if (segOverdue) segOverdue.style.width = '0%';
+                    progBar.style.display = 'none';
+                }
+            }
+
+            var fractionEl = th.querySelector('.crm-act-count-fraction');
+            if (fractionEl) {
+                if (totalCount > 0) {
+                    fractionEl.textContent = totalCount + ' /' + totalCount;
+                    fractionEl.style.display = 'inline-block';
+                } else {
+                    fractionEl.textContent = '';
+                    fractionEl.style.display = 'none';
+                }
+            }
+        });
+    };
+
+    // Event Delegation on Activity Matrix Table (Picture 1)
+    document.addEventListener('click', function (e) {
+        // 1. Click on populated activity card
+        var card = e.target.closest('#crm_activity_table .crm-act-card');
+        if (card) {
+            e.preventDefault();
+            e.stopPropagation();
+            var leadId = card.getAttribute('data-lead-id');
+            var activityId = card.getAttribute('data-activity-id');
+            if (leadId && activityId) {
+                window.openEditActivityModal(leadId, activityId, card);
+            }
+            return;
+        }
+
+        // 2. Click on empty cell to schedule
+        var emptyCell = e.target.closest('#crm_activity_table .crm-act-cell-empty, #crm_activity_table .crm-act-matrix-cell:empty');
+        if (emptyCell) {
+            e.preventDefault();
+            e.stopPropagation();
+            var leadId = emptyCell.getAttribute('data-lead-id') || (emptyCell.closest('td') ? emptyCell.closest('td').getAttribute('data-lead-id') : null);
+            var typeId = emptyCell.getAttribute('data-type-id') || (emptyCell.closest('td') ? emptyCell.closest('td').getAttribute('data-type-id') : null);
+            if (leadId) {
+                var defaultData = typeId ? { activity_type_id: parseInt(typeId, 10) } : null;
+                openScheduleActivityModal(leadId, defaultData, emptyCell);
+            }
+            return;
+        }
+
+        // 3. Click on + Schedule activity bottom button
+        var bottomBtn = e.target.closest('#crm_act_bottom_schedule_btn');
+        if (bottomBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            var visibleRows = document.querySelectorAll('#crm_activity_table tr.crm-activity-lead-row:not([style*="display: none"])');
+            var targetLeadId = visibleRows.length > 0 ? visibleRows[0].getAttribute('data-lead-id') : null;
+            if (!targetLeadId) {
+                var firstRow = document.querySelector('#crm_activity_table tr.crm-activity-lead-row');
+                targetLeadId = firstRow ? firstRow.getAttribute('data-lead-id') : null;
+            }
+            if (targetLeadId) {
+                openScheduleActivityModal(targetLeadId, null, bottomBtn);
+            }
+            return;
+        }
+    });
+
+    // Run header stats update when DOM is loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.updateCrmActivityHeaderStats) {
+                setTimeout(window.updateCrmActivityHeaderStats, 100);
+            }
+        });
+    } else {
+        setTimeout(window.updateCrmActivityHeaderStats, 100);
+    }
 
 })();

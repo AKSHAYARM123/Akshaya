@@ -37,6 +37,7 @@ Administrators can:
             'cdx_crm_portal/static/src/css/crm_portal.css',
             'cdx_crm_portal/static/src/css/crm_portal_messages.css',
             'cdx_crm_portal/static/src/css/crm_activity.css',
+            'cdx_crm_portal/static/src/css/crm_calendar.css',
             'cdx_crm_portal/static/src/css/crm_convert_modal.css',
             'cdx_crm_portal/static/src/css/crm_lead_detail.css',
             'cdx_crm_portal/static/src/js/crm_pipeline.js',
@@ -45,6 +46,7 @@ Administrators can:
             'cdx_crm_portal/static/src/js/crm_leads_list.js',
             'cdx_crm_portal/static/src/js/crm_portal_messages.js',
             'cdx_crm_portal/static/src/js/crm_activity.js',
+            'cdx_crm_portal/static/src/js/crm_calendar.js',
         ],
     },
 
