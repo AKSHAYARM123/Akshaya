@@ -64,8 +64,20 @@
                             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 w-100">
                                 <div class="d-flex align-items-center gap-3 gap-md-4">
                                     <t t-set="display_user" t-value="user_id if user_id else request.env.user"/>
-                                    <div class="o_portal_avatar_circle d-flex align-items-center justify-content-center text-white fw-bold">
-                                        <t t-out="''.join([w[0].upper() for w in (display_user.name or '').split()[:2]]) if display_user.name else 'U'"/>
+                                    <div class="o_portal_avatar_circle d-flex align-items-center justify-content-center text-white fw-bold overflow-hidden" style="position: relative;">
+                                        <t t-if="display_user.image_128 or (display_user.partner_id and display_user.partner_id.image_128)">
+                                            <img t-att-src="'/web/image/res.users/%s/avatar_128' % display_user.id"
+                                                 alt="User Avatar"
+                                                 class="w-100 h-100 rounded-circle"
+                                                 style="object-fit: cover;"
+                                                 onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"/>
+                                            <span class="d-none w-100 h-100 align-items-center justify-content-center text-white fw-bold">
+                                                <t t-out="''.join([w[0].upper() for w in (display_user.name or '').split()[:2]]) if display_user.name else 'U'"/>
+                                            </span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-out="''.join([w[0].upper() for w in (display_user.name or '').split()[:2]]) if display_user.name else 'U'"/>
+                                        </t>
                                     </div>
                                     <div class="o_portal_user_info d-flex flex-column justify-content-center">
                                         <h2 class="mb-0 fw-bold o_portal_user_name" t-out="display_user.name"/>
